@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>&lt;Nome do produto&gt; — Identidade Visual</title>
+  <!-- Agente: trocar fonte; evitar Inter/Roboto/Arial como face principal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* SUBSTITUIR tokens por paleta ÚNICA do projeto (não copiar GestorJob) */
+    :root {
+      --brand-primary: #1e3a5f;
+      --brand-primary-soft: #e8eef5;
+      --brand-accent: #c45c26;
+      --brand-accent-soft: #fdf0e9;
+      --brand-ink: #141a22;
+      --brand-muted: #5c6570;
+      --brand-faint: #8b949e;
+      --brand-line: #d8dee6;
+      --brand-bg: #f4f6f8;
+      --brand-surface: #ffffff;
+      --brand-warn: #b86a14;
+      --brand-warn-soft: #fff4e5;
+      --brand-danger: #b42318;
+      --brand-danger-soft: #fdecea;
+      --radius: 10px;
+      --font: "DM Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--brand-ink);
+      background:
+        radial-gradient(ellipse 70% 45% at 0% 0%, color-mix(in srgb, var(--brand-primary) 12%, transparent), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 100% 10%, color-mix(in srgb, var(--brand-accent) 10%, transparent), transparent 50%),
+        var(--brand-bg);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 36px 22px 80px; }
+    h1 { margin: 0 0 8px; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: var(--brand-primary); }
+    h2 { margin: 40px 0 12px; font-size: 1.35rem; font-weight: 800; color: var(--brand-primary); }
+    h3 { margin: 0 0 8px; font-size: 1rem; font-weight: 700; }
+    p { margin: 0 0 12px; color: var(--brand-muted); max-width: 70ch; }
+    a { color: var(--brand-accent); font-weight: 700; text-decoration: none; }
+    .tag {
+      display: inline-flex; font-size: .8rem; font-weight: 700;
+      color: var(--brand-primary); background: var(--brand-primary-soft);
+      padding: 4px 10px; border-radius: 999px;
+    }
+    .hero { padding: 28px 0 8px; border-bottom: 1px solid var(--brand-line); margin-bottom: 8px; }
+    .logo-hero {
+      display: flex; justify-content: center; padding: 28px; margin-top: 14px;
+      background: var(--brand-surface); border: 1px solid var(--brand-line); border-radius: 14px;
+    }
+    .logo-mark {
+      font-size: 2rem; font-weight: 800; letter-spacing: -0.03em;
+      color: var(--brand-primary);
+    }
+    .logo-mark span { color: var(--brand-accent); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 800px) { .grid-2, .grid-4 { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--brand-surface); border: 1px solid var(--brand-line);
+      border-radius: var(--radius); padding: 16px;
+    }
+    .swatch { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--brand-line); background: var(--brand-surface); }
+    .swatch .chip { height: 88px; }
+    .swatch .meta { padding: 10px 12px; font-size: .85rem; }
+    .swatch strong { display: block; }
+    .swatch span { color: var(--brand-muted); font-family: ui-monospace, Consolas, monospace; font-size: .78rem; }
+    .type-sample { padding: 8px 0; border-bottom: 1px solid var(--brand-line); }
+    .type-sample:last-child { border-bottom: 0; }
+    .type-sample .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--brand-faint); font-weight: 700; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+      border-radius: 999px; padding: 10px 16px; font-size: .9rem;
+    }
+    .btn-primary { background: var(--brand-accent); color: #fff; }
+    .btn-secondary { background: var(--brand-primary); color: #fff; }
+    .btn-ghost { background: transparent; border: 1px solid var(--brand-line); color: var(--brand-primary); }
+    .pill {
+      display: inline-flex; font-size: .75rem; font-weight: 700; padding: 3px 9px;
+      border-radius: 999px; border: 1px solid var(--brand-line); background: var(--brand-primary-soft);
+      color: var(--brand-primary);
+    }
+    .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 700px) { .do-dont { grid-template-columns: 1fr; } }
+    .do { border-left: 3px solid var(--brand-primary); }
+    .dont { border-left: 3px solid var(--brand-danger); }
+    ul.clean { margin: 0; padding-left: 18px; color: var(--brand-muted); }
+    ul.clean li { margin: 4px 0; }
+    .token {
+      font-family: ui-monospace, Consolas, monospace; font-size: .8rem;
+      background: var(--brand-primary-soft); padding: 2px 6px; border-radius: 4px; color: var(--brand-primary);
+    }
+    footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--brand-line); font-size: .85rem; color: var(--brand-faint); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div><span class="tag">Brand kit · &lt;Nome do produto&gt;</span></div>
+      <h1>&lt;Slogan ou nome&gt;</h1>
+      <p>
+        Identidade para o protótipo hi-fi.
+        <!-- Agente: 1–2 frases do conceito de marca, únicas deste projeto -->
+        Substituir este texto pelo conceito visual alinhado ao brief.
+      </p>
+      <p>
+        Hi-fi: <a href="prototipo-hifi.html">prototipo-hifi.html</a>
+        · Lo-fi: <a href="../02-lofi/prototipo-lofi.html">prototipo-lofi.html</a>
+      </p>
+    </div>
+
+    <h2>1. Logotipo</h2>
+    <div class="logo-hero">
+      <!-- Preferir <img src="assets/brand/logo-principal.svg"> quando existir -->
+      <div class="logo-mark">Nome<span>Produto</span></div>
+    </div>
+    <div class="grid-2" style="margin-top:14px">
+      <div class="panel">
+        <h3>Opção 1 — principal</h3>
+        <p style="margin:0;font-size:.9rem">Uso em login, onboarding e materiais.</p>
+      </div>
+      <div class="panel">
+        <h3>Opção 2 — compacta</h3>
+        <p style="margin:0;font-size:.9rem">Headers estreitos e favicon/wordmark curto.</p>
+      </div>
+    </div>
+
+    <h2>2. Construção tipográfica</h2>
+    <div class="panel">
+      <ul class="clean">
+        <li><strong>Wordmark</strong> — regras de peso e hierarquia do nome.</li>
+        <li><strong>Símbolo</strong> — se houver ícone, explicar significado.</li>
+        <li><strong>Slogan</strong> — frase curta do produto.</li>
+      </ul>
+    </div>
+
+    <h2>3. Paleta</h2>
+    <div class="grid-4">
+      <div class="swatch"><div class="chip" style="background:var(--brand-primary)"></div><div class="meta"><strong>Primary</strong><span class="token">--brand-primary</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-accent)"></div><div class="meta"><strong>Accent</strong><span class="token">--brand-accent</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-primary-soft)"></div><div class="meta"><strong>Primary soft</strong><span class="token">--brand-primary-soft</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-accent-soft)"></div><div class="meta"><strong>Accent soft</strong><span class="token">--brand-accent-soft</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-ink)"></div><div class="meta"><strong>Ink</strong><span class="token">--brand-ink</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-bg)"></div><div class="meta"><strong>Background</strong><span class="token">--brand-bg</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-warn)"></div><div class="meta"><strong>Warn</strong><span class="token">--brand-warn</span></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--brand-danger)"></div><div class="meta"><strong>Danger</strong><span class="token">--brand-danger</span></div></div>
+    </div>
+    <p style="margin-top:12px">Documentar papéis: primary = estrutura · accent = CTA · danger/warn = alerta.</p>
+
+    <h2>4. Tipografia</h2>
+    <div class="panel">
+      <div class="type-sample"><div class="label">Display</div><div style="font-size:2rem;font-weight:800;color:var(--brand-primary)">Nome do produto</div></div>
+      <div class="type-sample"><div class="label">H1 — 800</div><div style="font-size:1.75rem;font-weight:800">Título de tela</div></div>
+      <div class="type-sample"><div class="label">H2 — 700</div><div style="font-size:1.25rem;font-weight:700">Seção</div></div>
+      <div class="type-sample"><div class="label">Body — 500</div><div style="font-size:1rem;font-weight:500;color:var(--brand-muted)">Texto de apoio operacional.</div></div>
+      <p style="margin-top:12px;margin-bottom:0">Família escolhida no projeto. Evitar Inter, Roboto e Arial como face principal.</p>
+    </div>
+
+    <h2>5. Componentes</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Botões</h3>
+        <p style="margin:0 0 8px;font-size:.85rem">CTA com verbo, uma linha, um ícone. Um primário por tela. Cancelar = ghost.</p>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary" type="button">Salvar</button>
+          <button class="btn btn-secondary" type="button">Voltar</button>
+          <button class="btn btn-ghost" type="button">Cancelar</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Badges</h3>
+        <div class="btn-row" style="margin-top:10px">
+          <span class="pill">Status</span>
+          <span class="pill" style="background:var(--brand-accent-soft);color:var(--brand-accent)">Destaque</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>6. Motivo gráfico</h2>
+    <div class="panel">
+      <p style="margin:0">Elemento-assinatura do produto (se houver): gradiente, ícone, padrão. Se não houver, explicar “sem motivo fixo — UI limpa”.</p>
+    </div>
+
+    <h2>7. Tom de voz</h2>
+    <div class="panel">
+      <ul class="clean">
+        <li>Bullet 1 — alinhado ao brief</li>
+        <li>Bullet 2</li>
+        <li>Bullet 3</li>
+      </ul>
+    </div>
+
+    <h2>8. Do’s / Don’ts</h2>
+    <div class="do-dont">
+      <div class="panel do">
+        <h3>Faça</h3>
+        <ul class="clean">
+          <li>Respeitar tokens da paleta</li>
+          <li>Manter contraste acessível</li>
+        </ul>
+      </div>
+      <div class="panel dont">
+        <h3>Não faça</h3>
+        <ul class="clean">
+          <li>Copiar paleta de outro produto Educraft</li>
+          <li>Roxo/glow genérico “AI”</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>9. Mapa do protótipo hi-fi</h2>
+    <div class="panel">
+      <ul class="clean">
+        <li>Listar áreas do MVP (espelhar mapa-telas.md)</li>
+      </ul>
+      <p style="margin-top:12px;margin-bottom:0">Abrir: <a href="prototipo-hifi.html">prototipo-hifi.html</a></p>
+    </div>
+
+    <footer>
+      Assets em <span class="token">assets/brand/</span> · Preencher <span class="token">identidade.md</span> (origem material ou gerada).
+    </footer>
+  </div>
+</body>
+</html>

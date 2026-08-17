@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lo-fi — &lt;slug&gt;</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:0;background:#f7f6f3;color:#1c1b19}
+    .page{max-width:1100px;margin:0 auto;padding:24px}
+    h1{font-size:1.5rem}
+    .muted{color:#5c5954}
+    nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+    nav button{padding:8px 12px;border:1px solid #c4beb2;background:#fff;cursor:pointer}
+    section{display:none;background:#fff;border:1px solid #ddd8ce;padding:16px;border-radius:6px}
+    section.active{display:block}
+    .wire{border:2px dashed #c4beb2;padding:12px;margin:8px 0;min-height:48px;color:#8a857c}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Protótipo lo-fi — &lt;slug&gt;</h1>
+    <p class="muted">Base Educraft. Substituir fluxos/telas na E2. Feedback em feedback.md.</p>
+    <nav>
+      <button type="button" data-tab="fluxo">Fluxo</button>
+      <button type="button" data-tab="tela">Tela exemplo</button>
+    </nav>
+    <section id="fluxo" class="active"><h2>Fluxo</h2><div class="wire">Mapa de fluxo por perfil</div></section>
+    <section id="tela"><h2>Tela</h2><div class="wire">Header</div><div class="wire">Conteúdo</div><div class="wire">Ações</div></section>
+  </div>
+  <script>
+    document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+      document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+      document.getElementById(b.dataset.tab).classList.add('active');
+    }));
+  </script>
+</body>
+</html>

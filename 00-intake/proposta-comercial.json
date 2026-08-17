@@ -1,0 +1,85 @@
+{
+  "modelo": "simples",
+  "cliente": "Funerária Baldan",
+  "projeto": "Ponte fiscal NFC-e com Gold System",
+  "data": "12/08/2026",
+  "validade_dias": 15,
+  "mostrar_proximos_passos": false,
+  "desenvolvimento": 2480,
+  "mensalidade": 197,
+  "pagamento": "Desenvolvimento de R$ 2.480,00 em até 10×: entrada de R$ 248,00 + 9 parcelas de R$ 248,00. Mensalidade de R$ 197,00 a partir da entrega, cobrada mensalmente — já inclui a emissão das NFC-e pela Educraft. O desenvolvimento do lado Gold System é à parte, conforme o acordo deles com vocês.",
+  "label_desenvolvimento": "Desenvolvimento",
+  "hint_desenvolvimento": "Até 10×: entrada R$ 248 + 9× R$ 248.",
+  "label_mensalidade": "Todo mês",
+  "hint_mensalidade": "Ponte no ar, suporte e emissão de NFC-e embutidos.",
+  "problema_simples": "A Funerária Baldan já usa o Gold System no dia a dia das vendas e do atendimento. O sistema, porém, não emite nota fiscal eletrônica (NFC-e). Hoje falta uma ponte automática entre a venda feita no Gold e a emissão da nota para o cliente final — o que gera retrabalho, risco de atraso e menos segurança fiscal.",
+  "solucao_simples": "A Educraft desenvolve um serviço intermediário (ponte fiscal): quando a venda for concluída no Gold System, os dados chegam automaticamente ao nosso sistema; nós montamos e emitimos a NFC-e com o certificado digital da empresa. A equipe da Baldan acompanha tudo em um painel simples: nota autorizada, pendente ou com erro — com download do XML e do DANFE quando disponível. O Gold System cuida da parte deles (envio da venda); a Educraft cuida da emissão e do acompanhamento fiscal.",
+  "beneficio_simples": "Vocês continuam vendendo no Gold como já fazem. A nota fiscal de consumidor (NFC-e) sai sem digitar de novo os dados da venda. Menos papel, menos erro e mais tranquilidade na hora de entregar o comprovante fiscal à família.",
+  "o_que_voce_recebe": [
+    "Ponte automática: venda concluída no Gold System → emissão da NFC-e pela Educraft",
+    "Painel simples para a equipe: listar notas, ver status (autorizada, processando, rejeitada), baixar XML e DANFE",
+    "Tratamento de erros legível (ex.: CPF incompleto, rejeição da SEFAZ) para corrigir e tentar de novo quando fizer sentido",
+    "Configuração da emissão com o certificado digital A1 que vocês já possuem",
+    "Emissão de NFC-e incluída na mensalidade",
+    "Configuração inicial dos dados fiscais necessários à NFC-e (empresa, série/numeração conforme orientação do contador)",
+    "Ambiente de testes antes de ir para produção, para validar o fluxo com a Gold e com a SEFAZ em homologação",
+    "Documentação curta de uso para a equipe (como consultar, baixar e o que fazer se a nota falhar)",
+    "Alinhamento técnico com a equipe Gold System (formato dos dados da venda que eles enviam e o que a ponte precisa receber)",
+    "Hospedagem e monitoramento básicos da ponte, cobertos pela mensalidade",
+    "Suporte Educraft para dúvidas de uso e falhas da ponte (não substitui o suporte Gold nem o contador)"
+  ],
+  "o_que_nao_entra": [
+    "Desenvolvimento, cobrança ou manutenção do lado Gold System (fica com a Gold, conforme o acordo deles com vocês)",
+    "Emissão de NF-e (nota para empresa) — este pacote é somente NFC-e; NF-e pode ser uma etapa futura",
+    "Alteração de cadastros, produtos ou rotinas dentro do Gold System",
+    "Assessoria contábil, definição de CST/CFOP/alíquotas ou responsabilidade por enquadramento fiscal (orientação do contador da Baldan)",
+    "Certificado digital (vocês já possuem; renovação futura permanece com a Baldan)",
+    "App mobile, boletos, PIX, estoque, CRM ou qualquer módulo fora da ponte fiscal NFC-e",
+    "Integração com outros sistemas além do fluxo Gold System → Educraft → emissão da NFC-e"
+  ],
+  "prazo_simples": "Estimativa de 3 a 4 semanas após a aprovação e o alinhamento inicial com a Gold System (depende também do prazo de liberação do envio de vendas pelo lado deles).",
+  "prazo_lead": "Contamos com acesso ao certificado, dados da empresa e um contador de referência para dúvidas fiscais pontuais.",
+  "investimento_resumo": "R$ 2.480 para desenvolver e colocar a ponte NFC-e no ar (até 10×) + R$ 197 por mês para manter a ponte, o suporte e a emissão das notas. O trabalho da Gold System é custo à parte.",
+  "gargalo": "Gold System sem módulo fiscal NFC-e; vendas feitas no sistema não geram nota automaticamente.",
+  "objetivo": "Entregar uma ponte fiscal enxuta: venda no Gold → emissão de NFC-e pela Educraft, com painel de acompanhamento para a equipe Baldan.",
+  "inclui": [
+    "Recepção dos dados de venda enviados pelo Gold System",
+    "Emissão de NFC-e (incluída na mensalidade)",
+    "Painel de consulta, download e reprocessamento básico",
+    "Configuração fiscal da empresa na plataforma Educraft",
+    "Homologação conjunta com Gold System"
+  ],
+  "nao_inclui": [
+    "Desenvolvimento Gold System",
+    "NF-e",
+    "Consultoria contábil"
+  ],
+  "prazo": [
+    { "fase": "Alinhamento Baldan + Educraft + formato com Gold", "duracao": "3–5 dias úteis" },
+    { "fase": "Desenvolvimento da ponte e painel", "duracao": "8–12 dias úteis" },
+    { "fase": "Testes em homologação + ajustes", "duracao": "3–5 dias úteis" },
+    { "fase": "Go-live produção", "duracao": "1–2 dias úteis" },
+    { "fase": "Total", "duracao": "3–4 semanas (sujeito ao prazo Gold)" }
+  ],
+  "prazo_nota": "O prazo Educraft corre em paralelo ao desenvolvimento da Gold; a ponte só entra em produção automática quando o envio de vendas estiver liberado do lado deles.",
+  "horas": 48,
+  "valor_hora": 50,
+  "composicao_horas": [
+    { "atividade": "Alinhamento e contrato de dados com Gold", "horas": 6 },
+    { "atividade": "Ponte de recepção e validação da venda", "horas": 10 },
+    { "atividade": "Integração de emissão NFC-e", "horas": 12 },
+    { "atividade": "Painel de notas e downloads", "horas": 10 },
+    { "atividade": "Homologação, go-live e documentação", "horas": 10 }
+  ],
+  "stack": [
+    "API intermediária Educraft",
+    "Emissão de NFC-e",
+    "Painel web simples de acompanhamento",
+    "Hospedagem sob operação Educraft"
+  ],
+  "entregaveis": [
+    { "item": "Ponte fiscal NFC-e em produção", "formato": "Serviço hospedado Educraft" },
+    { "item": "Painel de acompanhamento de notas", "formato": "Acesso web para a equipe" },
+    { "item": "Guia rápido de uso", "formato": "PDF / documento curto" }
+  ]
+}
