@@ -1,28 +1,36 @@
-# Identidade visual — `<slug>`
+# Identidade visual — `funeraria-baldan-nf`
 
 | Campo | Valor |
 |-------|--------|
-| Origem | `material_cliente` \| `gerada_framework` |
+| Origem | `material_cliente` |
 | Arquivo HTML | [identidade-visual.html](identidade-visual.html) |
-| Assets | [assets/brand/](assets/brand/) |
-| Status | `rascunho` \| `aguardando_aprovacao` \| `aprovado` |
+| Assets | [assets/brand/](assets/brand/) — `baldan_logo.jpg`, `cores_baldan.jpg` |
+| Status | `aguardando_aprovacao` |
 
 ## Material de entrada
 
-- [ ] Logo / PDF / manual em `00-intake/` ou `03-hifi/assets/brand/`
-- [ ] Se vazio → agente gera kit na E3 (estrutura GestorJob, visual **único** deste projeto)
+- [x] Logo: `assets/brand/baldan_logo.jpg`
+- [x] Exemplo de peça: `assets/brand/cores_baldan.jpg` (flyer renegociação)
+- [ ] Manual de marca formal — extraído do logo + flyer
 
 ## Tokens principais
 
 | Token | Hex | Uso |
 |-------|-----|-----|
-| `--brand-primary` | | |
-| `--brand-accent` | | |
-| `--brand-ink` | | |
-| `--brand-bg` | | |
-| Fonte display | | |
-| Slogan | | |
+| `--brand-primary` | `#0D2A5C` | Navy do wordmark / barras CTA |
+| `--brand-primary-mid` | `#2E6BB5` | “SERVIÇOS HUMANIZADOS”, ícones |
+| `--brand-accent` | `#F5B400` | Amarelo/laranja da fita esquerda e destaques |
+| `--brand-sky` | `#5BA8E0` | Azul claro da fita direita |
+| `--brand-ink` | `#0D2A5C` | Texto |
+| `--brand-bg` | `#F5F7FA` | Fundo claro do flyer |
+| Fonte UI | Poppins | Sans arredondada próxima ao logo |
+| Slogan | o melhor plano para sua família | Do logo |
+| Frase da peça | Cuidar hoje é garantir amanhã | Do flyer |
 
 ## Ligação com hi-fi
 
-O `prototipo-hifi.html` deve importar/espelhar os mesmos tokens. Não inventar segunda paleta.
+Painel **e** simulação Gold usam estes tokens. Sem print do Gold: layout Baldan (navy, amarelo, cantos arredondados, logo oficial). Banner deixa claro que a aba Gold é simulação.
+
+## Nome do produto
+
+**Baldan** · Serviços humanizados — ponte NFC-e no mesmo visual da marca.

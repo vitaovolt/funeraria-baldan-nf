@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" role="img" aria-label="Baldan Serviços Humanizados">
+  <path d="M8 22c8 2 14 10 16 16 3-8 10-16 18-22-10 10-16 22-16 30-6-10-12-18-18-24z" fill="#F5B400"/>
+  <path d="M50 58c-8-2-14-10-16-16-3 8-10 16-18 22 10-10 16-22 16-30 6 10 12 18 18 24z" fill="#2E6BB5"/>
+  <text x="72" y="38" font-family="Poppins, system-ui, sans-serif" font-size="28" font-weight="700" fill="#0D2A5C">Baldan</text>
+  <text x="72" y="58" font-family="Poppins, system-ui, sans-serif" font-size="11" font-weight="600" letter-spacing="0.18em" fill="#2E6BB5">SERVIÇOS HUMANIZADOS</text>
+</svg>

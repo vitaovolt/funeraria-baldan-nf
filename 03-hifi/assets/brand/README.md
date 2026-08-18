@@ -1,10 +1,10 @@
-# Brand assets — `<slug>`
+# Brand assets — `funeraria-baldan-nf`
 
-Coloque aqui:
+Origem: `material_cliente` (logo + flyer em 18/08/2026).
 
-- `logo-principal.svg` / `.png`
-- `logo-compacto.svg` / `.png` (opcional)
-- `favicon.ico` / `.png`
-- Exports do cliente (PDF de marca, se houver)
+- `baldan_logo.jpg` — logo oficial (usar no hi-fi e no kit)
+- `cores_baldan.jpg` — peça de referência (paleta e layout)
+- `logo-principal.svg` — fallback vetorial (X + wordmark), não substitui o JPG
+- `logo-compacto.svg` / `favicon.svg` — fitas X amarelo/azul
 
-Se a origem for `gerada_framework`, o agente gera SVG/PNG mínimos coerentes com a paleta do `identidade-visual.html`.
+Cópia de intake: `00-intake/brand/`. Paleta: `../identidade-visual.html`.

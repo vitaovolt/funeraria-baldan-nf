@@ -3,30 +3,448 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hi-fi — &lt;slug&gt;</title>
+  <title>Baldan — Hi-fi NFC-e</title>
+  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root{--ink:#0f172a;--accent:#0f766e;--bg:#f8fafc}
-    body{margin:0;font-family:Georgia,"Segoe UI",sans-serif;background:linear-gradient(180deg,#e2e8f0,#f8fafc);color:var(--ink)}
-    .page{max-width:1100px;margin:0 auto;padding:28px 20px}
-    h1{letter-spacing:-.02em}
-    .shell{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(15,23,42,.08)}
-    .top{background:var(--accent);color:#fff;padding:14px 18px;font-weight:700}
-    .body{padding:20px;display:grid;gap:12px}
-    .card{border:1px solid #e2e8f0;border-radius:8px;padding:14px}
-    .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
+    :root {
+      --brand-primary: #0D2A5C;
+      --brand-primary-mid: #2E6BB5;
+      --brand-primary-soft: #E8F0FA;
+      --brand-accent: #F5B400;
+      --brand-accent-soft: #FFF6D6;
+      --brand-sky: #5BA8E0;
+      --brand-ink: #0D2A5C;
+      --brand-muted: #6B7280;
+      --brand-faint: #9AA3B0;
+      --brand-bg: #F5F7FA;
+      --brand-surface: #FFFFFF;
+      --brand-line: #E5EAF0;
+      --ok: #2E6BB5;
+      --ok-soft: #E8F0FA;
+      --warn: #C98900;
+      --warn-soft: #FFF6D6;
+      --danger: #B42318;
+      --danger-soft: #FDECEA;
+      --radius: 14px;
+      --font-ui: "Poppins", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-ui); color: var(--brand-ink); background: var(--brand-bg); }
+    button, input, select { font: inherit; }
+    .app-switch {
+      position: sticky; top: 0; z-index: 20;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      padding: 8px 16px; background: var(--brand-primary); color: #fff;
+    }
+    .app-switch img { height: 40px; width: auto; background: #fff; border-radius: 8px; padding: 2px 8px; }
+    .app-switch strong { font-size: .95rem; }
+    .app-switch button {
+      appearance: none; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff;
+      border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: .85rem;
+    }
+    .app-switch button.on { background: var(--brand-accent); color: var(--brand-primary); border-color: var(--brand-accent); }
+    .view { display: none; min-height: calc(100vh - 56px); }
+    .view.on { display: block; }
+    .btn { appearance: none; border: 0; cursor: pointer; font-weight: 700; border-radius: 999px; padding: 10px 16px; }
+    .btn:disabled { opacity: .7; cursor: not-allowed; }
+    .btn-primary { background: var(--brand-primary); color: #fff; }
+    .btn-secondary { background: var(--brand-accent); color: var(--brand-primary); }
+    .btn-ghost { background: transparent; border: 1px solid var(--brand-line); color: var(--brand-primary); }
+    .pill { display: inline-flex; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .pill.ok { background: var(--ok-soft); color: var(--ok); }
+    .pill.danger { background: var(--danger-soft); color: var(--danger); }
+    .pill.warn { background: var(--warn-soft); color: var(--warn); }
+    .toast { display: none; padding: 10px 12px; border-radius: 12px; background: var(--ok-soft); color: var(--ok); margin-bottom: 12px; }
+    .toast.on { display: block; }
+    .toast.err { background: var(--danger-soft); color: var(--danger); }
+
+    .gold-wrap { padding: 16px; background: var(--brand-bg); min-height: calc(100vh - 56px); }
+    .gold-banner { background: var(--brand-primary); color: #fff; padding: 10px 14px; border-radius: var(--radius); font-size: .85rem; margin-bottom: 12px; font-weight: 600; }
+    .gold-banner span { color: var(--brand-accent); }
+    .gold-win { background: var(--brand-surface); border: 1px solid var(--brand-line); border-radius: var(--radius); min-height: 560px; display: flex; flex-direction: column; overflow: hidden; }
+    .gold-title { background: var(--brand-primary); color: #fff; padding: 12px 16px; font-size: .9rem; display: flex; justify-content: space-between; align-items: center; }
+    .gold-menu { background: var(--brand-primary-soft); padding: 8px 16px; font-size: .82rem; color: var(--brand-primary-mid); font-weight: 600; }
+    .gold-body { display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; flex: 1; }
+    @media (max-width: 900px) { .gold-body { grid-template-columns: 1fr; } }
+    .gold-form { padding: 18px; }
+    .gold-side { padding: 18px; background: var(--brand-primary-soft); border-left: 1px solid var(--brand-line); }
+    .gold-form h2 { margin: 0 0 10px; font-size: 1.15rem; color: var(--brand-primary); }
+    .g-field { margin-bottom: 10px; }
+    .g-field label { display: block; font-size: .75rem; font-weight: 700; color: var(--brand-muted); margin-bottom: 3px; }
+    .g-field input, .g-field select { width: 100%; padding: 10px; border: 1px solid var(--brand-line); border-radius: 10px; }
+    .g-table { width: 100%; border-collapse: collapse; font-size: .82rem; background: #fff; }
+    .g-table th, .g-table td { border-bottom: 1px solid var(--brand-line); padding: 8px; text-align: left; }
+    .g-table th { color: var(--brand-muted); font-size: .75rem; }
+    .g-btn { appearance: none; border: 0; background: var(--brand-primary); color: #fff; padding: 10px 16px; cursor: pointer; font-weight: 700; border-radius: 999px; }
+    .g-btn:disabled { opacity: .7; }
+    .g-btn.sec { background: #fff; color: var(--brand-primary); border: 1px solid var(--brand-line); }
+    .pipe { font-size: .78rem; color: var(--brand-muted); border: 1px solid var(--brand-line); border-radius: 12px; padding: 10px; background: #fff; margin-bottom: 10px; }
+    .cupom { width: 240px; margin: 8px auto; border: 2px dashed var(--brand-primary-mid); padding: 12px; text-align: center; font-size: .78rem; background: #fff; border-radius: 8px; }
+    .modal-back { display: none; position: fixed; inset: 0; background: rgba(13,42,92,.4); align-items: center; justify-content: center; z-index: 30; }
+    .modal-back.on { display: flex; }
+    .modal { background: #fff; padding: 18px; border-radius: var(--radius); max-width: 400px; width: 92%; }
+
+    .auth { min-height: calc(100vh - 56px); display: grid; place-items: center; padding: 24px; }
+    .auth-card { width: min(400px, 100%); background: var(--brand-surface); border: 1px solid var(--brand-line); border-radius: var(--radius); padding: 28px; }
+    .shell { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 56px); }
+    @media (max-width: 800px) { .shell { grid-template-columns: 1fr; } }
+    .side { background: var(--brand-primary); color: #fff; padding: 16px 12px; }
+    .side button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: inherit; padding: 10px; border-radius: 10px; cursor: pointer; }
+    .side button.on { background: rgba(245,180,0,.25); color: var(--brand-accent); }
+    .top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-surface); }
+    .main { padding: 16px; }
+    table.data { width: 100%; border-collapse: collapse; font-size: .88rem; background: var(--brand-surface); }
+    table.data th, table.data td { padding: 8px 10px; border-bottom: 1px solid var(--brand-line); text-align: left; }
+    .linkish { appearance: none; border: 1px solid var(--brand-line); background: #fff; padding: 4px 8px; border-radius: 999px; cursor: pointer; margin-right: 4px; font-size: .8rem; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: .78rem; font-weight: 700; color: var(--brand-muted); margin-bottom: 4px; }
+    .field input, .field select { width: 100%; padding: 9px; border: 1px solid var(--brand-line); border-radius: 10px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <div class="page">
-    <h1>Protótipo hi-fi — &lt;slug&gt;</h1>
-    <p>Aplicar identidade do cliente. Espelhar telas do lo-fi aprovado.</p>
-    <div class="shell">
-      <div class="top">App — marca</div>
-      <div class="body">
-        <div class="card">Dashboard / home</div>
-        <a class="btn" href="#">CTA principal</a>
+  <nav class="app-switch">
+    <img src="assets/brand/baldan_logo.jpg" alt="Baldan" />
+    <strong>Serviços humanizados</strong>
+    <button type="button" id="tab-gold" class="on">1. Simulação Gold</button>
+    <button type="button" id="tab-panel">2. Painel da nota</button>
+    <a href="identidade-visual.html" style="margin-left:auto;color:#F5B400;font-size:.82rem;font-weight:700">Identidade</a>
+  </nav>
+
+  <section class="view on" id="view-gold">
+    <div class="gold-wrap">
+      <div class="gold-banner">Simulação do Gold System — <span>não é o programa real</span> (ainda sem print deles). Visual Baldan. Mostra a venda, o envio e o que volta (cupom ou aviso).</div>
+      <div class="gold-win">
+        <div class="gold-title"><span>Gold · Funerária Baldan</span><span>venda #G-1042</span></div>
+        <div class="gold-menu">Vendas &nbsp;|&nbsp; Cadastros <span style="opacity:.45">(fora desta ponte)</span></div>
+        <div class="gold-body">
+          <div class="gold-form">
+            <h2>Fechar venda</h2>
+            <p style="font-size:.82rem;color:var(--brand-muted);margin:0 0 12px">A regra “esta venda emite nota?” fica aqui. A Educraft só recebe se você marcar.</p>
+            <div class="g-field"><label>Contratante</label><input value="Família Santos" /></div>
+            <div class="g-field"><label>Documento</label><input value="" placeholder="vazio = emite sem CPF" /></div>
+            <table class="g-table">
+              <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
+              <tbody>
+                <tr><td>Urna padrão</td><td>1</td><td>R$ 1.800,00</td></tr>
+                <tr><td>Translado municipal</td><td>1</td><td>R$ 680,00</td></tr>
+              </tbody>
+            </table>
+            <p style="font-weight:700;margin:10px 0">Total R$ 2.480,00</p>
+            <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:.9rem">
+              <input type="checkbox" id="emitir" checked /> Emitir NFC-e nesta venda
+            </label>
+            <div class="g-field">
+              <label>Nesta demonstração, o retorno será</label>
+              <select id="cenario">
+                <option value="ok">Autorizada (caminho feliz)</option>
+                <option value="err">Recusada (falta código da cidade)</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" class="g-btn" id="btn-finalizar">Finalizar venda</button>
+              <button type="button" class="g-btn sec" id="btn-cancelar-gold">Cancelar</button>
+            </div>
+          </div>
+          <aside class="gold-side">
+            <div class="pipe"><strong>1. Sai daqui</strong><br />Pedido G-1042 · itens · valor · documento</div>
+            <div class="pipe"><strong>2. Ponte Baldan</strong><br />Emite a NFC-e na hora (vocês esperam nesta tela)</div>
+            <div class="pipe" id="gold-retorno"><strong>3. Volta para o Gold</strong><br />Ainda não enviou.</div>
+            <div id="gold-result"></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-panel">
+    <div id="panel-root"></div>
+  </section>
+
+  <div class="modal-back" id="cupom-modal">
+    <div class="modal">
+      <h3 style="margin:0 0 8px">Cupom 80 mm</h3>
+      <div class="cupom" id="cupom-body"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button type="button" class="btn btn-primary" id="cupom-ok">Fechar</button>
       </div>
     </div>
   </div>
+
+  <script>
+    const NOTES = {};
+    let submitting = false;
+    let panel = { screen: "login", role: "equipe", noteId: null, toast: "", toastErr: false, modalRetry: false, sub: false };
+
+    function money() { return "R$ 2.480,00"; }
+
+    function upsertNote(status, msg) {
+      NOTES.n1042 = {
+        id: "n1042", gold: "G-1042", when: "18/08/2026 agora", who: "Família Santos",
+        doc: "sem CPF", value: money(), status, msg
+      };
+    }
+
+    function showCupom() {
+      document.getElementById("cupom-body").innerHTML = `
+        <strong>Funerária Baldan</strong>
+        <div>NFC-e · Autorizada</div>
+        <hr />
+        <div>Família Santos</div>
+        <div>sem CPF</div>
+        <div>${money()}</div>
+        <hr />
+        <div style="color:#888">chave 3526 … 1042</div>
+        <div style="color:#888">80 mm · impressora de cupom</div>`;
+      document.getElementById("cupom-modal").classList.add("on");
+    }
+
+    document.getElementById("cupom-ok").onclick = () => document.getElementById("cupom-modal").classList.remove("on");
+
+    function goldRetorno(html) {
+      document.getElementById("gold-retorno").innerHTML = "<strong>3. Volta para o Gold</strong><br />" + html;
+    }
+
+    document.getElementById("btn-finalizar").onclick = () => {
+      if (submitting) return;
+      if (!document.getElementById("emitir").checked) {
+        goldRetorno("Você desmarcou emitir NFC-e. Nada foi enviado à ponte.");
+        document.getElementById("gold-result").innerHTML = "";
+        return;
+      }
+      submitting = true;
+      const btn = document.getElementById("btn-finalizar");
+      btn.disabled = true;
+      btn.textContent = "Processando…";
+      goldRetorno("Enviando pedido G-1042… a equipe espera nesta tela.");
+      const cenario = document.getElementById("cenario").value;
+      setTimeout(() => {
+        submitting = false;
+        btn.disabled = false;
+        btn.textContent = "Finalizar venda";
+        if (cenario === "ok") {
+          upsertNote("ok", "");
+          goldRetorno("Autorizada · link do cupom recebido. O Gold chama o link e imprime.");
+          document.getElementById("gold-result").innerHTML = `
+            <div class="pill ok">Autorizada</div>
+            <p style="font-size:.85rem;margin:8px 0">A nota já está no painel Baldan. Impressão automática pelo link — ou de novo no painel.</p>
+            <button type="button" class="g-btn" id="gold-print">Imprimir cupom</button>
+            <button type="button" class="g-btn sec" id="gold-ver-painel" style="margin-top:6px">Ver no painel Baldan</button>`;
+          document.getElementById("gold-print").onclick = showCupom;
+          document.getElementById("gold-ver-painel").onclick = () => {
+            panel.screen = "list";
+            switchView("panel");
+            renderPanel();
+          };
+        } else {
+          upsertNote("err", "A nota não saiu: falta o código da cidade no cadastro. Corrija no Gold e chame de novo o mesmo pedido.");
+          goldRetorno("Recusada · aviso em português · o Gold pode chamar de novo o mesmo pedido (não cria segunda nota).");
+          document.getElementById("gold-result").innerHTML = `
+            <div class="pill danger">Recusada</div>
+            <p style="font-size:.85rem;margin:8px 0">Falta o código da cidade. Corrija nesta venda e tente de novo. A equipe também pode tentar no painel Baldan.</p>
+            <button type="button" class="g-btn" id="gold-retry">Tentar de novo</button>
+            <button type="button" class="g-btn sec" id="gold-ver-painel2" style="margin-top:6px">Ver no painel Baldan</button>`;
+          document.getElementById("gold-ver-painel2").onclick = () => { panel.screen = "list"; switchView("panel"); renderPanel(); };
+          document.getElementById("gold-retry").onclick = () => {
+            if (submitting) return;
+            submitting = true;
+            document.getElementById("gold-retry").disabled = true;
+            document.getElementById("gold-retry").textContent = "Processando…";
+            setTimeout(() => {
+              submitting = false;
+              upsertNote("ok", "");
+              goldRetorno("Autorizada após nova chamada do mesmo pedido G-1042.");
+              document.getElementById("gold-result").innerHTML = `
+                <div class="pill ok">Autorizada</div>
+                <p style="font-size:.85rem;margin:8px 0">Mesmo pedido. Sem segunda nota. Link do cupom recebido.</p>
+                <button type="button" class="g-btn" id="gold-print2">Imprimir cupom</button>`;
+              document.getElementById("gold-print2").onclick = showCupom;
+            }, 700);
+          };
+        }
+      }, 800);
+    };
+
+    document.getElementById("btn-cancelar-gold").onclick = () => {
+      document.getElementById("gold-result").innerHTML = "";
+      goldRetorno("Ainda não enviou.");
+    };
+
+    function switchView(which) {
+      document.getElementById("view-gold").classList.toggle("on", which === "gold");
+      document.getElementById("view-panel").classList.toggle("on", which === "panel");
+      document.getElementById("tab-gold").classList.toggle("on", which === "gold");
+      document.getElementById("tab-panel").classList.toggle("on", which === "panel");
+    }
+    document.getElementById("tab-gold").onclick = () => switchView("gold");
+    document.getElementById("tab-panel").onclick = () => { switchView("panel"); renderPanel(); };
+
+    function pill(s) {
+      if (s === "ok") return '<span class="pill ok">Autorizada</span>';
+      if (s === "err") return '<span class="pill danger">Recusada</span>';
+      return '<span class="pill warn">Tentando de novo</span>';
+    }
+
+    function renderPanel() {
+      const root = document.getElementById("panel-root");
+      if (panel.screen === "login") {
+        root.innerHTML = `
+          <div class="auth">
+            <div class="auth-card">
+              <div style="text-align:center;margin-bottom:16px">
+                <img src="assets/brand/baldan_logo.jpg" alt="Baldan" style="max-width:220px" />
+                <p style="color:var(--brand-muted);font-size:.85rem">o melhor plano para sua família</p>
+              </div>
+              <div class="field"><label>E-mail</label><input type="email" value="marcia@baldan.com.br" /></div>
+              <div class="field"><label>Senha</label><input type="password" value="••••••••" /></div>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-primary" id="entrar">Entrar</button>
+                <button type="button" class="btn btn-ghost">Cancelar</button>
+              </div>
+              <p style="font-size:.78rem;color:var(--brand-faint);margin-top:12px">Contador: use o mesmo painel. Configuração só aparece para ele.</p>
+              <label style="display:flex;gap:8px;font-size:.82rem;margin-top:10px"><input type="checkbox" id="as-cont" /> Entrar como contador</label>
+            </div>
+          </div>`;
+        document.getElementById("entrar").onclick = () => {
+          panel.role = document.getElementById("as-cont").checked ? "contador" : "equipe";
+          panel.screen = "list";
+          renderPanel();
+        };
+        return;
+      }
+
+      const rows = Object.values(NOTES).map((n) => `
+        <tr>
+          <td>${n.when}</td>
+          <td>${n.who}<div style="color:var(--brand-faint);font-size:.78rem">${n.doc} · ${n.gold}</div></td>
+          <td>${n.value}</td>
+          <td>${pill(n.status)}</td>
+          <td>
+            <button type="button" class="linkish" data-open="${n.id}">Ver</button>
+            ${n.status === "ok"
+              ? `<button type="button" class="linkish" data-print="${n.id}">Imprimir cupom</button>`
+              : `<button type="button" class="linkish" data-retry="${n.id}">Tentar de novo</button>`}
+          </td>
+        </tr>`).join("") || `<tr><td colspan="5" style="color:var(--brand-muted)">Ainda não chegou venda do Gold. Faça a simulação na aba 1.</td></tr>`;
+
+      let body = "";
+      if (panel.screen === "list") {
+        body = `
+          <div class="toast ${panel.toast ? "on" : ""} ${panel.toastErr ? "err" : ""}">${panel.toast}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <h2 style="margin:0;color:var(--brand-primary)">Notas</h2>
+            <button type="button" class="btn btn-ghost" id="atualizar">Atualizar</button>
+          </div>
+          <table class="data">
+            <thead><tr><th>Quando</th><th>Quem</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <p style="font-size:.8rem;color:var(--brand-faint)">Não existe “Nova nota” aqui. A venda nasce no Gold.</p>`;
+      }
+
+      if (panel.screen === "detail") {
+        const n = NOTES[panel.noteId];
+        if (!n) { panel.screen = "list"; renderPanel(); return; }
+        body = `
+          <div class="toast ${panel.toast ? "on" : ""} ${panel.toastErr ? "err" : ""}">${panel.toast}</div>
+          <button type="button" class="btn btn-ghost" id="voltar">Voltar</button>
+          <h2 style="color:var(--brand-primary)">${n.who} ${pill(n.status)}</h2>
+          <div class="grid-2">
+            <div>
+              <p>${n.doc} · ${n.value}<br /><span style="color:var(--brand-faint)">${n.gold}</span></p>
+              ${n.msg ? `<p>${n.msg}</p>` : `<p>O Gold já pode ter impresso pelo link. Aqui você imprime de novo se quiser.</p>`}
+              ${n.status === "ok"
+                ? `<button type="button" class="btn btn-primary" id="print-d">Imprimir cupom</button>
+                   <button type="button" class="btn btn-ghost" id="xml">Baixar XML</button>`
+                : `<button type="button" class="btn btn-primary" id="retry-d">${panel.sub ? "Processando…" : "Tentar de novo"}</button>
+                   <button type="button" class="btn btn-ghost" id="voltar2">Cancelar</button>`}
+            </div>
+            <div>${n.status === "ok" ? `<div class="cupom"><strong>Funerária Baldan</strong><div>NFC-e</div><hr />${n.who}<br />${n.value}</div>` : `<p style="color:var(--brand-muted)">Cupom só depois de autorizada.</p>`}</div>
+          </div>`;
+      }
+
+      if (panel.screen === "config") {
+        body = `
+          <div class="toast ${panel.toast ? "on" : ""}">${panel.toast}</div>
+          <h2 style="color:var(--brand-primary)">Configuração</h2>
+          <div class="grid-2">
+            <div>
+              <div class="field"><label>Razão social</label><input value="Funerária Baldan Ltda" /></div>
+              <div class="field"><label>CNPJ</label><input value="12.ABC.345/0001-90" /></div>
+              <div class="field"><label>UF</label><select><option>SP</option></select></div>
+              <div class="field"><label>Ambiente</label><select><option>Teste (ainda não vale)</option><option>Oficial</option></select></div>
+            </div>
+            <div>
+              <div class="field"><label>Certificado A1 (.pfx)</label><input type="file" accept=".pfx,.p12" /></div>
+              <div class="field"><label>Senha do certificado</label><input type="password" /></div>
+              <button type="button" class="btn btn-primary" id="salvar">${panel.sub ? "Processando…" : "Salvar configuração"}</button>
+              <button type="button" class="btn btn-ghost" id="cancel-cfg">Cancelar</button>
+            </div>
+          </div>`;
+      }
+
+      root.innerHTML = `
+        <div class="shell">
+          <aside class="side">
+            <img src="assets/brand/baldan_logo.jpg" alt="Baldan" style="width:100%;max-width:160px;background:#fff;border-radius:8px;padding:6px" />
+            <p style="font-size:.75rem;margin:8px 0 16px;opacity:.85">SERVIÇOS HUMANIZADOS</p>
+            <button type="button" class="${panel.screen !== "config" ? "on" : ""}" id="nav-list">Notas</button>
+            ${panel.role === "contador" ? `<button type="button" class="${panel.screen === "config" ? "on" : ""}" id="nav-cfg">Configuração</button>` : `<p style="font-size:.75rem;opacity:.7;padding:8px">Configuração: só o contador.</p>`}
+          </aside>
+          <div>
+            <div class="top">
+              <span>${panel.role === "contador" ? "Paulo · contador" : "Márcia"}</span>
+              <button type="button" class="btn btn-ghost" id="sair">Sair</button>
+            </div>
+            <div class="main">${body}</div>
+          </div>
+        </div>`;
+
+      const $ = (id) => document.getElementById(id);
+      if ($("sair")) $("sair").onclick = () => { panel.screen = "login"; renderPanel(); };
+      if ($("nav-list")) $("nav-list").onclick = () => { panel.screen = "list"; panel.toast = ""; renderPanel(); };
+      if ($("nav-cfg")) $("nav-cfg").onclick = () => { panel.screen = "config"; panel.toast = ""; renderPanel(); };
+      if ($("atualizar")) $("atualizar").onclick = () => { panel.toast = "Lista atualizada."; panel.toastErr = false; renderPanel(); };
+      if ($("voltar")) $("voltar").onclick = () => { panel.screen = "list"; renderPanel(); };
+      if ($("voltar2")) $("voltar2").onclick = () => { panel.screen = "list"; renderPanel(); };
+      if ($("cancel-cfg")) $("cancel-cfg").onclick = () => { panel.screen = "list"; renderPanel(); };
+      root.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => { panel.noteId = b.dataset.open; panel.screen = "detail"; renderPanel(); });
+      root.querySelectorAll("[data-print]").forEach((b) => b.onclick = showCupom);
+      root.querySelectorAll("[data-retry]").forEach((b) => {
+        b.onclick = () => { panel.noteId = b.dataset.retry; panel.screen = "detail"; renderPanel(); };
+      });
+      if ($("print-d")) $("print-d").onclick = showCupom;
+      if ($("xml")) $("xml").onclick = () => { panel.toast = "XML baixado."; panel.toastErr = false; renderPanel(); };
+      if ($("retry-d")) {
+        $("retry-d").onclick = () => {
+          if (panel.sub) return;
+          panel.sub = true;
+          renderPanel();
+          setTimeout(() => {
+            NOTES[panel.noteId].status = "ok";
+            NOTES[panel.noteId].msg = "";
+            panel.sub = false;
+            panel.toast = "Nota autorizada. Pode imprimir o cupom.";
+            panel.toastErr = false;
+            renderPanel();
+          }, 700);
+        };
+      }
+      if ($("salvar")) {
+        $("salvar").onclick = () => {
+          if (panel.sub) return;
+          panel.sub = true;
+          renderPanel();
+          setTimeout(() => { panel.sub = false; panel.toast = "Configuração salva."; renderPanel(); }, 700);
+        };
+      }
+    }
+
+    renderPanel();
+  </script>
 </body>
 </html>

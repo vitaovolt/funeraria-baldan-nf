@@ -3,35 +3,487 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lo-fi — &lt;slug&gt;</title>
+  <title>Funerária Baldan — Lo-fi NFC-e</title>
   <style>
-    body{font-family:system-ui,sans-serif;margin:0;background:#f7f6f3;color:#1c1b19}
-    .page{max-width:1100px;margin:0 auto;padding:24px}
-    h1{font-size:1.5rem}
-    .muted{color:#5c5954}
-    nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
-    nav button{padding:8px 12px;border:1px solid #c4beb2;background:#fff;cursor:pointer}
-    section{display:none;background:#fff;border:1px solid #ddd8ce;padding:16px;border-radius:6px}
-    section.active{display:block}
-    .wire{border:2px dashed #c4beb2;padding:12px;margin:8px 0;min-height:48px;color:#8a857c}
+    :root {
+      --bg: #f4f4f2;
+      --surface: #fff;
+      --ink: #1a1a1a;
+      --muted: #5a5a57;
+      --faint: #8a8a84;
+      --line: #d8d6d0;
+      --line-strong: #bdbab2;
+      --accent: #3a4654;
+      --accent-soft: #eceef1;
+      --ok: #2d5a3d;
+      --ok-soft: #e7f1ea;
+      --warn: #8a5a12;
+      --warn-soft: #f6eedc;
+      --danger: #8b2e2e;
+      --danger-soft: #f6e7e7;
+      --radius: 6px;
+      --font: "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .page { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
+    header.hero h1 { margin: 0 0 8px; font-size: 1.5rem; }
+    header.hero p { margin: 0; color: var(--muted); max-width: 72ch; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .badge {
+      font-size: 0.75rem; padding: 4px 9px; border: 1px solid var(--line-strong);
+      border-radius: 999px; background: var(--surface); color: var(--muted);
+    }
+    nav.tabs {
+      display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 0 16px;
+      border-bottom: 1px solid var(--line); position: sticky; top: 0;
+      background: var(--bg); z-index: 6;
+    }
+    nav.tabs button {
+      appearance: none; border: 1px solid var(--line); background: var(--surface);
+      color: var(--muted); padding: 7px 12px; border-radius: 999px; font: inherit;
+      font-size: 0.875rem; cursor: pointer;
+    }
+    nav.tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .panel { display: none; padding-top: 18px; }
+    .panel.active { display: block; }
+    h2 { margin: 0 0 10px; font-size: 1.12rem; }
+    h3 { margin: 0 0 8px; font-size: 0.95rem; }
+    .muted { color: var(--muted); }
+    .faint { color: var(--faint); }
+    .small { font-size: 0.85rem; }
+    .stack { display: flex; flex-direction: column; gap: 12px; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .grid-2 { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 12px; }
+    @media (max-width: 860px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .card-h { padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.8rem; font-weight: 650; display: flex; justify-content: space-between; gap: 8px; }
+    .card-b { padding: 12px; }
+    .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); background: var(--surface); border-radius: var(--radius); padding: 12px 14px; }
+    .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+    .wire { border: 1px solid var(--line-strong); background: var(--surface); border-radius: var(--radius); padding: 10px; }
+    .wire.dashed { border-style: dashed; background: #fafaf8; }
+    .wire-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); margin-bottom: 4px; }
+    .pill { display: inline-flex; font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); background: #eee; color: var(--muted); }
+    .pill.ok { background: var(--ok-soft); border-color: #b7d4c0; color: var(--ok); }
+    .pill.danger { background: var(--danger-soft); border-color: #e2b4b4; color: var(--danger); }
+    .pill.warn { background: var(--warn-soft); border-color: #e2c79a; color: var(--warn); }
+    table.data { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    table.data th, table.data td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); }
+    table.data th { font-size: 0.75rem; color: var(--muted); background: #f0efeb; }
+    table.data tr:last-child td { border-bottom: 0; }
+    table.data button.linkish {
+      appearance: none; border: 1px solid var(--line); background: #fff; padding: 4px 8px;
+      border-radius: 4px; font: inherit; font-size: 0.8rem; cursor: pointer; margin-right: 4px;
+    }
+    .flow-steps { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+    .step { width: 160px; min-height: 92px; border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 10px; background: var(--surface); }
+    .step .n { display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
+    .arrow { color: var(--faint); align-self: center; }
+    .chrome { border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); overflow: hidden; min-height: 520px; display: flex; flex-direction: column; }
+    .chrome-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
+    .chrome-bar .brand { font-weight: 700; }
+    .chrome-body { display: grid; grid-template-columns: 168px 1fr; min-height: 460px; }
+    @media (max-width: 700px) { .chrome-body { grid-template-columns: 1fr; } }
+    .side { border-right: 1px solid var(--line); padding: 10px; background: #fafaf8; }
+    .side button {
+      display: block; width: 100%; text-align: left; appearance: none; border: 0; background: transparent;
+      padding: 8px 10px; border-radius: 4px; font: inherit; font-size: 0.85rem; cursor: pointer; color: var(--muted);
+    }
+    .side button.active { background: var(--accent-soft); color: var(--ink); font-weight: 650; }
+    .main { padding: 14px; position: relative; }
+    .toast {
+      display: none; margin: 0 0 12px; padding: 10px 12px; border-radius: var(--radius);
+      border: 1px solid var(--ok); background: var(--ok-soft); font-size: 0.85rem;
+    }
+    .toast.show { display: block; }
+    .toast.err { border-color: var(--danger); background: var(--danger-soft); }
+    .btn {
+      appearance: none; border: 0; background: var(--accent); color: #fff; border-radius: 999px;
+      padding: 8px 14px; font: inherit; font-size: 0.85rem; cursor: pointer;
+    }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
+    .btn.danger { background: var(--danger); }
+    label.field { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--muted); }
+    label.field input, label.field select {
+      font: inherit; padding: 8px; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink);
+    }
+    .cupom {
+      width: 260px; margin: 0 auto; border: 2px dashed var(--line-strong); padding: 14px 12px;
+      font-size: 0.78rem; background: #fff; text-align: center;
+    }
+    .cupom hr { border: 0; border-top: 1px dashed var(--line-strong); }
+    .modal-back {
+      display: none; position: absolute; inset: 0; background: rgba(26,26,26,0.35);
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-back.show { display: flex; }
+    .modal { background: #fff; border-radius: var(--radius); padding: 16px; max-width: 380px; width: 100%; }
+    footer.note { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 0.8rem; color: var(--faint); }
+    .fb table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: #fff; }
+    .fb th, .fb td { border: 1px solid var(--line); padding: 8px; }
+    .fb th { background: #f0efeb; }
   </style>
 </head>
 <body>
   <div class="page">
-    <h1>Protótipo lo-fi — &lt;slug&gt;</h1>
-    <p class="muted">Base Educraft. Substituir fluxos/telas na E2. Feedback em feedback.md.</p>
-    <nav>
-      <button type="button" data-tab="fluxo">Fluxo</button>
-      <button type="button" data-tab="tela">Tela exemplo</button>
+    <header class="hero">
+      <h1>Funerária Baldan — pretótipo das notas</h1>
+      <p>Isto testa o fluxo, não a marca. A venda continua no Gold. Aqui só entram as notas, o cupom e a configuração. Computador — sem celular.</p>
+      <div class="badge-row">
+        <span class="badge">Lo-fi · E2</span>
+        <span class="badge">NFC-e</span>
+        <span class="badge">Painel web</span>
+        <span class="badge">Cupom 80 mm</span>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button type="button" class="active" data-tab="visao">Visão</button>
+      <button type="button" data-tab="equipe">Equipe</button>
+      <button type="button" data-tab="contador">Contador</button>
+      <button type="button" data-tab="chegada">Chegada da venda</button>
+      <button type="button" data-tab="feedback">Feedback</button>
     </nav>
-    <section id="fluxo" class="active"><h2>Fluxo</h2><div class="wire">Mapa de fluxo por perfil</div></section>
-    <section id="tela"><h2>Tela</h2><div class="wire">Header</div><div class="wire">Conteúdo</div><div class="wire">Ações</div></section>
+
+    <section class="panel active" id="tab-visao">
+      <div class="stack">
+        <div class="callout">
+          <strong>É o produto certo?</strong>
+          A equipe fecha a venda no Gold e, neste painel, vê se a nota saiu, imprime o cupom e trata erro. Não cadastra falecido, produto nem estoque aqui.
+        </div>
+        <div class="flow-steps">
+          <div class="step"><div class="n">1</div>Venda no Gold</div>
+          <span class="arrow">→</span>
+          <div class="step"><div class="n">2</div>Gold envia o pedido</div>
+          <span class="arrow">→</span>
+          <div class="step"><div class="n">3</div>Nota sai na hora · Gold recebe o cupom</div>
+          <span class="arrow">→</span>
+          <div class="step"><div class="n">4</div>Imprime no Gold ou neste painel</div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h">Entra</div>
+            <div class="card-b small">Lista, cupom 80 mm, XML, tentar de novo, config da empresa e certificado. Sem CPF: emite. ~50 notas/semana. 4 pessoas: Márcia, 2 da casa, 1 contador.</div>
+          </div>
+          <div class="card">
+            <div class="card-h">Não entra</div>
+            <div class="card-b small">Tela do Gold, NF-e, cancelar nota, editar valores, WhatsApp, celular, nome de provedor fiscal.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-equipe">
+      <p class="muted small" style="margin:0 0 10px">Márcia e a equipe: consultar, imprimir, tentar de novo. Configuração some deste menu.</p>
+      <div class="chrome" id="app-equipe"></div>
+    </section>
+
+    <section class="panel" id="tab-contador">
+      <p class="muted small" style="margin:0 0 10px">Mesmo painel. Contador também abre Configuração (empresa + certificado).</p>
+      <div class="chrome" id="app-contador"></div>
+    </section>
+
+    <section class="panel" id="tab-chegada">
+      <div class="stack">
+        <div class="callout warn">
+          <strong>Isto não é uma tela do Gold.</strong>
+          A Gold envia a venda e espera a resposta na mesma chamada. A equipe também imprime e tenta de novo neste painel, se quiser.
+        </div>
+        <div class="flow-steps">
+          <div class="step"><div class="n">1</div>Fecha a venda no Gold</div>
+          <span class="arrow">→</span>
+          <div class="step"><div class="n">2</div>Espera o resultado na hora</div>
+          <span class="arrow">→</span>
+          <div class="step"><div class="n">3</div>Autorizada: link do cupom · Recusada: aviso + chamar de novo</div>
+        </div>
+        <div class="grid-2">
+          <div class="wire">
+            <div class="wire-label">Se a nota saiu</div>
+            <p class="small">O Gold recebe: <strong>autorizada</strong> + <strong>link para imprimir o cupom</strong>. Eles chamam esse link e a impressora de cupom dispara sozinha.</p>
+            <div class="wire dashed small">situação: autorizada<br />imprimir cupom: (link para o Gold chamar)</div>
+          </div>
+          <div class="wire">
+            <div class="wire-label">Se a nota não saiu</div>
+            <p class="small">O Gold recebe: <strong>aviso em português</strong> + pode <strong>chamar de novo o mesmo pedido</strong> (não cria segunda nota). A equipe também tem Tentar de novo aqui.</p>
+            <div class="wire dashed small">situação: recusada<br />aviso: falta o código da cidade…<br />chamar de novo: mesmo pedido</div>
+          </div>
+        </div>
+        <div class="row">
+          <button type="button" class="btn" id="btn-ver-lista">Ver ações no painel</button>
+          <span class="small muted">Dois caminhos: Gold imprime/tenta sozinho · painel se a equipe quiser.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-feedback">
+      <p class="muted small">Preencha também <code>02-lofi/feedback.md</code>. Se não for OK, diga o que mudar.</p>
+      <div class="fb">
+        <table>
+          <thead><tr><th>ID</th><th>Tela</th><th>OK</th><th>Ajustar</th><th>Bloquear</th><th>O que mudar</th></tr></thead>
+          <tbody>
+            <tr><td>F1</td><td>Visão — produto certo</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F2</td><td>Entrar</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F3</td><td>Lista de notas</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F4</td><td>Autorizada + cupom</td><td>OK</td><td></td><td></td><td>Rodada 2: link do cupom no retorno Gold + Imprimir na lista/detalhe</td></tr>
+            <tr><td>F5</td><td>Recusada + tentar de novo</td><td>OK</td><td></td><td></td><td>Rodada 2: aviso+retentativa no retorno Gold + Tentar de novo no painel</td></tr>
+            <tr><td>F6</td><td>Tentando de novo</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F7</td><td>Configuração</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F8</td><td>Chegada da venda</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>F9</td><td>Contador</td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer class="note">Pretótipo Educraft · funeraria-baldan-nf · não copiar visual de outro produto. Feedback: OK / Ajustar / Bloquear.</footer>
   </div>
+
   <script>
-    document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
-      document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-      document.getElementById(b.dataset.tab).classList.add('active');
-    }));
+    const NOTES = {
+      n1: { id: "n1", when: "18/08/2026 09:12", who: "Família Santos", doc: "sem CPF", value: "R$ 2.480,00", status: "ok", msg: "" },
+      n2: { id: "n2", when: "18/08/2026 10:40", who: "Família Oliveira", doc: "123.456.789-00", value: "R$ 1.150,00", status: "err", msg: "A nota não saiu: falta o código da cidade no cadastro. Corrija no Gold e envie de novo, ou toque em Tentar de novo se já corrigiu." },
+      n3: { id: "n3", when: "18/08/2026 11:05", who: "Família Costa", doc: "987.654.321-00", value: "R$ 890,00", status: "wait", msg: "O serviço da nota está fora. Vamos tentar de novo sozinhos. Você também pode tentar agora." }
+    };
+
+    const apps = {};
+
+    function pill(status) {
+      if (status === "ok") return '<span class="pill ok">Autorizada</span>';
+      if (status === "err") return '<span class="pill danger">Recusada</span>';
+      return '<span class="pill warn">Tentando de novo</span>';
+    }
+
+    function renderApp(rootId, role) {
+      const root = document.getElementById(rootId);
+      const st = apps[rootId] || { screen: "login", noteId: null, submitting: false, toast: "", toastErr: false, modal: false };
+      apps[rootId] = st;
+      const who = role === "contador" ? "Paulo · contador" : "Márcia";
+      const showConfig = role === "contador";
+
+      if (st.screen === "login") {
+        root.innerHTML = `
+          <div class="chrome-bar"><span class="brand">Notas fiscais</span><span class="faint small">Funerária Baldan</span></div>
+          <div class="main" style="max-width:360px;margin:40px auto">
+            <h3>Entrar</h3>
+            <div class="stack">
+              <label class="field">E-mail<input type="email" value="marcia@baldan.com.br" /></label>
+              <label class="field">Senha<input type="password" value="••••••••" /></label>
+              <div class="row">
+                <button type="button" class="btn" data-act="enter">Entrar</button>
+                <button type="button" class="btn ghost">Cancelar</button>
+              </div>
+              <p class="faint small">Esqueceu a senha? Peça à Educraft neste MVP.</p>
+            </div>
+          </div>`;
+        root.querySelector("[data-act=enter]").onclick = () => { st.screen = "list"; renderApp(rootId, role); };
+        return;
+      }
+
+      const nav = `
+        <div class="side">
+          <button type="button" class="${st.screen !== "config" ? "active" : ""}" data-nav="list">Notas</button>
+          ${showConfig ? `<button type="button" class="${st.screen === "config" ? "active" : ""}" data-nav="config">Configuração</button>` : `<p class="faint small" style="padding:8px 10px">Configuração: só o contador.</p>`}
+        </div>`;
+
+      let body = "";
+      if (st.screen === "list") {
+        const rows = Object.values(NOTES).map((n) => `
+          <tr>
+            <td>${n.when}</td>
+            <td>${n.who}<div class="faint">${n.doc}</div></td>
+            <td>${n.value}</td>
+            <td>${pill(n.status)}</td>
+            <td>
+              <button type="button" class="linkish" data-open="${n.id}">Ver</button>
+              ${n.status === "ok" ? `<button type="button" class="linkish" data-print="${n.id}">Imprimir cupom</button>` : `<button type="button" class="linkish" data-retry="${n.id}">Tentar de novo</button>`}
+            </td>
+          </tr>`).join("");
+        body = `
+          <div class="toast ${st.toast ? "show" : ""} ${st.toastErr ? "err" : ""}">${st.toast}</div>
+          <div class="row" style="margin-bottom:10px">
+            <strong>Notas</strong>
+            <span class="pill">Hoje</span>
+            <span class="faint small">3 de ~50 na semana</span>
+            <button type="button" class="btn ghost" data-act="refresh">Atualizar</button>
+          </div>
+          <table class="data">
+            <thead><tr><th>Quando</th><th>Quem</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <p class="faint small" style="margin:10px 0 0">A venda nasce no Gold. Aqui não existe “Nova nota”.</p>`;
+      }
+
+      if (st.screen === "detail") {
+        const n = NOTES[st.noteId];
+        const actions = n.status === "ok"
+          ? `<button type="button" class="btn" data-act="print">Imprimir cupom</button>
+             <button type="button" class="btn ghost" data-act="xml">Baixar XML</button>`
+          : `<button type="button" class="btn" data-act="retry">${st.submitting ? "Processando…" : "Tentar de novo"}</button>
+             <button type="button" class="btn ghost" data-act="back">Voltar</button>`;
+        body = `
+          <div class="toast ${st.toast ? "show" : ""} ${st.toastErr ? "err" : ""}">${st.toast}</div>
+          <div class="row" style="margin-bottom:10px">
+            <button type="button" class="btn ghost" data-act="back">Voltar</button>
+            <strong>Nota ${n.id.replace("n", "")}</strong>
+            ${pill(n.status)}
+          </div>
+          <div class="grid-2">
+            <div class="wire">
+              <div class="wire-label">Dados</div>
+              <div>${n.who}</div>
+              <div class="small muted">${n.doc} · ${n.value}</div>
+              <div class="small muted">${n.when}</div>
+              ${n.msg ? `<p class="small" style="margin:10px 0 0">${n.msg}</p>` : `<p class="small muted">Pode imprimir o cupom para a família.</p>`}
+              <p class="small muted" style="margin:10px 0 0">${n.status === "ok" ? "O Gold já recebeu o link do cupom nesta venda (impressão automática lá). Aqui você imprime de novo se quiser." : "O Gold já recebeu este aviso e pode chamar de novo o mesmo pedido. Aqui você também pode tentar."}</p>
+              <div class="row" style="margin-top:12px">${actions}</div>
+              <p class="faint small">Não dá para editar itens ou valores neste painel.</p>
+            </div>
+            <div class="wire dashed">
+              <div class="wire-label">Cupom 80 mm</div>
+              ${n.status === "ok" ? `<div class="cupom">
+                <strong>Funerária Baldan</strong>
+                <div>NFC-e · Autorizada</div>
+                <hr />
+                <div>${n.who}</div>
+                <div>${n.doc}</div>
+                <div>${n.value}</div>
+                <hr />
+                <div class="faint">chave 3526 … 0001 2345</div>
+                <div class="faint">via computador + impressora de cupom</div>
+              </div>` : `<p class="small muted">Cupom só depois de autorizada.</p>`}
+            </div>
+          </div>
+          <div class="modal-back ${st.modal ? "show" : ""}">
+            <div class="modal">
+              <h3>Tentar de novo?</h3>
+              <p class="small muted">Usa o mesmo pedido. Não cria outra nota. Se ainda estiver errado no Gold, a recusa volta.</p>
+              <div class="row">
+                <button type="button" class="btn" data-act="confirm-retry" ${st.submitting ? "disabled" : ""}>${st.submitting ? "Processando…" : "Confirmar"}</button>
+                <button type="button" class="btn ghost" data-act="cancel-retry">Cancelar</button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      if (st.screen === "config") {
+        body = `
+          <div class="toast ${st.toast ? "show" : ""} ${st.toastErr ? "err" : ""}">${st.toast}</div>
+          <h3>Configuração da empresa</h3>
+          <p class="small muted">Valores de teste neste pretótipo. No dia a dia: certificado A1 + dados da empresa.</p>
+          <div class="grid-2">
+            <div class="stack">
+              <label class="field">Razão social<input value="Funerária Baldan Ltda" /></label>
+              <label class="field">CNPJ<input value="12.ABC.345/0001-90" /></label>
+              <label class="field">Inscrição estadual<input value="123.456.789" /></label>
+              <label class="field">UF<select><option>SP</option></select></label>
+              <label class="field">Regime<select><option>Simples Nacional</option><option>Lucro presumido</option></select></label>
+            </div>
+            <div class="stack">
+              <label class="field">Ambiente da nota<select><option>Teste (ainda não vale)</option><option>Oficial</option></select></label>
+              <label class="field">Série / próximo número<input value="1 / 128" /></label>
+              <label class="field">Token CSC<input type="password" value="••••••••" /></label>
+              <div class="wire dashed">
+                <div class="wire-label">Certificado A1</div>
+                <p class="small">Arquivo .pfx + senha. Não envie por WhatsApp no fluxo definitivo.</p>
+                <input type="file" accept=".pfx,.p12" />
+                <label class="field" style="margin-top:8px">Senha do certificado<input type="password" /></label>
+              </div>
+              <div class="row">
+                <button type="button" class="btn" data-act="save">${st.submitting ? "Processando…" : "Salvar configuração"}</button>
+                <button type="button" class="btn ghost" data-act="list">Cancelar</button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      root.innerHTML = `
+        <div class="chrome-bar">
+          <span class="brand">Notas fiscais</span>
+          <span class="muted small">Funerária Baldan</span>
+          <span style="margin-left:auto" class="small">${who}</span>
+          <button type="button" class="btn ghost" data-act="sair">Sair</button>
+        </div>
+        <div class="chrome-body">${nav}<div class="main">${body}</div></div>`;
+
+      root.querySelectorAll("[data-nav]").forEach((b) => {
+        b.onclick = () => { st.screen = b.dataset.nav; st.toast = ""; renderApp(rootId, role); };
+      });
+      root.querySelectorAll("[data-open]").forEach((b) => {
+        b.onclick = () => { st.screen = "detail"; st.noteId = b.dataset.open; st.toast = ""; renderApp(rootId, role); };
+      });
+      root.querySelectorAll("[data-print]").forEach((b) => {
+        b.onclick = () => { st.toast = "Enviado à impressora de cupom (mesmo caminho que o Gold usa no link)."; st.toastErr = false; renderApp(rootId, role); };
+      });
+      root.querySelectorAll("[data-retry]").forEach((b) => {
+        b.onclick = () => { st.noteId = b.dataset.retry; st.screen = "detail"; st.modal = true; st.toast = ""; renderApp(rootId, role); };
+      });
+      const byAct = (name) => root.querySelector(`[data-act="${name}"]`);
+      if (byAct("back") || byAct("list")) {
+        const go = () => { st.screen = "list"; st.modal = false; st.toast = ""; renderApp(rootId, role); };
+        if (byAct("back")) byAct("back").onclick = go;
+        if (byAct("list")) byAct("list").onclick = go;
+      }
+      if (byAct("sair")) byAct("sair").onclick = () => { st.screen = "login"; renderApp(rootId, role); };
+      if (byAct("refresh")) byAct("refresh").onclick = () => { st.toast = "Lista atualizada."; st.toastErr = false; renderApp(rootId, role); };
+      if (byAct("print")) byAct("print").onclick = () => { st.toast = "Enviado à impressora de cupom."; st.toastErr = false; renderApp(rootId, role); };
+      if (byAct("xml")) byAct("xml").onclick = () => { st.toast = "XML baixado."; st.toastErr = false; renderApp(rootId, role); };
+      if (byAct("retry")) byAct("retry").onclick = () => { st.modal = true; renderApp(rootId, role); };
+      if (byAct("cancel-retry")) byAct("cancel-retry").onclick = () => { st.modal = false; st.submitting = false; renderApp(rootId, role); };
+      if (byAct("confirm-retry")) {
+        byAct("confirm-retry").onclick = () => {
+          if (st.submitting) return;
+          st.submitting = true;
+          renderApp(rootId, role);
+          setTimeout(() => {
+            NOTES[st.noteId].status = "ok";
+            NOTES[st.noteId].msg = "";
+            st.submitting = false;
+            st.modal = false;
+            st.toast = "Nota autorizada. Pode imprimir o cupom.";
+            st.toastErr = false;
+            renderApp(rootId, role);
+          }, 700);
+        };
+      }
+      if (byAct("save")) {
+        byAct("save").onclick = () => {
+          if (st.submitting) return;
+          st.submitting = true;
+          renderApp(rootId, role);
+          setTimeout(() => {
+            st.submitting = false;
+            st.toast = "Configuração salva.";
+            st.toastErr = false;
+            renderApp(rootId, role);
+          }, 700);
+        };
+      }
+    }
+
+    function activateTab(id) {
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.remove("active"));
+      document.getElementById("tab-" + id).classList.add("active");
+      document.querySelector(`nav.tabs button[data-tab="${id}"]`).classList.add("active");
+      history.replaceState(null, "", "#" + id);
+    }
+    document.querySelectorAll("nav.tabs button").forEach((btn) => {
+      btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+    });
+    document.getElementById("btn-ver-lista").onclick = () => activateTab("equipe");
+
+    renderApp("app-equipe", "equipe");
+    renderApp("app-contador", "contador");
+    const hash = location.hash.replace("#", "");
+    if (hash && document.getElementById("tab-" + hash)) activateTab(hash);
   </script>
 </body>
 </html>
