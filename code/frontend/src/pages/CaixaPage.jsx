@@ -97,14 +97,21 @@ export default function CaixaPage() {
     }
   }
 
-  if (loading) return <p className="text-[var(--muted)]">Carregando caixa…</p>
+  if (loading) return <p className="text-[var(--brand-muted)]">Carregando caixa…</p>
 
   return (
     <div data-testid="page-caixa">
-      <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Caixa</h1>
-      <p className="mt-1 text-[var(--muted)]">Abertura, sangria, vendas e fechamento.</p>
+      <div className="page-head">
+        <div>
+          <h1>Caixa</h1>
+          <p>Abra o caixa para vender. Sangria e fechamento ficam aqui — não na tela de venda.</p>
+        </div>
+        <span className={`pill ${caixa ? 'ok' : 'danger'}`}>
+          {caixa ? 'Aberto' : 'Fechado'}
+        </span>
+      </div>
 
-      <section className="mt-6 rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-4">
+      <section className="panel">
         {caixa ? (
           <>
             <p className="m-0 font-semibold text-[var(--brand-primary)]" data-testid="caixa-status">
@@ -112,7 +119,7 @@ export default function CaixaPage() {
             </p>
             <form className="mt-4 grid gap-2 md:grid-cols-[160px_1fr_auto]" onSubmit={onSangria}>
               <input
-                className="rounded-lg border border-[var(--line)] px-3 py-2"
+                className="rounded-xl border border-[var(--brand-line)] px-3 py-2"
                 type="number"
                 min="0.01"
                 step="0.01"
@@ -122,30 +129,22 @@ export default function CaixaPage() {
                 data-testid="sangria-valor"
               />
               <input
-                className="rounded-lg border border-[var(--line)] px-3 py-2"
+                className="rounded-xl border border-[var(--brand-line)] px-3 py-2"
                 placeholder="Motivo"
                 value={sangriaMotivo}
                 onChange={(e) => setSangriaMotivo(e.target.value)}
               />
-              <button
-                className="rounded-lg border border-[var(--brand-primary)] px-4 py-2 font-bold disabled:opacity-60"
-                disabled={Boolean(action)}
-                data-testid="sangria-salvar"
-              >
+              <button className="btn btn-ghost" disabled={Boolean(action)} data-testid="sangria-salvar">
                 {action === 'sangria' ? 'Processando…' : 'Registrar sangria'}
               </button>
             </form>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                to="/pdv"
-                className="inline-block rounded-lg bg-[var(--brand-accent)] px-4 py-2 font-bold text-[var(--brand-primary)]"
-                data-testid="ir-pdv"
-              >
+              <Link to="/pdv" className="btn btn-accent" data-testid="ir-pdv">
                 Ir para PDV
               </Link>
               <button
                 type="button"
-                className="rounded-lg bg-[var(--brand-primary)] px-4 py-2 font-bold text-white disabled:opacity-60"
+                className="btn btn-primary"
                 disabled={Boolean(action)}
                 onClick={onFechar}
                 data-testid="fechar-caixa"
@@ -156,12 +155,12 @@ export default function CaixaPage() {
           </>
         ) : (
           <>
-            <p className="m-0 text-[var(--muted)]" data-testid="caixa-status">
+            <p className="m-0 text-[var(--brand-muted)]" data-testid="caixa-status">
               Nenhum caixa aberto.
             </p>
             <button
               type="button"
-              className="mt-3 rounded-lg bg-[var(--brand-primary)] px-4 py-2 font-bold text-white disabled:opacity-60"
+              className="btn btn-primary mt-3"
               disabled={submitting}
               onClick={onAbrir}
               data-testid="abrir-caixa"
@@ -172,14 +171,14 @@ export default function CaixaPage() {
         )}
       </section>
 
-      <section className="mt-6">
-        <h2 className="text-lg font-extrabold text-[var(--brand-primary)]">Vendas do dia</h2>
+      <section className="panel mt-4">
+        <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">Vendas do dia</h2>
         {vendas.length === 0 ? (
-          <p className="text-[var(--muted)]">Nenhuma venda ainda.</p>
+          <p className="text-[var(--brand-muted)]">Nenhuma venda ainda.</p>
         ) : (
           <ul className="mt-2 space-y-2" data-testid="vendas-dia">
             {vendas.map((v) => (
-              <li key={v.id} className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm">
+              <li key={v.id} className="rounded-xl border border-[var(--brand-line)] bg-white px-3 py-2 text-sm">
                 #{v.id} · R$ {Number(v.total).toFixed(2)} · {v.cliente?.nome || 'Consumidor'} · NFC-e{' '}
                 {v.nota_nfce?.status || '—'}
               </li>
@@ -189,21 +188,18 @@ export default function CaixaPage() {
       </section>
 
       {fechamento ? (
-        <section className="mt-6 rounded-[10px] border border-[var(--line)] bg-white p-4">
+        <section className="panel mt-4">
           <div id="fechamento-print" className="print-area">
-            <h2 className="m-0 text-lg font-extrabold text-[var(--brand-primary)]">
+            <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">
               {fechamento.preview ? 'Prévia do fechamento' : 'Último fechamento'}
             </h2>
             <p className="mb-0 text-sm">Total de vendas: R$ {Number(fechamento.total_vendas).toFixed(2)}</p>
             <p className="my-1 text-sm">Total de sangrias: R$ {Number(fechamento.total_sangrias).toFixed(2)}</p>
-            <p className="mt-0 text-sm font-bold">Dinheiro esperado: R$ {Number(fechamento.total_dinheiro_esperado).toFixed(2)}</p>
+            <p className="mt-0 text-sm font-bold">
+              Dinheiro esperado: R$ {Number(fechamento.total_dinheiro_esperado).toFixed(2)}
+            </p>
           </div>
-          <button
-            type="button"
-            className="mt-3 rounded-lg border border-[var(--brand-primary)] px-4 py-2 font-bold"
-            onClick={() => window.print()}
-            data-testid="imprimir-fechamento"
-          >
+          <button type="button" className="btn btn-ghost mt-3" onClick={() => window.print()} data-testid="imprimir-fechamento">
             Imprimir fechamento
           </button>
         </section>

@@ -21,7 +21,7 @@ test('F5 hardening: operador vê config em leitura; PDV paga com Processando', a
   }
   await expect(page.getByTestId('caixa-status')).toContainText(/Caixa aberto/i)
 
-  await page.getByLabel('Principal').getByRole('link', { name: 'PDV' }).click()
+  await page.getByLabel('Principal').getByRole('link', { name: 'Venda' }).click()
   await expect(page.getByTestId('page-pdv')).toBeVisible()
   await page.getByTestId('busca-produto').fill('Muleta')
   await expect(page.getByTestId('lista-produtos').locator('button').first()).toBeVisible()

@@ -26,7 +26,7 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A5 | 20/08/2026 | e3 | Layout moderno Baldan (não copiar ERP); retirar menções a Gold da UI/docs ativos | feito | não (só projeto) |
 | A6 | 20/08/2026 | e3 | Mobile: menu lateral recolhível (não cobrir a tela toda) | feito | não (só projeto) |
 | A7 | 25/08/2026 | e3 | Áudios: desconto livre; consignado MVP; custo+preço; vendas do dia; imprimir caixa; sangria; dependentes; import Excel TBD | feito | não (só projeto) |
-| A8 | 25/08/2026 | e3 | Logo sumiu; PDV: cliente em dropdown com busca + consignar na caixa; sangria só no Caixa; UX venda | feito | sim: tips/2026-08-25-proto-assets-chmod-apos-scp.md |
+| A9 | 27/08/2026 | e4/f6 | SPA muito diferente do hi-fi; espelhar layout + regra no Devkit | feito | sim: tips/2026-08-27-e4-paridade-hifi.md |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

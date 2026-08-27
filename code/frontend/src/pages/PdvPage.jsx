@@ -138,12 +138,17 @@ export default function PdvPage() {
   if (!caixaOk) return <p className="text-[var(--muted)]">Verificando caixa…</p>
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2" data-testid="page-pdv">
-      <section>
-        <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">PDV</h1>
-        <p className="mt-1 text-[var(--muted)]">Buscar produto / código (T4–T5).</p>
+    <div data-testid="page-pdv">
+      <div className="page-head">
+        <div>
+          <h1>Venda</h1>
+          <p>Buscar produto / código — desconto e NFC-e no painel da direita.</p>
+        </div>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_.9fr]">
+      <section className="panel">
         <input
-          className="mt-3 w-full rounded-lg border border-[var(--line)] px-3 py-2"
+          className="w-full rounded-xl border border-[var(--brand-line)] px-3.5 py-3"
           placeholder="Buscar descrição ou código de barras"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -154,14 +159,14 @@ export default function PdvPage() {
             <li key={p.id}>
               <button
                 type="button"
-                className="flex w-full items-center justify-between rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-left hover:border-[var(--brand-primary)]"
+                className="flex w-full items-center justify-between rounded-xl border border-[var(--brand-line)] bg-white px-3.5 py-3 text-left hover:border-[var(--brand-primary-mid)] hover:bg-[var(--brand-primary-soft)]"
                 onClick={() => addProduto(p)}
                 data-testid={`add-produto-${p.id}`}
               >
                 <span>
                   <strong>{p.descricao}</strong>
                   <br />
-                  <span className="text-xs text-[var(--muted)]">{p.codigo_barras}</span>
+                  <span className="text-xs text-[var(--brand-muted)]">{p.codigo_barras}</span>
                 </span>
                 <span className="font-bold text-[var(--brand-primary)]">{money(p.preco_venda)}</span>
               </button>
@@ -170,8 +175,8 @@ export default function PdvPage() {
         </ul>
       </section>
 
-      <section className="rounded-[10px] border border-[var(--line)] bg-[var(--surface)] p-4">
-        <h2 className="m-0 text-lg font-extrabold text-[var(--brand-primary)]">Carrinho</h2>
+      <section className="panel">
+        <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">Carrinho</h2>
         {carrinho.length === 0 ? (
           <p className="mt-2 text-[var(--muted)]">Vazio.</p>
         ) : (
@@ -239,7 +244,7 @@ export default function PdvPage() {
 
         <button
           type="button"
-          className="mt-4 w-full rounded-lg bg-[var(--brand-primary)] px-4 py-3 font-bold text-white disabled:opacity-60"
+          className="btn btn-accent mt-4 w-full"
           disabled={submitting || carrinho.length === 0}
           onClick={onPagar}
           data-testid="pagar-emitir"
@@ -247,6 +252,7 @@ export default function PdvPage() {
           {submitting ? 'Processando…' : 'Pagar e emitir nota'}
         </button>
       </section>
+      </div>
     </div>
   )
 }

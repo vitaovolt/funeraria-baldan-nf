@@ -36,10 +36,10 @@ export function ToastProvider({ children }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex max-w-lg items-start gap-3 rounded-lg px-4 py-3 text-sm font-semibold shadow-lg ${
+            className={`pointer-events-auto flex max-w-lg items-start gap-3 rounded-[14px] px-4 py-3 text-sm font-semibold shadow-[var(--shadow)] ${
               t.type === 'success'
-                ? 'bg-[var(--brand-primary)] text-white'
-                : 'bg-[#b42318] text-white'
+                ? 'bg-[var(--ok-soft)] text-[var(--ok)]'
+                : 'bg-[var(--danger-soft)] text-[var(--danger)]'
             }`}
             data-testid={`toast-${t.type}`}
           >

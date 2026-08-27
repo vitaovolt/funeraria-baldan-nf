@@ -1,43 +1,34 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
+const CARDS = [
+  { to: '/caixa', mark: '$', label: 'Caixa', desc: 'Abrir, vendas do dia e fechar', testId: 'home-caixa' },
+  { to: '/pdv', mark: 'V', label: 'Nova venda', desc: 'PDV com desconto e NFC-e' },
+  { to: '/consignado', mark: 'C', label: 'Consignado', desc: 'Provar produto · devolver ou vender' },
+  { to: '/produtos', mark: 'P', label: 'Produtos', desc: 'Custo, preço, NCM' },
+  { to: '/clientes', mark: '👤', label: 'Clientes', desc: 'Titular, dependentes e plano' },
+  { to: '/estoque', mark: 'E', label: 'Estoque', desc: 'Saldos e ajustes' },
+  { to: '/notas', mark: 'N', label: 'Notas', desc: 'Cupom e retentativa' },
+  { to: '/config', mark: 'A1', label: 'Configuração', desc: 'Empresa e certificado' },
+  { to: '/marcas-categorias', mark: 'M', label: 'Marcas', desc: 'Marcas e categorias' },
+]
+
 export default function HomePage() {
   const { user } = useAuth()
+  const firstName = (user?.name || 'operador').split(' ')[0]
 
   return (
     <div data-testid="page-home">
-      <h1 className="m-0 text-3xl font-extrabold text-[var(--brand-primary)]">
-        Olá, {user?.name || 'operador'}
-      </h1>
-      <p className="mt-2 text-[var(--muted)]">Fluxo do dia: abrir caixa → PDV → pagar e emitir NFC-e.</p>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Link
-          to="/caixa"
-          className="rounded-lg bg-[var(--brand-primary)] px-4 py-4 font-bold text-white"
-          data-testid="home-caixa"
-        >
-          Ir ao caixa
-        </Link>
-        <Link
-          to="/pdv"
-          className="rounded-lg bg-[var(--brand-accent)] px-4 py-3 font-bold text-[var(--brand-primary)]"
-        >
-          Abrir PDV
-        </Link>
-        {[
-          ['/produtos', 'Produtos'],
-          ['/clientes', 'Clientes'],
-          ['/estoque', 'Estoque'],
-          ['/consignado', 'Consignado'],
-          ['/config', 'Configuração fiscal'],
-          ['/marcas-categorias', 'Marcas e categorias'],
-        ].map(([to, label]) => (
-          <Link
-            key={to}
-            to={to}
-            className="rounded-lg border border-[var(--line)] bg-white px-4 py-4 font-bold text-[var(--brand-primary)] hover:border-[var(--brand-primary)]"
-          >
-            {label}
+      <div className="home-hero">
+        <h1>Olá, {firstName}</h1>
+        <p>Venda de produtos, estoque e nota fiscal em um só lugar — com a identidade Baldan.</p>
+      </div>
+      <div className="home-cards">
+        {CARDS.map((c) => (
+          <Link key={c.to} to={c.to} className="home-card" data-testid={c.testId}>
+            <div className="mark">{c.mark}</div>
+            <div className="label">{c.label}</div>
+            <div className="desc">{c.desc}</div>
           </Link>
         ))}
       </div>
