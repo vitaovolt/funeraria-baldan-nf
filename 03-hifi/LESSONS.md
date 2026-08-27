@@ -2,33 +2,31 @@
 
 **Slug:** funeraria-baldan-nf  
 **Etapa / fase:** e3  
-**Data:** 2026-08-18  
-**Rodada:** 2 (A3)
+**Data:** 2026-08-26  
+**Rodada:** 5 (feedback hi-fi aprovado)
 
 ## O que funcionou
 
-- A3: tokens navy/amarelo extraídos do JPG + flyer; hi-fi e kit passam a usar `baldan_logo.jpg`.
-- Sem print do Gold: mesma pele Baldan + faixa “simulação — não é o programa real” (contrato de ida/volta permanece).
+- A5: hi-fi com sidebar Baldan, home em cartões, PDV com busca/carrinho/resumo — sem F-keys nem chrome de ERP terceiro.
+- Textos da UI e docs ativos limpos de menção a sistema concorrente.
+- A8 + preview: cliente validou logo, paleta, tipografia e todas as telas H1–H13 em uma rodada (zero Ajustar/Bloquear).
 
 ## O que falhou / atrito
 
-- Rodada 1 gerou mahogany/ouro/serifa (“Baldan Notas”) e chrome cinza de ERP. Os JPGs já estavam em `03-hifi/assets/brand/` (17:36) **antes** do kit (17:42); Glob/indexação não listou os binários e a E3 tratou como “sem material”.
+- Rodada A4 ainda imitava o PDV do terceiro (F-keys). Cliente pediu visual moderno próprio.
+- A8: assets no EC2 sem permissão de leitura para o nginx — logo “sumiu” no HTTPS até chmod.
 
-## Melhoria de processo (acionável)
+## Melhoria de processo
 
-- E3: listar jpg/png/svg em `00-intake/` e `03-hifi/assets/brand/` (shell se o Glob voltar vazio) **antes** de gerar identidade.
-- Terceiro sem print: layout da marca do cliente + faixa simulação; não inventar pele de ERP genérico.
-
-## Padrão candidato (standards/catalog?)
-
-- `IDENTIDADE-VISUAL.md` + skill e3: checklist de arquivos de marca; regra de simulação de terceiro.
+- Prints de terceiro = só referência de **fluxo/campos**, nunca de layout na UI entregue ao cliente.
+- Após SCP de brand assets no proto: garantir perms legíveis pelo www-data (já tipado no KB).
 
 ## Tags
 
-`#e3` `#hi-fi` `#identidade` `#fiscal` `#nfce` `#integrations`
+`#e3` `#hi-fi` `#pdv` `#identidade` `#ajuste` `#feedback`
 
 ## Sync KB
 
-- [x] Ficha `educraft-devkit/lessons/2026-08-18-funeraria-baldan-nf-e3.md` (atualizada A3)
-- [x] Linha em `lessons/INDEX.md`
-- [x] Item em `MELHORIAS-PENDENTES.md` + dica `tips/2026-08-18-funeraria-baldan-nf-dica.md`
+- [x] Projeto A5; dica A4/A8 já no KB
+- [x] Aprovação feedback 26/08 — sem dica nova de processo
+- [x] Gate E3: ficha `lessons/2026-08-26-funeraria-baldan-nf-e3.md` + linha no INDEX

@@ -29,8 +29,8 @@
 
 ## Ligação com hi-fi
 
-Painel **e** simulação Gold usam estes tokens. Sem print do Gold: layout Baldan (navy, amarelo, cantos arredondados, logo oficial). Banner deixa claro que a aba Gold é simulação.
+PDV, cadastros e notas usam estes tokens (navy, amarelo, logo oficial). Layout moderno próprio da Baldan — sidebar + cartões + PDV limpo.
 
 ## Nome do produto
 
-**Baldan** · Serviços humanizados — ponte NFC-e no mesmo visual da marca.
+**Baldan** · Serviços humanizados — loja, PDV e NFC-e.

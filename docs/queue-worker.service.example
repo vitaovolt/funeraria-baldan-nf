@@ -1,0 +1,23 @@
+# /etc/systemd/system/funeraria-baldan-nf-queue.service
+#
+# Pack queues=sim + fiscal: EmitirNfceJob na fila "fiscal".
+# Instalar:
+#   sudo cp docs/queue-worker.service.example /etc/systemd/system/funeraria-baldan-nf-queue.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now funeraria-baldan-nf-queue
+
+[Unit]
+Description=Funeraria Baldan NF queue worker (fiscal)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=3
+WorkingDirectory=/var/www/funeraria-baldan-nf/code/backend
+ExecStart=/usr/bin/php artisan queue:work database --queue=fiscal,default --sleep=1 --tries=3 --timeout=120
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

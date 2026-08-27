@@ -1,5 +1,539 @@
 openapi: 3.0.3
 info:
-  title: API <slug>
-  version: 0.1.0
-paths: {}
+  title: Funerária Baldan NF API
+  version: 0.6.0
+  description: |
+    API do PDV Baldan (NFC-e).
+    F5 — hardening: policies (config admin), user ativo/role, Idempotency-Key em venda, throttle mutations, 403 JSON.
+    F4 — módulos: sangria/fechar caixa, consignado, upload A1; UI cadastros/estoque/config.
+    F3 — vertical slice: caixa → finalizar venda → job NFC-e (fila fiscal) + XML/DANFE fake.
+    F2 — auth Sanctum: login / me / logout / refresh.
+    F1 — domínio: marcas, categorias, produtos, clientes/dependentes, config fiscal, movimentação de estoque.
+servers:
+  - url: http://localhost:8000/api/v1
+tags:
+  - name: System
+  - name: Auth
+  - name: Config
+  - name: Cadastros
+  - name: Estoque
+  - name: Caixa
+  - name: Vendas
+  - name: Fiscal
+  - name: Consignado
+components:
+  securitySchemes:
+    sanctum:
+      type: http
+      scheme: bearer
+  schemas:
+    Envelope:
+      type: object
+      required: [success, data, message, errors]
+      properties:
+        success: { type: boolean }
+        data: {}
+        message: { type: string }
+        errors: { type: array, items: {} }
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      tags: [System]
+      summary: Health check da API (inclui database)
+      responses:
+        '200':
+          description: API operacional
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '503':
+          description: Banco indisponível
+  /auth/login:
+    post:
+      operationId: login
+      tags: [Auth]
+      summary: Login e emissão de token Bearer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, example: operador@baldan.local }
+                password: { type: string, example: password }
+                device_name: { type: string, example: desktop }
+      responses:
+        '200': { description: Token + usuário }
+        '422': { description: Credenciais inválidas }
+  /auth/me:
+    get:
+      operationId: me
+      tags: [Auth]
+      security: [{ sanctum: [] }]
+      summary: Usuário autenticado
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [Auth]
+      security: [{ sanctum: [] }]
+      summary: Revoga o token atual
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+  /auth/refresh:
+    post:
+      operationId: refresh
+      tags: [Auth]
+      security: [{ sanctum: [] }]
+      summary: Rotaciona o token Bearer
+      responses:
+        '200': { description: Novo token }
+        '401': { description: Não autenticado }
+  /configuracao-fiscal:
+    get:
+      operationId: getConfiguracaoFiscal
+      tags: [Config]
+      security: [{ sanctum: [] }]
+      summary: Configuração fiscal da empresa (singleton)
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+    put:
+      operationId: putConfiguracaoFiscal
+      tags: [Config]
+      security: [{ sanctum: [] }]
+      summary: Cria/atualiza configuração fiscal
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+        '422': { description: Validação }
+  /marcas:
+    get:
+      operationId: listMarcas
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: ativo
+          schema: { type: boolean }
+      responses:
+        '200': { description: Lista }
+        '401': { description: Não autenticado }
+    post:
+      operationId: createMarca
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '201': { description: Criada }
+        '401': { description: Não autenticado }
+        '422': { description: Validação }
+  /marcas/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getMarca
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+    put:
+      operationId: updateMarca
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+    delete:
+      operationId: deleteMarca
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Excluída }
+        '401': { description: Não autenticado }
+  /categorias:
+    get:
+      operationId: listCategorias
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Lista }
+        '401': { description: Não autenticado }
+    post:
+      operationId: createCategoria
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '201': { description: Criada }
+        '401': { description: Não autenticado }
+  /categorias/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getCategoria
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      operationId: updateCategoria
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    delete:
+      operationId: deleteCategoria
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Excluída }
+  /produtos:
+    get:
+      operationId: listProdutos
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: categoria_id
+          schema: { type: integer }
+        - in: query
+          name: marca_id
+          schema: { type: integer }
+        - in: query
+          name: ativo
+          schema: { type: boolean }
+      responses:
+        '200': { description: Lista com marca/categoria }
+        '401': { description: Não autenticado }
+    post:
+      operationId: createProduto
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '201': { description: Criado }
+        '422': { description: Validação / barcode duplicado }
+  /produtos/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getProduto
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      operationId: updateProduto
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    delete:
+      operationId: deleteProduto
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Excluído }
+  /produtos/{id}/movimentacoes:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: listMovimentacoesProduto
+      tags: [Estoque]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Lista }
+    post:
+      operationId: createMovimentacaoProduto
+      tags: [Estoque]
+      security: [{ sanctum: [] }]
+      summary: entrada | saida | ajuste (atualiza estoque_atual)
+      responses:
+        '201': { description: Movimentação + produto atualizado }
+        '422': { description: Estoque insuficiente / validação }
+  /clientes:
+    get:
+      operationId: listClientes
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Lista com dependentes }
+        '401': { description: Não autenticado }
+    post:
+      operationId: createCliente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '201': { description: Criado }
+        '422': { description: Documento duplicado }
+  /clientes/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getCliente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      operationId: updateCliente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    delete:
+      operationId: deleteCliente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Excluído }
+  /clientes/{id}/dependentes:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: listDependentes
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Lista }
+    post:
+      operationId: createDependente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '201': { description: Criado }
+  /dependentes/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getDependente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    put:
+      operationId: updateDependente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+    delete:
+      operationId: deleteDependente
+      tags: [Cadastros]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Excluído }
+  /caixa/atual:
+    get:
+      operationId: getCaixaAtual
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Sessão de caixa aberta do operador (ou null)
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+  /caixa/abrir:
+    post:
+      operationId: abrirCaixa
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Abre sessão de caixa
+      responses:
+        '201': { description: Caixa aberto }
+        '401': { description: Não autenticado }
+        '422': { description: Já existe caixa aberto / validação }
+  /caixa/vendas-do-dia:
+    get:
+      operationId: vendasDoDia
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Vendas da sessão/dia com nota NFC-e
+      responses:
+        '200': { description: Lista }
+        '401': { description: Não autenticado }
+  /vendas/finalizar:
+    post:
+      operationId: finalizarVenda
+      tags: [Vendas]
+      security: [{ sanctum: [] }]
+      summary: Finaliza venda (baixa estoque, cria NFC-e, dispatch job). Header Idempotency-Key evita duplicata.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string, maxLength: 64 }
+      responses:
+        '201': { description: Venda criada }
+        '200': { description: Replay idempotente (mesma key) }
+        '401': { description: Não autenticado }
+        '422': { description: Sem caixa / estoque / validação }
+  /vendas/{venda}:
+    parameters:
+      - in: path
+        name: venda
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getVenda
+      tags: [Vendas]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+        '404': { description: Não encontrada }
+  /notas-nfce:
+    get:
+      operationId: listNotasNfce
+      tags: [Fiscal]
+      security: [{ sanctum: [] }]
+      summary: Lista notas NFC-e
+      responses:
+        '200': { description: Lista }
+        '401': { description: Não autenticado }
+  /notas-nfce/{nota}:
+    parameters:
+      - in: path
+        name: nota
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getNotaNfce
+      tags: [Fiscal]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+        '404': { description: Não encontrada }
+  /caixa/sangria:
+    post:
+      operationId: registrarSangria
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Registra sangria no caixa aberto
+      responses:
+        '201': { description: Sangria criada }
+        '401': { description: Não autenticado }
+        '422': { description: Sem caixa / validação }
+  /caixa/fechar:
+    post:
+      operationId: fecharCaixa
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Fecha o caixa aberto e grava totais
+      responses:
+        '200': { description: Caixa fechado }
+        '401': { description: Não autenticado }
+        '422': { description: Sem caixa aberto }
+  /caixa/fechamento:
+    get:
+      operationId: getFechamento
+      tags: [Caixa]
+      security: [{ sanctum: [] }]
+      summary: Prévia do caixa aberto ou último fechamento
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+  /configuracao-fiscal/certificado:
+    post:
+      operationId: uploadCertificadoA1
+      tags: [Config]
+      security: [{ sanctum: [] }]
+      summary: Upload do certificado A1 (multipart)
+      responses:
+        '200': { description: Armazenado }
+        '401': { description: Não autenticado }
+        '422': { description: Validação }
+  /consignados:
+    get:
+      operationId: listConsignados
+      tags: [Consignado]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: Lista }
+        '401': { description: Não autenticado }
+    post:
+      operationId: createConsignado
+      tags: [Consignado]
+      security: [{ sanctum: [] }]
+      summary: Cria consignado e baixa estoque
+      responses:
+        '201': { description: Criado }
+        '401': { description: Não autenticado }
+        '422': { description: Validação }
+  /consignados/{consignado}:
+    parameters:
+      - in: path
+        name: consignado
+        required: true
+        schema: { type: integer }
+    get:
+      operationId: getConsignado
+      tags: [Consignado]
+      security: [{ sanctum: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+        '404': { description: Não encontrado }
+  /consignados/{consignado}/devolver:
+    parameters:
+      - in: path
+        name: consignado
+        required: true
+        schema: { type: integer }
+    post:
+      operationId: devolverConsignado
+      tags: [Consignado]
+      security: [{ sanctum: [] }]
+      summary: Devolve itens e repõe estoque
+      responses:
+        '200': { description: OK }
+        '401': { description: Não autenticado }
+        '422': { description: Validação }
+  /consignados/{consignado}/converter:
+    parameters:
+      - in: path
+        name: consignado
+        required: true
+        schema: { type: integer }
+    post:
+      operationId: converterConsignado
+      tags: [Consignado]
+      security: [{ sanctum: [] }]
+      summary: Converte pendente em venda + NFC-e (sem nova baixa)
+      responses:
+        '201': { description: Venda criada }
+        '401': { description: Não autenticado }
+        '422': { description: Sem caixa / validação }

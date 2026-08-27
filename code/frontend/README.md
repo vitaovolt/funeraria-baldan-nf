@@ -1,5 +1,7 @@
-# Frontend SPA
+# Frontend SPA — Baldan NF
 
-Estrutura de pastas alinhada ao padrão Educraft (imagem de referência).
+React + Vite + Tailwind. Pastas Educraft (`api/`, `pages/`, `components/`, …).
 
-Stack: React + Vite + Tailwind. Fala só com `backend` via `src/api`.
+- F0: `pages/BootstrapPage.jsx` + `GET /api/v1/health` via proxy
+- Tokens: navy `#0D2A5C` + amarelo `#F5B400` (identidade Baldan)
+- Auth/PDV: fases F2+

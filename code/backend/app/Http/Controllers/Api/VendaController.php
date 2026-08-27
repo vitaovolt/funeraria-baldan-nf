@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Actions\FinalizarVenda;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\FinalizarVendaRequest;
+use App\Models\Venda;
+use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
+
+class VendaController extends Controller
+{
+    use ApiResponse;
+
+    public function finalizar(FinalizarVendaRequest $request, FinalizarVenda $action): JsonResponse
+    {
+        $dados = $request->validated();
+        $idemKey = $request->header('Idempotency-Key');
+        if (is_string($idemKey) && trim($idemKey) !== '') {
+            $dados['idempotency_key'] = trim($idemKey);
+        }
+
+        $jaExistia = ! empty($dados['idempotency_key'])
+            && Venda::query()->where('idempotency_key', $dados['idempotency_key'])->exists();
+
+        try {
+            $venda = $action->handle($request->user(), $dados);
+        } catch (InvalidArgumentException $e) {
+            return $this->fail($e->getMessage(), ['venda' => [$e->getMessage()]], 422);
+        }
+
+        $venda->load(['itens.produto', 'cliente', 'notaNfce']);
+
+        return $this->ok($venda, 'Venda finalizada', $jaExistia ? 200 : 201);
+    }
+
+    public function show(Venda $venda): JsonResponse
+    {
+        return $this->ok($venda->load(['itens.produto', 'cliente', 'notaNfce', 'usuario:id,name']));
+    }
+}

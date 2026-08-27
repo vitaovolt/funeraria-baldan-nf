@@ -1,6 +1,6 @@
 # Intake — Funerária Baldan
 
-Materiais já conhecidos (proposta aceita). Contrato de dados com a Gold System ainda não chegou.
+Materiais do cliente para o PDV / NFC-e.
 
 ## O que já temos
 
@@ -8,8 +8,4 @@ Materiais já conhecidos (proposta aceita). Contrato de dados com a Gold System 
 - Contexto comercial em `contexto.md`
 - Cópia do JSON da proposta em `proposta-comercial.json`
 - Marca: `brand/baldan_logo.jpg` e `brand/cores_baldan.jpg` (espelho em `03-hifi/assets/brand/`)
-
-## O que falta (Gold)
-
-- Formato do envio da venda (campos, autenticação, momento do disparo)
-- Contato técnico Gold para homologação conjunta
+- Prints de referência de UX (apenas intake, não vão na UI): `prints-gold/`

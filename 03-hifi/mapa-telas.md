@@ -1,36 +1,45 @@
-# Mapa de telas (MVP congelado) — `funeraria-baldan-nf`
+# Mapa de telas (MVP) — `funeraria-baldan-nf`
 
-Produto: ponte NFC-e. A venda **não** nasce neste painel.
-
-A simulação Gold no hi-fi **não** é o sistema Pegasus real (ainda sem print). Visual = marca Baldan + faixa “simulação”. Serve para alinhar o contrato: o que sai da venda, o que a ponte faz, o que volta (link do cupom ou aviso + chamar de novo).
+Produto: **PDV + cadastros + estoque simples + NFC-e + consignado**.
 
 | ID | Tela | Perfil | Prioridade MVP |
 |----|------|--------|----------------|
-| T1 | Simulação Gold — fechar venda (marcar emitir NFC-e) | Equipe no Gold | sim |
-| T2 | Simulação Gold — retorno autorizada + imprimir cupom (link) | Gold → Educraft → Gold | sim |
-| T3 | Simulação Gold — retorno recusada + tentar de novo (mesmo id) | Gold → Educraft → Gold | sim |
-| T4 | Entrar (painel Baldan) | Equipe / contador | sim |
-| T5 | Lista de notas (Ver / Imprimir / Tentar de novo) | Equipe / contador | sim |
-| T6 | Detalhe autorizada + cupom 80 mm + XML | Equipe / contador | sim |
-| T7 | Detalhe recusada + Tentar de novo | Equipe / contador | sim |
-| T8 | Configuração empresa + certificado A1 | Contador | sim |
+| T1 | Entrar | Equipe / contador | sim |
+| T2 | Início | Equipe | sim |
+| T3 | Caixa — abrir / fechar / vendas do dia / imprimir fechamento | Equipe | sim |
+| T4 | Venda (PDV) — carrinho + desconto (% ou R$) | Equipe | sim |
+| T5 | Buscar produto / código de barras | Equipe | sim |
+| T6 | Pagamento (+ emitir NFC-e) | Equipe | sim |
+| T7 | Sangria (no Caixa — saída de dinheiro) | Equipe | sim |
+| T8 | Produtos — lista (custo + preço + NCM) | Equipe | sim |
+| T9 | Produto — novo / editar | Equipe | sim |
+| T10 | Marcas / categorias | Equipe | sim |
+| T11 | Clientes — titulares + dependentes + plano | Equipe | sim |
+| T12 | Cliente — novo / editar (+ hint import Excel) | Equipe | sim |
+| T13 | Consignado — lista / devolver / virar venda | Equipe | sim |
+| T14 | Estoque — saldos + ajuste | Equipe | sim |
+| T15 | Notas NFC-e | Equipe / contador | sim |
+| T16 | Configuração empresa + A1 | Contador | sim |
 
-## Fora do MVP (não desenhar como tela)
+## Fora do MVP
 
-- Cadastros/produtos do Gold
-- NF-e, cancelar/inutilizar nota
-- Nova nota no painel Baldan
-- App / WhatsApp / BI
-- Nome de provedor fiscal
+- Módulos funerários (óbito, cremação, ambulância, etc.)
+- NF-e, cancelar nota, compras, BI
+- App / WhatsApp / multi-empresa
+- Fiado separado (é o **consignado**)
+- Import Excel de titulares/dependentes (formato **ainda a definir**)
 
-## Fluxo feliz (congelado)
+## Fluxo feliz
 
-1. T1 Finalizar venda (NFC-e marcada) → espera na tela Gold  
-2. T2 Autorizada + **Imprimir cupom** (Gold chamou o link)  
-3. T5 a mesma nota aparece no painel (plano B)
+1. Abrir caixa → Venda  
+2. Buscar / código → desconto opcional → Pagar e emitir nota → cupom  
+3. Estoque baixa; nota em Notas; venda aparece no caixa do dia  
 
-## Fluxo de recusa (congelado)
+## Fluxo consignado
 
-1. T1 com cenário recusa → T3 aviso + **Tentar de novo** no Gold  
-2. Mesmo pedido G-1042; sem segunda nota  
-3. T5/T7 ações iguais no painel
+1. Cliente leva produto para provar → notinha consignado  
+2. Devolve → tira do consignado / volta estoque **ou** finaliza compra (vira venda)
+
+## Fluxo fechar o dia
+
+1. Caixa → Fechar caixa → **imprimir fechamento** → conferência

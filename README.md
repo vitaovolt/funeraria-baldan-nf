@@ -1,13 +1,30 @@
 # Projeto `funeraria-baldan-nf`
 
-Ponte fiscal NFC-e: venda no Gold System → Educraft emite e lista as notas.
+PDV + estoque simples + consignado + NFC-e para a loja da Funerária Baldan.
 
-Cliente: Funerária Baldan. Proposta aceita em agosto/2026.
-
+Preview hi-fi: https://funerariabaldan.educraft.com.br  
 **GitHub:** https://github.com/vitaovolt/funeraria-baldan-nf
 
-Guia local do framework: [`../../COMECE-AQUI.md`](../../COMECE-AQUI.md) (pasta Educraft no disco).
+## Stack
+
+- `code/backend` — Laravel 12 API (Sanctum Bearer, PostgreSQL)
+- `code/frontend` — React + Vite + Tailwind SPA
 
 ## Particularidades
 
-Fiscal + filas + integração Gold. Ver [`CAPABILITIES.md`](CAPABILITIES.md).
+Ver [`CAPABILITIES.md`](CAPABILITIES.md): **fiscal** + **queues** + **files**.
+
+## Seeds locais
+
+| Usuário | Senha | Papel |
+|---------|-------|--------|
+| `operador@baldan.local` | `password` | operador |
+| `admin@baldan.local` | `password` | admin (config fiscal / A1) |
+
+## Deploy (F6)
+
+- Workflows: `.github/workflows/ci.yml` + `deploy.yml` (self-hosted)
+- Handoff: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+- Worker NFC-e: [`docs/queue-worker.service.example`](docs/queue-worker.service.example)
+
+Secret obrigatório no GitHub: `DEPLOY_PATH` (ex. `/var/www/funeraria-baldan-nf`).

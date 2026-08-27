@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Baldan — Hi-fi NFC-e</title>
+  <title>Baldan — Loja e NFC-e</title>
   <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
       --brand-primary: #0D2A5C;
@@ -17,434 +17,1519 @@
       --brand-accent-soft: #FFF6D6;
       --brand-sky: #5BA8E0;
       --brand-ink: #0D2A5C;
-      --brand-muted: #6B7280;
+      --brand-muted: #5F6B7A;
       --brand-faint: #9AA3B0;
-      --brand-bg: #F5F7FA;
+      --brand-bg: #F4F7FB;
       --brand-surface: #FFFFFF;
-      --brand-line: #E5EAF0;
-      --ok: #2E6BB5;
-      --ok-soft: #E8F0FA;
+      --brand-line: #E3E9F1;
+      --ok: #1F7A4D;
+      --ok-soft: #E6F5EE;
       --warn: #C98900;
       --warn-soft: #FFF6D6;
       --danger: #B42318;
       --danger-soft: #FDECEA;
-      --radius: 14px;
+      --pay: #0D2A5C;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(13, 42, 92, 0.07);
       --font-ui: "Poppins", system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font-ui); color: var(--brand-ink); background: var(--brand-bg); }
+    body {
+      margin: 0;
+      font-family: var(--font-ui);
+      color: var(--brand-ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(245, 180, 0, 0.18), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(91, 168, 224, 0.2), transparent 45%),
+        var(--brand-bg);
+      min-height: 100vh;
+    }
     button, input, select { font: inherit; }
-    .app-switch {
-      position: sticky; top: 0; z-index: 20;
-      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-      padding: 8px 16px; background: var(--brand-primary); color: #fff;
+    .btn {
+      appearance: none; border: 0; cursor: pointer; font-weight: 600;
+      border-radius: 999px; padding: 11px 18px; transition: transform .12s ease, opacity .12s ease;
     }
-    .app-switch img { height: 40px; width: auto; background: #fff; border-radius: 8px; padding: 2px 8px; }
-    .app-switch strong { font-size: .95rem; }
-    .app-switch button {
-      appearance: none; border: 1px solid rgba(255,255,255,.35); background: transparent; color: #fff;
-      border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: .85rem;
-    }
-    .app-switch button.on { background: var(--brand-accent); color: var(--brand-primary); border-color: var(--brand-accent); }
-    .view { display: none; min-height: calc(100vh - 56px); }
-    .view.on { display: block; }
-    .btn { appearance: none; border: 0; cursor: pointer; font-weight: 700; border-radius: 999px; padding: 10px 16px; }
-    .btn:disabled { opacity: .7; cursor: not-allowed; }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
     .btn-primary { background: var(--brand-primary); color: #fff; }
-    .btn-secondary { background: var(--brand-accent); color: var(--brand-primary); }
-    .btn-ghost { background: transparent; border: 1px solid var(--brand-line); color: var(--brand-primary); }
-    .pill { display: inline-flex; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .btn-accent { background: var(--brand-accent); color: var(--brand-primary); }
+    .btn-ghost { background: #fff; border: 1px solid var(--brand-line); color: var(--brand-primary); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-soft { background: var(--brand-primary-soft); color: var(--brand-primary); }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
     .pill.ok { background: var(--ok-soft); color: var(--ok); }
     .pill.danger { background: var(--danger-soft); color: var(--danger); }
     .pill.warn { background: var(--warn-soft); color: var(--warn); }
-    .toast { display: none; padding: 10px 12px; border-radius: 12px; background: var(--ok-soft); color: var(--ok); margin-bottom: 12px; }
+    .toast {
+      display: none; padding: 12px 14px; border-radius: 14px;
+      background: var(--ok-soft); color: var(--ok); margin-bottom: 14px; font-weight: 600;
+      box-shadow: var(--shadow);
+    }
     .toast.on { display: block; }
     .toast.err { background: var(--danger-soft); color: var(--danger); }
 
-    .gold-wrap { padding: 16px; background: var(--brand-bg); min-height: calc(100vh - 56px); }
-    .gold-banner { background: var(--brand-primary); color: #fff; padding: 10px 14px; border-radius: var(--radius); font-size: .85rem; margin-bottom: 12px; font-weight: 600; }
-    .gold-banner span { color: var(--brand-accent); }
-    .gold-win { background: var(--brand-surface); border: 1px solid var(--brand-line); border-radius: var(--radius); min-height: 560px; display: flex; flex-direction: column; overflow: hidden; }
-    .gold-title { background: var(--brand-primary); color: #fff; padding: 12px 16px; font-size: .9rem; display: flex; justify-content: space-between; align-items: center; }
-    .gold-menu { background: var(--brand-primary-soft); padding: 8px 16px; font-size: .82rem; color: var(--brand-primary-mid); font-weight: 600; }
-    .gold-body { display: grid; grid-template-columns: 1.15fr .85fr; gap: 0; flex: 1; }
-    @media (max-width: 900px) { .gold-body { grid-template-columns: 1fr; } }
-    .gold-form { padding: 18px; }
-    .gold-side { padding: 18px; background: var(--brand-primary-soft); border-left: 1px solid var(--brand-line); }
-    .gold-form h2 { margin: 0 0 10px; font-size: 1.15rem; color: var(--brand-primary); }
-    .g-field { margin-bottom: 10px; }
-    .g-field label { display: block; font-size: .75rem; font-weight: 700; color: var(--brand-muted); margin-bottom: 3px; }
-    .g-field input, .g-field select { width: 100%; padding: 10px; border: 1px solid var(--brand-line); border-radius: 10px; }
-    .g-table { width: 100%; border-collapse: collapse; font-size: .82rem; background: #fff; }
-    .g-table th, .g-table td { border-bottom: 1px solid var(--brand-line); padding: 8px; text-align: left; }
-    .g-table th { color: var(--brand-muted); font-size: .75rem; }
-    .g-btn { appearance: none; border: 0; background: var(--brand-primary); color: #fff; padding: 10px 16px; cursor: pointer; font-weight: 700; border-radius: 999px; }
-    .g-btn:disabled { opacity: .7; }
-    .g-btn.sec { background: #fff; color: var(--brand-primary); border: 1px solid var(--brand-line); }
-    .pipe { font-size: .78rem; color: var(--brand-muted); border: 1px solid var(--brand-line); border-radius: 12px; padding: 10px; background: #fff; margin-bottom: 10px; }
-    .cupom { width: 240px; margin: 8px auto; border: 2px dashed var(--brand-primary-mid); padding: 12px; text-align: center; font-size: .78rem; background: #fff; border-radius: 8px; }
-    .modal-back { display: none; position: fixed; inset: 0; background: rgba(13,42,92,.4); align-items: center; justify-content: center; z-index: 30; }
-    .modal-back.on { display: flex; }
-    .modal { background: #fff; padding: 18px; border-radius: var(--radius); max-width: 400px; width: 92%; }
+    /* Login */
+    .login {
+      min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    }
+    .login-card {
+      width: min(440px, 100%);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 24px;
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .login-card img { max-width: 220px; margin-bottom: 8px; }
+    .login-card h1 { margin: 8px 0 4px; font-size: 1.35rem; }
+    .login-card .tagline { color: var(--brand-muted); font-size: .9rem; margin-bottom: 22px; }
+    .field { margin-bottom: 12px; text-align: left; }
+    .field label { display: block; font-size: .78rem; font-weight: 600; color: var(--brand-muted); margin-bottom: 4px; }
+    .field input, .field select, .field textarea {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--brand-line);
+      border-radius: 12px; background: #fff;
+    }
+    .field input:focus, .field select:focus { outline: 2px solid rgba(46,107,181,.35); border-color: var(--brand-primary-mid); }
 
-    .auth { min-height: calc(100vh - 56px); display: grid; place-items: center; padding: 24px; }
-    .auth-card { width: min(400px, 100%); background: var(--brand-surface); border: 1px solid var(--brand-line); border-radius: var(--radius); padding: 28px; }
-    .shell { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 56px); }
-    @media (max-width: 800px) { .shell { grid-template-columns: 1fr; } }
-    .side { background: var(--brand-primary); color: #fff; padding: 16px 12px; }
-    .side button { display: block; width: 100%; text-align: left; background: transparent; border: 0; color: inherit; padding: 10px; border-radius: 10px; cursor: pointer; }
-    .side button.on { background: rgba(245,180,0,.25); color: var(--brand-accent); }
-    .top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--brand-line); background: var(--brand-surface); }
-    .main { padding: 16px; }
-    table.data { width: 100%; border-collapse: collapse; font-size: .88rem; background: var(--brand-surface); }
-    table.data th, table.data td { padding: 8px 10px; border-bottom: 1px solid var(--brand-line); text-align: left; }
-    .linkish { appearance: none; border: 1px solid var(--brand-line); background: #fff; padding: 4px 8px; border-radius: 999px; cursor: pointer; margin-right: 4px; font-size: .8rem; }
-    .field { margin-bottom: 10px; }
-    .field label { display: block; font-size: .78rem; font-weight: 700; color: var(--brand-muted); margin-bottom: 4px; }
-    .field input, .field select { width: 100%; padding: 9px; border: 1px solid var(--brand-line); border-radius: 10px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+    /* App shell */
+    .app {
+      display: grid;
+      grid-template-columns: 232px 1fr;
+      min-height: 100vh;
+    }
+    .side {
+      background: var(--brand-primary);
+      color: #fff;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .brand-block {
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .brand-block img { width: 100%; max-width: 170px; }
+    .brand-block p { margin: 6px 0 0; color: var(--brand-primary-mid); font-size: .65rem; font-weight: 700; letter-spacing: .08em; }
+    .nav {
+      appearance: none; border: 0; background: transparent; color: rgba(255,255,255,.88);
+      text-align: left; padding: 11px 12px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: .9rem;
+    }
+    .nav:hover { background: rgba(255,255,255,.08); }
+    .nav.on { background: rgba(245,180,0,.22); color: var(--brand-accent); }
+    .side-foot { margin-top: auto; padding: 12px 8px 4px; font-size: .78rem; opacity: .8; }
+    .main { padding: 22px 24px 40px; min-width: 0; }
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .page-head h1 { margin: 0; font-size: 1.55rem; letter-spacing: -.02em; }
+    .page-head p { margin: 6px 0 0; color: var(--brand-muted); font-size: .92rem; max-width: 52ch; }
+
+    .mobile-bar, .side-close, .side-backdrop { display: none; }
+    .mobile-bar {
+      position: sticky; top: 0; z-index: 25;
+      align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: var(--brand-primary);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(13,42,92,.2);
+    }
+    .mobile-bar img { height: 32px; background: #fff; border-radius: 8px; padding: 2px 6px; }
+    .mobile-bar .title { flex: 1; font-weight: 700; font-size: .92rem; }
+    .menu-btn {
+      appearance: none; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.1);
+      color: #fff; border-radius: 10px; width: 42px; height: 42px; cursor: pointer;
+      font-size: 1.25rem; font-weight: 700; line-height: 1;
+    }
+    .side-close {
+      appearance: none; border: 0; background: rgba(255,255,255,.12); color: #fff;
+      border-radius: 10px; padding: 8px 12px; cursor: pointer; font-weight: 700; font-size: .85rem;
+      align-self: flex-end; margin-bottom: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .mobile-bar { display: flex; }
+      .side-backdrop {
+        display: block; position: fixed; inset: 0; z-index: 30;
+        background: rgba(7, 24, 51, .45); opacity: 0; pointer-events: none;
+        transition: opacity .2s ease;
+      }
+      .side-backdrop.on { opacity: 1; pointer-events: auto; }
+      .side {
+        position: fixed; top: 0; left: 0; bottom: 0; width: min(280px, 86vw); z-index: 35;
+        transform: translateX(-105%);
+        transition: transform .22s ease;
+        box-shadow: 8px 0 28px rgba(0,0,0,.25);
+        overflow-y: auto;
+      }
+      .side.open { transform: translateX(0); }
+      .side-close { display: inline-flex; }
+      .main { padding: 14px 14px 32px; }
+      .page-head h1 { font-size: 1.25rem; }
+      .home-hero { padding: 20px; }
+      .home-hero h1 { font-size: 1.35rem; }
+      .cards { grid-template-columns: 1fr 1fr; }
+      .search-bar { flex-wrap: wrap; }
+      .search-bar input { min-width: 0; width: 100%; }
+      .search-bar .btn { flex: 1; }
+      .cart-item { grid-template-columns: 1fr; }
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table.data { min-width: 560px; }
+      body.menu-open { overflow: hidden; }
+    }
+    @media (max-width: 520px) {
+      .cards { grid-template-columns: 1fr; }
+      .actions-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--brand-surface);
+      border: 1px solid var(--brand-line);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .row.between { justify-content: space-between; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+    .home-hero {
+      border-radius: 22px;
+      padding: 28px;
+      background:
+        linear-gradient(120deg, rgba(13,42,92,.94), rgba(46,107,181,.88)),
+        var(--brand-primary);
+      color: #fff;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+    .home-hero h1 { margin: 0 0 8px; font-size: 1.7rem; }
+    .home-hero p { margin: 0; opacity: .9; max-width: 46ch; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .card {
+      appearance: none; border: 1px solid var(--brand-line); background: #fff;
+      border-radius: 18px; padding: 18px 16px; text-align: left; cursor: pointer;
+      box-shadow: var(--shadow); transition: border-color .15s ease, transform .12s ease;
+    }
+    .card:hover { border-color: var(--brand-primary-mid); transform: translateY(-2px); }
+    .card .label { font-weight: 700; color: var(--brand-primary); }
+    .card .desc { margin-top: 6px; font-size: .8rem; color: var(--brand-muted); line-height: 1.35; }
+    .card .mark {
+      width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+      background: var(--brand-primary-soft); color: var(--brand-primary); font-weight: 700; margin-bottom: 12px;
+    }
+
+    table.data { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    table.data th, table.data td { padding: 10px 10px; border-bottom: 1px solid var(--brand-line); text-align: left; }
+    table.data th { color: var(--brand-muted); font-size: .74rem; font-weight: 600; }
+    .linkish {
+      appearance: none; border: 1px solid var(--brand-line); background: #fff;
+      padding: 5px 10px; border-radius: 999px; cursor: pointer; margin-right: 4px; font-size: .8rem; font-weight: 600;
+    }
+
+    /* PDV modern */
+    .pdv { display: grid; grid-template-columns: 1.4fr .9fr; gap: 16px; align-items: start; }
+    @media (max-width: 980px) { .pdv { grid-template-columns: 1fr; } }
+    .cart-list { display: flex; flex-direction: column; gap: 8px; min-height: 280px; }
+    .cart-item {
+      display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+      padding: 12px 14px; border-radius: 14px; background: var(--brand-primary-soft); border: 1px solid transparent;
+    }
+    .cart-item strong { display: block; font-size: .92rem; }
+    .cart-item .meta { font-size: .75rem; color: var(--brand-muted); }
+    .qty {
+      display: inline-flex; align-items: center; gap: 6px; background: #fff;
+      border-radius: 999px; padding: 4px 8px; border: 1px solid var(--brand-line);
+    }
+    .qty button {
+      appearance: none; border: 0; background: var(--brand-primary-soft); width: 26px; height: 26px;
+      border-radius: 50%; cursor: pointer; font-weight: 700; color: var(--brand-primary);
+    }
+    .summary {
+      position: sticky; top: 16px;
+      background: #fff; border-radius: 20px; border: 1px solid var(--brand-line);
+      padding: 18px; box-shadow: var(--shadow);
+    }
+    .summary .total { font-size: 1.7rem; font-weight: 700; margin: 8px 0 16px; letter-spacing: -.02em; }
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .actions-grid .btn { width: 100%; border-radius: 12px; padding: 12px 10px; font-size: .85rem; }
+    .actions-grid .span2 { grid-column: 1 / -1; }
+    .empty {
+      border: 1px dashed var(--brand-line); border-radius: 16px; padding: 36px 20px;
+      text-align: center; color: var(--brand-muted); background: rgba(255,255,255,.6);
+    }
+    .search-bar {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .search-bar input {
+      flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--brand-line); background: #fff;
+    }
+
+    .modal-back {
+      display: none; position: fixed; inset: 0; background: rgba(7, 24, 51, .45);
+      align-items: center; justify-content: center; z-index: 40; padding: 16px;
+    }
+    .modal-back.on { display: flex; }
+    .modal {
+      background: #fff; border-radius: 20px; padding: 22px; width: min(520px, 100%);
+      max-height: 90vh; overflow: auto; box-shadow: 0 24px 60px rgba(0,0,0,.2);
+    }
+    .modal h3 { margin: 0 0 12px; }
+    .cupom {
+      width: 240px; margin: 8px auto; border: 2px dashed var(--brand-primary-mid);
+      padding: 14px; text-align: center; font-size: .78rem; background: #fff; border-radius: 12px;
+    }
+    .hint { font-size: .8rem; color: var(--brand-muted); }
+    .stat {
+      background: #fff; border-radius: 16px; border: 1px solid var(--brand-line);
+      padding: 16px; box-shadow: var(--shadow);
+    }
+    .stat .n { font-size: 1.4rem; font-weight: 700; }
+    .stat .l { font-size: .78rem; color: var(--brand-muted); margin-top: 4px; }
+    .prod-pick {
+      width: 100%; text-align: left; appearance: none; border: 1px solid var(--brand-line);
+      background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 8px; cursor: pointer;
+    }
+    .prod-pick:hover { border-color: var(--brand-primary-mid); background: var(--brand-primary-soft); }
+    .venda-cli {
+      display: grid; gap: 10px; margin-bottom: 14px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--brand-line);
+    }
+    .combo { position: relative; }
+    .combo-list {
+      position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 8;
+      max-height: 220px; overflow: auto; background: #fff;
+      border: 1px solid var(--brand-line); border-radius: 12px; box-shadow: var(--shadow);
+    }
+    .combo-item {
+      width: 100%; text-align: left; appearance: none; border: 0; background: #fff;
+      padding: 10px 12px; cursor: pointer; border-bottom: 1px solid var(--brand-line);
+      font: inherit; color: inherit;
+    }
+    .combo-item:last-child { border-bottom: 0; }
+    .combo-item:hover, .combo-item:focus { background: var(--brand-primary-soft); outline: none; }
+    .cli-chip {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 12px; border-radius: 12px; background: var(--brand-primary-soft);
+      border: 1px solid rgba(46,107,181,.25);
+    }
+    .cli-chip strong { display: block; font-size: .95rem; }
+    .venda-tools {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 14px;
+      border-top: 1px solid var(--brand-line); align-items: center;
+    }
+    .brand-block img, .login-card img, .mobile-bar img { object-fit: contain; }
   </style>
 </head>
 <body>
-  <nav class="app-switch">
-    <img src="assets/brand/baldan_logo.jpg" alt="Baldan" />
-    <strong>Serviços humanizados</strong>
-    <button type="button" id="tab-gold" class="on">1. Simulação Gold</button>
-    <button type="button" id="tab-panel">2. Painel da nota</button>
-    <a href="identidade-visual.html" style="margin-left:auto;color:#F5B400;font-size:.82rem;font-weight:700">Identidade</a>
-  </nav>
-
-  <section class="view on" id="view-gold">
-    <div class="gold-wrap">
-      <div class="gold-banner">Simulação do Gold System — <span>não é o programa real</span> (ainda sem print deles). Visual Baldan. Mostra a venda, o envio e o que volta (cupom ou aviso).</div>
-      <div class="gold-win">
-        <div class="gold-title"><span>Gold · Funerária Baldan</span><span>venda #G-1042</span></div>
-        <div class="gold-menu">Vendas &nbsp;|&nbsp; Cadastros <span style="opacity:.45">(fora desta ponte)</span></div>
-        <div class="gold-body">
-          <div class="gold-form">
-            <h2>Fechar venda</h2>
-            <p style="font-size:.82rem;color:var(--brand-muted);margin:0 0 12px">A regra “esta venda emite nota?” fica aqui. A Educraft só recebe se você marcar.</p>
-            <div class="g-field"><label>Contratante</label><input value="Família Santos" /></div>
-            <div class="g-field"><label>Documento</label><input value="" placeholder="vazio = emite sem CPF" /></div>
-            <table class="g-table">
-              <thead><tr><th>Item</th><th>Qtd</th><th>Valor</th></tr></thead>
-              <tbody>
-                <tr><td>Urna padrão</td><td>1</td><td>R$ 1.800,00</td></tr>
-                <tr><td>Translado municipal</td><td>1</td><td>R$ 680,00</td></tr>
-              </tbody>
-            </table>
-            <p style="font-weight:700;margin:10px 0">Total R$ 2.480,00</p>
-            <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:.9rem">
-              <input type="checkbox" id="emitir" checked /> Emitir NFC-e nesta venda
-            </label>
-            <div class="g-field">
-              <label>Nesta demonstração, o retorno será</label>
-              <select id="cenario">
-                <option value="ok">Autorizada (caminho feliz)</option>
-                <option value="err">Recusada (falta código da cidade)</option>
-              </select>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button type="button" class="g-btn" id="btn-finalizar">Finalizar venda</button>
-              <button type="button" class="g-btn sec" id="btn-cancelar-gold">Cancelar</button>
-            </div>
-          </div>
-          <aside class="gold-side">
-            <div class="pipe"><strong>1. Sai daqui</strong><br />Pedido G-1042 · itens · valor · documento</div>
-            <div class="pipe"><strong>2. Ponte Baldan</strong><br />Emite a NFC-e na hora (vocês esperam nesta tela)</div>
-            <div class="pipe" id="gold-retorno"><strong>3. Volta para o Gold</strong><br />Ainda não enviou.</div>
-            <div id="gold-result"></div>
-          </aside>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="view" id="view-panel">
-    <div id="panel-root"></div>
-  </section>
-
-  <div class="modal-back" id="cupom-modal">
-    <div class="modal">
-      <h3 style="margin:0 0 8px">Cupom 80 mm</h3>
-      <div class="cupom" id="cupom-body"></div>
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button type="button" class="btn btn-primary" id="cupom-ok">Fechar</button>
-      </div>
-    </div>
-  </div>
+  <div id="app"></div>
+  <div class="modal-back" id="modal"></div>
 
   <script>
-    const NOTES = {};
-    let submitting = false;
-    let panel = { screen: "login", role: "equipe", noteId: null, toast: "", toastErr: false, modalRetry: false, sub: false };
+    const money = (n) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    function money() { return "R$ 2.480,00"; }
+    const state = {
+      screen: "login",
+      role: "equipe",
+      user: "Márcia",
+      toast: "",
+      toastErr: false,
+      sub: false,
+      caixaAberto: false,
+      fundoCaixa: 200,
+      cart: [],
+      clienteVenda: null,
+      emitirNfce: true,
+      descontoTipo: "none",
+      descontoValor: 0,
+      filtroProd: "",
+      filtroCli: "",
+      cliBusca: "",
+      cliDropOpen: false,
+      menuOpen: false,
+    };
 
-    function upsertNote(status, msg) {
-      NOTES.n1042 = {
-        id: "n1042", gold: "G-1042", when: "18/08/2026 agora", who: "Família Santos",
-        doc: "sem CPF", value: money(), status, msg
+    const LOGO_JPG = "assets/brand/baldan_logo.jpg?v=a8";
+    const LOGO_SVG = "assets/brand/logo-principal.svg?v=a8";
+    function logoImg(extraClass) {
+      return `<img class="${extraClass || ""}" src="${LOGO_JPG}" alt="Baldan" onerror="this.onerror=null;this.src='${LOGO_SVG}'" />`;
+    }
+
+    const marcas = [
+      { id: "m1", nome: "VENOSAN" },
+      { id: "m2", nome: "SIGVARIS" },
+      { id: "m3", nome: "Baldan loja" },
+    ];
+    const categorias = [
+      { id: "c1", nome: "Ortopédicos" },
+      { id: "c2", nome: "Funeral / urna" },
+      { id: "c3", nome: "Geral" },
+    ];
+    let produtos = [
+      { id: "p1", barra: "7898360918430", nome: "Meia ortopédica 4000 30-40 AGH / G", marca: "VENOSAN", cat: "Ortopédicos", custo: 280, preco: 465, estoque: 2, ref: "00BG20003", ncm: "6115.10.11" },
+      { id: "p2", barra: "7898360918447", nome: "Meia ortopédica 4000 30-40 AGH / M", marca: "VENOSAN", cat: "Ortopédicos", custo: 210, preco: 350, estoque: 7, ref: "00BG42002", ncm: "6115.10.11" },
+      { id: "p3", barra: "7898360918454", nome: "Meia ortopédica 4000 30-40 AGH / P", marca: "VENOSAN", cat: "Ortopédicos", custo: 190, preco: 329, estoque: 0, ref: "00BG42001", ncm: "6115.10.11" },
+      { id: "p4", barra: "7891000100103", nome: "Urna padrão", marca: "Baldan loja", cat: "Funeral / urna", custo: 900, preco: 1800, estoque: 5, ref: "URN-01", ncm: "4421.90.00" },
+      { id: "p5", barra: "7891000100202", nome: "Translado municipal", marca: "Baldan loja", cat: "Geral", custo: 400, preco: 680, estoque: 99, ref: "TR-MUN", ncm: "0000.00.00" },
+      { id: "p6", barra: "7891000100301", nome: "Colete ortopédico M", marca: "SIGVARIS", cat: "Ortopédicos", custo: 120, preco: 289, estoque: 4, ref: "COL-M", ncm: "9021.10.20" },
+    ];
+    let clientes = [
+      { id: "cl1", nome: "Família Santos", doc: "123.456.789-00", tel: "(16) 99999-1001", email: "santos@email.com", plano: true, dependentes: ["Maria Santos", "Pedro Santos"] },
+      { id: "cl2", nome: "Ana Oliveira", doc: "987.654.321-00", tel: "(16) 98888-2002", email: "", plano: false, dependentes: [] },
+      { id: "cl3", nome: "Consumidor final", doc: "", tel: "", email: "", plano: false, dependentes: [] },
+    ];
+    let notes = [];
+    let vendasDia = [];
+    let consignados = [
+      { id: "cg1", quando: "25/08/2026 08:40", clienteId: "cl1", cliente: "Família Santos", produtoId: "p6", produto: "Colete ortopédico M", qtd: 1, status: "aberto" },
+    ];
+    let saleSeq = 1042;
+    let consSeq = 2;
+    let sangriasDia = [];
+
+    function toast(msg, err) {
+      state.toast = msg;
+      state.toastErr = !!err;
+      render();
+    }
+    function cartSubtotal() {
+      return state.cart.reduce((s, i) => s + i.qtd * i.preco, 0);
+    }
+    function cartDesconto() {
+      const sub = cartSubtotal();
+      if (state.descontoTipo === "pct") return Math.min(sub, sub * (Number(state.descontoValor) || 0) / 100);
+      if (state.descontoTipo === "rs") return Math.min(sub, Number(state.descontoValor) || 0);
+      return 0;
+    }
+    function cartTotal() {
+      return Math.max(0, cartSubtotal() - cartDesconto());
+    }
+    function openModal(html) {
+      const m = document.getElementById("modal");
+      m.classList.add("on");
+      m.innerHTML = `<div class="modal">${html}</div>`;
+    }
+    function closeModal() {
+      const m = document.getElementById("modal");
+      m.classList.remove("on");
+      m.innerHTML = "";
+    }
+
+    function shell(active, body) {
+      const items = [
+        ["home", "Início"],
+        ["caixa", "Caixa"],
+        ["pdv", "Venda"],
+        ["consignados", "Consignado"],
+        ["produtos", "Produtos"],
+        ["marcas", "Marcas"],
+        ["clientes", "Clientes"],
+        ["estoque", "Estoque"],
+        ["notas", "Notas"],
+      ];
+      if (state.role === "contador") items.push(["config", "Configuração"]);
+      const labels = Object.fromEntries(items);
+      const pageTitle = labels[active] || "Baldan";
+      return `
+        <div class="app">
+          <header class="mobile-bar">
+            <button type="button" class="menu-btn" id="menu-open" aria-label="Abrir menu">☰</button>
+            ${logoImg()}
+            <span class="title">${pageTitle}</span>
+          </header>
+          <div class="side-backdrop ${state.menuOpen ? "on" : ""}" id="menu-backdrop"></div>
+          <aside class="side ${state.menuOpen ? "open" : ""}" id="side-menu">
+            <button type="button" class="side-close" id="menu-close">Fechar menu</button>
+            <div class="brand-block">
+              ${logoImg()}
+              <p>SERVIÇOS HUMANIZADOS</p>
+            </div>
+            ${items.map(([id, label]) => `<button type="button" class="nav ${active === id ? "on" : ""}" data-go="${id}">${label}</button>`).join("")}
+            <button type="button" class="nav" data-go="login">Sair</button>
+            <div class="side-foot">${state.user}<br /><a href="identidade-visual.html" style="color:#F5B400">Identidade</a></div>
+          </aside>
+          <main class="main">
+            <div class="toast ${state.toast ? "on" : ""} ${state.toastErr ? "err" : ""}">${state.toast}</div>
+            ${body}
+          </main>
+        </div>`;
+    }
+
+    function bindNav() {
+      document.body.classList.toggle("menu-open", !!state.menuOpen && state.screen !== "login");
+      const openBtn = document.getElementById("menu-open");
+      const closeBtn = document.getElementById("menu-close");
+      const backdrop = document.getElementById("menu-backdrop");
+      if (openBtn) openBtn.onclick = () => { state.menuOpen = true; render(); };
+      if (closeBtn) closeBtn.onclick = () => { state.menuOpen = false; render(); };
+      if (backdrop) backdrop.onclick = () => { state.menuOpen = false; render(); };
+
+      document.querySelectorAll("[data-go]").forEach((b) => {
+        b.onclick = () => {
+          const go = b.dataset.go;
+          state.menuOpen = false;
+          if (go === "login") { state.screen = "login"; state.toast = ""; render(); return; }
+          if (go === "pdv" && !state.caixaAberto) {
+            state.screen = "caixa";
+            toast("Abra o caixa antes de vender.", true);
+            return;
+          }
+          state.screen = go;
+          state.toast = "";
+          render();
+        };
+      });
+    }
+
+    function screenLogin() {
+      return `
+        <div class="login">
+          <div class="login-card">
+            ${logoImg()}
+            <h1>Entrar</h1>
+            <p class="tagline">o melhor plano para sua família</p>
+            <div class="field"><label>E-mail</label><input id="email" type="email" value="marcia@baldan.com.br" /></div>
+            <div class="field"><label>Senha</label><input type="password" value="••••••••" /></div>
+            <label style="display:flex;gap:8px;font-size:.82rem;margin:8px 0 18px;text-align:left"><input type="checkbox" id="as-cont" /> Entrar como contador</label>
+            <div class="row" style="justify-content:center">
+              <button type="button" class="btn btn-primary" id="entrar">Entrar</button>
+              <button type="button" class="btn btn-ghost" id="cancel-login">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function screenHome() {
+      return shell("home", `
+        <div class="home-hero">
+          <h1>Olá, ${state.user.split("·")[0].trim()}</h1>
+          <p>Venda de produtos, estoque e nota fiscal em um só lugar — com a identidade Baldan.</p>
+        </div>
+        <div class="row" style="margin-bottom:14px">
+          <span class="pill ${state.caixaAberto ? "ok" : "danger"}">${state.caixaAberto ? "Caixa aberto" : "Caixa fechado"}</span>
+        </div>
+        <div class="cards">
+          <button type="button" class="card" data-tile="caixa"><div class="mark">$</div><div class="label">Caixa</div><div class="desc">Abrir, vendas do dia e fechar</div></button>
+          <button type="button" class="card" data-tile="pdv"><div class="mark">V</div><div class="label">Nova venda</div><div class="desc">PDV com desconto e NFC-e</div></button>
+          <button type="button" class="card" data-tile="consignados"><div class="mark">C</div><div class="label">Consignado</div><div class="desc">Provar produto · devolver ou vender</div></button>
+          <button type="button" class="card" data-tile="produtos"><div class="mark">P</div><div class="label">Produtos</div><div class="desc">Custo, preço, NCM</div></button>
+          <button type="button" class="card" data-tile="clientes"><div class="mark">👤</div><div class="label">Clientes</div><div class="desc">Titular, dependentes e plano</div></button>
+          <button type="button" class="card" data-tile="estoque"><div class="mark">E</div><div class="label">Estoque</div><div class="desc">Saldos e ajustes</div></button>
+          <button type="button" class="card" data-tile="notas"><div class="mark">N</div><div class="label">Notas</div><div class="desc">Cupom e retentativa</div></button>
+          ${state.role === "contador" ? `<button type="button" class="card" data-tile="config"><div class="mark">A1</div><div class="label">Configuração</div><div class="desc">Empresa e certificado</div></button>` : ""}
+        </div>`);
+    }
+
+    function screenCaixa() {
+      const tot = vendasDia.reduce((s, v) => s + v.total, 0);
+      const sang = sangriasDia.reduce((s, x) => s + x.valor, 0);
+      return shell("caixa", `
+        <div class="page-head">
+          <div>
+            <h1>Caixa</h1>
+            <p>Abra o caixa para vender. Sangria e fechamento ficam aqui — não na tela de venda.</p>
+          </div>
+          <span class="pill ${state.caixaAberto ? "ok" : "danger"}">${state.caixaAberto ? "Aberto" : "Fechado"}</span>
+        </div>
+        <div class="grid-3" style="margin-bottom:14px">
+          <div class="stat"><div class="n">${money(state.fundoCaixa)}</div><div class="l">Fundo inicial</div></div>
+          <div class="stat"><div class="n">${vendasDia.length}</div><div class="l">Vendas hoje</div></div>
+          <div class="stat"><div class="n">${money(tot)}</div><div class="l">Total vendido</div></div>
+        </div>
+        <div class="panel">
+          <div class="row between" style="margin-bottom:14px">
+            <h3 style="margin:0">Vendas do dia</h3>
+            <div class="row">
+              ${!state.caixaAberto
+                ? `<button type="button" class="btn btn-primary" id="abrir-cx">${state.sub ? "Processando…" : "Abrir caixa"}</button>`
+                : `<button type="button" class="btn btn-accent" id="ir-pdv">Ir para venda</button>
+                   <button type="button" class="btn btn-soft" id="btn-ret">Sangria</button>
+                   <button type="button" class="btn btn-ghost" id="print-cx">Imprimir fechamento</button>
+                   <button type="button" class="btn btn-danger" id="fechar-cx">${state.sub ? "Processando…" : "Fechar caixa"}</button>`}
+            </div>
+          </div>
+          <p class="hint" style="margin-top:0">Sangrias do dia: ${money(sang)} · Cada venda fica vinculada ao cliente.</p>
+          ${vendasDia.length === 0 ? `<p class="hint">Nenhuma venda neste caixa ainda.</p>` : `
+            <div class="table-wrap"><table class="data"><thead><tr><th>Venda</th><th>Cliente</th><th>Total</th><th>Desconto</th><th>Nota</th></tr></thead>
+            <tbody>${vendasDia.map((v) => `<tr><td>#${v.id}</td><td>${v.cliente}</td><td>${money(v.total)}</td><td>${v.desconto ? money(v.desconto) : "—"}</td><td>${v.nf}</td></tr>`).join("")}</tbody></table></div>`}
+        </div>`);
+    }
+
+    function screenPdv() {
+      const sub = cartSubtotal();
+      const desc = cartDesconto();
+      const tot = cartTotal();
+      const cli = state.clienteVenda;
+      const qCli = (state.cliBusca || "").trim().toLowerCase();
+      const cliOpts = clientes.filter((c) =>
+        !qCli || c.nome.toLowerCase().includes(qCli) || (c.doc || "").includes(qCli) ||
+        (c.dependentes || []).some((d) => d.toLowerCase().includes(qCli))
+      ).slice(0, 8);
+      const items = state.cart.length === 0
+        ? `<div class="empty"><strong>Carrinho vazio</strong><br /><span class="hint">Busque um produto ou informe o código de barras.</span></div>`
+        : `<div class="cart-list">${state.cart.map((i, idx) => `
+            <div class="cart-item">
+              <div>
+                <strong>${i.nome}</strong>
+                <div class="meta">${i.barra}</div>
+              </div>
+              <div class="qty">
+                <button type="button" data-dec="${idx}">−</button>
+                <span>${i.qtd}</span>
+                <button type="button" data-inc="${idx}">+</button>
+              </div>
+              <div style="text-align:right">
+                <strong>${money(i.qtd * i.preco)}</strong><br />
+                <button type="button" class="linkish" data-rm="${idx}" style="margin-top:4px">Remover</button>
+              </div>
+            </div>`).join("")}</div>`;
+
+      const cliBlock = cli
+        ? `<div class="cli-chip">
+            <div>
+              <strong>${cli.nome}</strong>
+              <span class="hint">${cli.doc || "sem CPF"}${cli.plano ? " · plano funerário" : ""}</span>
+            </div>
+            <button type="button" class="btn btn-ghost" id="limpar-cli" style="padding:7px 12px">Trocar</button>
+          </div>`
+        : `<div class="combo">
+            <div class="field" style="margin:0">
+              <label>Cliente da venda</label>
+              <input id="cli-busca" autocomplete="off" placeholder="Buscar por nome, CPF ou dependente…" value="${state.cliBusca || ""}" />
+            </div>
+            ${state.cliDropOpen ? `<div class="combo-list" id="cli-lista" role="listbox">
+              <button type="button" class="combo-item" data-cli="__final__" role="option">
+                <strong>Consumidor final</strong><br /><span class="hint">Sem vínculo de cadastro</span>
+              </button>
+              ${cliOpts.map((c) => `<button type="button" class="combo-item" data-cli="${c.id}" role="option">
+                <strong>${c.nome}</strong>${c.plano ? ' <span class="pill ok">plano</span>' : ""}<br />
+                <span class="hint">${c.doc || "sem CPF"}${(c.dependentes && c.dependentes.length) ? " · " + c.dependentes.join(", ") : ""}</span>
+              </button>`).join("")}
+              ${cliOpts.length === 0 ? `<div class="combo-item" data-cli-empty style="cursor:default"><span class="hint">Nenhum cliente encontrado</span></div>` : ""}
+            </div>` : ""}
+          </div>`;
+
+      return shell("pdv", `
+        <div class="page-head">
+          <div>
+            <h1>Venda #${saleSeq}</h1>
+            <p>Escolha o cliente, monte o carrinho e finalize o pagamento.</p>
+          </div>
+        </div>
+        <div class="pdv">
+          <div class="panel">
+            <div class="venda-cli">${cliBlock}</div>
+            <div class="search-bar">
+              <input id="busca-rapida" placeholder="Produto: nome, referência ou código de barras" />
+              <button type="button" class="btn btn-soft" id="btn-buscar">Buscar</button>
+              <button type="button" class="btn btn-ghost" id="btn-barra">Código</button>
+            </div>
+            ${items}
+            <div class="venda-tools">
+              <button type="button" class="btn btn-soft" id="btn-consignar">Consignar produto</button>
+              <span class="hint">Consignado = levar para provar (gera notinha). Não é fiado.</span>
+            </div>
+          </div>
+          <aside class="summary">
+            <div class="hint">Subtotal</div>
+            <div style="font-weight:700;margin-bottom:8px">${money(sub)}</div>
+            <div class="field"><label>Desconto</label>
+              <select id="desc-tipo">
+                <option value="none" ${state.descontoTipo === "none" ? "selected" : ""}>Sem desconto</option>
+                <option value="pct" ${state.descontoTipo === "pct" ? "selected" : ""}>Percentual (%)</option>
+                <option value="rs" ${state.descontoTipo === "rs" ? "selected" : ""}>Valor (R$)</option>
+              </select>
+            </div>
+            <div class="field" id="desc-val-wrap" style="${state.descontoTipo === "none" ? "display:none" : ""}">
+              <label>${state.descontoTipo === "pct" ? "Percentual" : "Valor em R$"}</label>
+              <input id="desc-valor" value="${state.descontoValor || ""}" placeholder="${state.descontoTipo === "pct" ? "10" : "50,00"}" />
+            </div>
+            ${desc > 0 ? `<p class="hint">Desconto aplicado: −${money(desc)}</p>` : ""}
+            <div class="hint">Total da venda</div>
+            <div class="total">${money(tot)}</div>
+            <div class="actions-grid">
+              <button type="button" class="btn btn-primary span2" id="btn-pagar">Pagar e emitir nota</button>
+              <button type="button" class="btn btn-ghost span2" id="btn-nova">Limpar venda</button>
+            </div>
+          </aside>
+        </div>`);
+    }
+
+    function screenProdutos() {
+      const q = state.filtroProd.trim().toLowerCase();
+      const list = produtos.filter((p) => !q || p.nome.toLowerCase().includes(q) || p.barra.includes(q) || p.ref.toLowerCase().includes(q));
+      return shell("produtos", `
+        <div class="page-head">
+          <div><h1>Produtos</h1><p>Cadastro com NCM para a nota fiscal.</p></div>
+          <div class="row">
+            <button type="button" class="btn btn-primary" id="novo-prod">Novo produto</button>
+            <button type="button" class="btn btn-ghost" data-go="marcas">Marcas</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="search-bar">
+            <input id="busca-prod" placeholder="Pesquisar produto" value="${state.filtroProd}" />
+            <button type="button" class="btn btn-ghost" id="filtrar-prod">Filtrar</button>
+          </div>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Código</th><th>Descrição</th><th>Marca</th><th>Custo</th><th>Venda</th><th>Estoque</th><th>NCM</th><th></th></tr></thead>
+            <tbody>
+              ${list.map((p) => `<tr>
+                <td>${p.barra}</td><td>${p.nome}<div class="hint">${p.ref}</div></td><td>${p.marca}</td>
+                <td>${money(p.custo || 0)}</td><td>${money(p.preco)}</td><td>${p.estoque.toFixed(2).replace(".", ",")}</td><td>${p.ncm}</td>
+                <td><button type="button" class="linkish" data-ed-prod="${p.id}">Editar</button></td>
+              </tr>`).join("")}
+            </tbody>
+          </table></div>
+        </div>`);
+    }
+
+    function screenMarcas() {
+      return shell("marcas", `
+        <div class="page-head"><div><h1>Marcas e categorias</h1><p>Organização simples do catálogo.</p></div></div>
+        <div class="grid-2">
+          <div class="panel">
+            <h3 style="margin-top:0">Marcas</h3>
+            <ul>${marcas.map((m) => `<li>${m.nome}</li>`).join("")}</ul>
+            <div class="row">
+              <input id="nova-marca" placeholder="Nova marca" style="flex:1;padding:10px;border:1px solid var(--brand-line);border-radius:12px" />
+              <button type="button" class="btn btn-primary" id="add-marca">Adicionar</button>
+            </div>
+          </div>
+          <div class="panel">
+            <h3 style="margin-top:0">Categorias</h3>
+            <ul>${categorias.map((c) => `<li>${c.nome}</li>`).join("")}</ul>
+            <div class="row">
+              <input id="nova-cat" placeholder="Nova categoria" style="flex:1;padding:10px;border:1px solid var(--brand-line);border-radius:12px" />
+              <button type="button" class="btn btn-primary" id="add-cat">Adicionar</button>
+            </div>
+          </div>
+        </div>`);
+    }
+
+    function screenClientes() {
+      const q = state.filtroCli.trim().toLowerCase();
+      const list = clientes.filter((c) => !q || c.nome.toLowerCase().includes(q) || c.doc.includes(q) || (c.dependentes || []).some((d) => d.toLowerCase().includes(q)));
+      return shell("clientes", `
+        <div class="page-head">
+          <div>
+            <h1>Clientes</h1>
+            <p>Titular, dependentes e se mantém plano. Importação por planilha Excel (formato ainda a definir).</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn btn-ghost" id="import-cli">Importar Excel</button>
+            <button type="button" class="btn btn-primary" id="novo-cli">Novo cliente</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="search-bar">
+            <input id="busca-cli" placeholder="Nome, CPF ou dependente" value="${state.filtroCli}" />
+            <button type="button" class="btn btn-ghost" id="filtrar-cli">Filtrar</button>
+          </div>
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Titular</th><th>Documento</th><th>Plano</th><th>Dependentes</th><th></th></tr></thead>
+            <tbody>${list.map((c) => `<tr>
+              <td>${c.nome}</td><td>${c.doc || "—"}</td>
+              <td>${c.plano ? '<span class="pill ok">sim</span>' : '<span class="pill warn">não</span>'}</td>
+              <td>${(c.dependentes && c.dependentes.length) ? c.dependentes.join(", ") : "—"}</td>
+              <td><button type="button" class="linkish" data-ed-cli="${c.id}">Editar</button></td>
+            </tr>`).join("")}</tbody>
+          </table></div>
+        </div>`);
+    }
+
+    function screenConsignados() {
+      const abertos = consignados.filter((c) => c.status === "aberto");
+      const hist = consignados.filter((c) => c.status !== "aberto");
+      return shell("consignados", `
+        <div class="page-head">
+          <div>
+            <h1>Consignado</h1>
+            <p>Produto levado para provar, com notinha. Devolve ou vira venda. Não é fiado.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="novo-cons">Novo consignado</button>
+        </div>
+        <div class="panel" style="margin-bottom:14px">
+          <h3 style="margin-top:0">Em aberto (${abertos.length})</h3>
+          ${abertos.length === 0 ? `<p class="hint">Nenhum consignado aberto.</p>` : `
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Quando</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th></th></tr></thead>
+            <tbody>${abertos.map((c) => `<tr>
+              <td>${c.quando}</td><td>${c.cliente}</td><td>${c.produto}</td><td>${c.qtd}</td>
+              <td>
+                <button type="button" class="linkish" data-dev="${c.id}">Devolver</button>
+                <button type="button" class="linkish" data-venda="${c.id}">Virar venda</button>
+                <button type="button" class="linkish" data-nota="${c.id}">Notinha</button>
+              </td>
+            </tr>`).join("")}</tbody>
+          </table></div>`}
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0">Histórico</h3>
+          ${hist.length === 0 ? `<p class="hint">Ainda sem histórico.</p>` : `
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Quando</th><th>Cliente</th><th>Produto</th><th>Situação</th></tr></thead>
+            <tbody>${hist.map((c) => `<tr>
+              <td>${c.quando}</td><td>${c.cliente}</td><td>${c.produto}</td>
+              <td>${c.status === "devolvido" ? '<span class="pill warn">devolvido</span>' : '<span class="pill ok">virou venda</span>'}</td>
+            </tr>`).join("")}</tbody>
+          </table></div>`}
+        </div>`);
+    }
+
+    function screenEstoque() {
+      return shell("estoque", `
+        <div class="page-head"><div><h1>Estoque</h1><p>Controle simples. A venda já baixa o saldo automaticamente.</p></div></div>
+        <div class="panel">
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Produto</th><th>Saldo</th><th>Referência</th><th></th></tr></thead>
+            <tbody>${produtos.map((p) => `<tr>
+              <td>${p.nome}</td>
+              <td>${p.estoque <= 0 ? '<span class="pill danger">0</span>' : p.estoque.toFixed(2).replace(".", ",")}</td>
+              <td>${p.ref}</td>
+              <td><button type="button" class="linkish" data-aj="${p.id}">Ajustar</button></td>
+            </tr>`).join("")}</tbody>
+          </table></div>
+        </div>`);
+    }
+
+    function screenNotas() {
+      return shell("notas", `
+        <div class="page-head"><div><h1>Notas NFC-e</h1><p>Cupom 80 mm e nova tentativa se a nota falhar.</p></div></div>
+        <div class="panel">
+          ${notes.length === 0 ? `<p class="hint">Ainda não há nota. Finalize uma venda com emissão ligada.</p>` : `
+          <div class="table-wrap"><table class="data">
+            <thead><tr><th>Quando</th><th>Venda</th><th>Cliente</th><th>Valor</th><th>Situação</th><th></th></tr></thead>
+            <tbody>${notes.map((n) => `<tr>
+              <td>${n.when}</td><td>#${n.sale}</td><td>${n.who}</td><td>${money(n.value)}</td>
+              <td>${n.status === "ok" ? '<span class="pill ok">Autorizada</span>' : '<span class="pill danger">Recusada</span>'}</td>
+              <td>${n.status === "ok"
+                ? `<button type="button" class="linkish" data-print="${n.id}">Imprimir cupom</button>`
+                : `<button type="button" class="linkish" data-retry="${n.id}">Tentar de novo</button>`}</td>
+            </tr>`).join("")}</tbody>
+          </table></div>`}
+        </div>`);
+    }
+
+    function screenConfig() {
+      return shell("config", `
+        <div class="page-head"><div><h1>Configuração</h1><p>Dados da empresa e certificado A1.</p></div></div>
+        <div class="panel grid-2">
+          <div>
+            <div class="field"><label>Razão social</label><input value="Funerária Baldan Ltda ME" /></div>
+            <div class="field"><label>CNPJ</label><input value="12.ABC.345/0001-90" /></div>
+            <div class="field"><label>UF</label><select><option>SP</option></select></div>
+            <div class="field"><label>Ambiente</label><select><option>Teste (ainda não vale)</option><option>Oficial</option></select></div>
+          </div>
+          <div>
+            <div class="field"><label>Certificado A1 (.pfx)</label><input type="file" accept=".pfx,.p12" /></div>
+            <div class="field"><label>Senha do certificado</label><input type="password" /></div>
+            <button type="button" class="btn btn-primary" id="salvar-cfg">${state.sub ? "Processando…" : "Salvar configuração"}</button>
+            <button type="button" class="btn btn-ghost" data-go="home">Cancelar</button>
+          </div>
+        </div>`);
+    }
+
+    function addToCart(p) {
+      if (!p) return;
+      if (p.estoque <= 0) { toast("Sem estoque deste produto.", true); return; }
+      const found = state.cart.find((i) => i.id === p.id);
+      if (found) found.qtd += 1;
+      else state.cart.push({ id: p.id, nome: p.nome, barra: p.barra, preco: p.preco, qtd: 1 });
+      render();
+    }
+
+    function modalBusca(prefill) {
+      openModal(`
+        <h3>Buscar produto</h3>
+        <div class="field"><label>Nome, referência ou código</label><input id="prod-q" value="${prefill || ""}" autofocus /></div>
+        <div id="prod-hits" style="max-height:280px;overflow:auto;margin:8px 0"></div>
+        <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>`);
+      const paint = () => {
+        const q = document.getElementById("prod-q").value.trim().toLowerCase();
+        const list = produtos.filter((p) => !q || p.nome.toLowerCase().includes(q) || p.ref.toLowerCase().includes(q) || p.barra.includes(q));
+        document.getElementById("prod-hits").innerHTML = list.map((p) => `
+          <button type="button" class="prod-pick" data-add="${p.id}">
+            <strong>${p.nome}</strong><br /><span class="hint">${money(p.preco)} · estoque ${p.estoque}</span>
+          </button>`).join("") || `<p class="hint">Nenhum produto encontrado.</p>`;
+        document.querySelectorAll("[data-add]").forEach((b) => {
+          b.onclick = () => {
+            addToCart(produtos.find((x) => x.id === b.dataset.add));
+            closeModal();
+            toast("Produto adicionado.");
+          };
+        });
+      };
+      document.getElementById("prod-q").oninput = paint;
+      document.getElementById("cancel-m").onclick = closeModal;
+      paint();
+    }
+
+    function modalBarra() {
+      openModal(`
+        <h3>Código de barras</h3>
+        <div class="field"><label>Código</label><input id="barra-in" autofocus placeholder="789…" /></div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="ok-barra">Adicionar</button>
+          <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>
+        </div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("ok-barra").onclick = () => {
+        const p = produtos.find((x) => x.barra === document.getElementById("barra-in").value.trim());
+        if (!p) { toast("Produto não encontrado.", true); closeModal(); return; }
+        addToCart(p);
+        closeModal();
+        toast(p.nome + " adicionado.");
       };
     }
 
-    function showCupom() {
-      document.getElementById("cupom-body").innerHTML = `
-        <strong>Funerária Baldan</strong>
-        <div>NFC-e · Autorizada</div>
-        <hr />
-        <div>Família Santos</div>
-        <div>sem CPF</div>
-        <div>${money()}</div>
-        <hr />
-        <div style="color:#888">chave 3526 … 1042</div>
-        <div style="color:#888">80 mm · impressora de cupom</div>`;
-      document.getElementById("cupom-modal").classList.add("on");
+    function modalCliente() {
+      openModal(`
+        <h3>Cliente da venda</h3>
+        <p class="hint">Opcional. Quem tem plano costuma receber desconto à vista.</p>
+        ${clientes.map((c) => `
+          <button type="button" class="prod-pick" data-cli="${c.id}">
+            <strong>${c.nome}</strong>${c.plano ? ' <span class="pill ok">plano</span>' : ""}<br />
+            <span class="hint">${c.doc || "sem CPF"}${(c.dependentes && c.dependentes.length) ? " · dep.: " + c.dependentes.join(", ") : ""}</span>
+          </button>`).join("")}
+        <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.querySelectorAll("[data-cli]").forEach((b) => {
+        b.onclick = () => {
+          state.clienteVenda = clientes.find((c) => c.id === b.dataset.cli);
+          closeModal();
+          render();
+        };
+      });
     }
 
-    document.getElementById("cupom-ok").onclick = () => document.getElementById("cupom-modal").classList.remove("on");
-
-    function goldRetorno(html) {
-      document.getElementById("gold-retorno").innerHTML = "<strong>3. Volta para o Gold</strong><br />" + html;
+    function pickClienteVenda(id) {
+      if (!id || id === "__final__") {
+        state.clienteVenda = null;
+        toast("Consumidor final nesta venda.");
+      } else {
+        const c = clientes.find((x) => x.id === id);
+        if (!c) { toast("Cliente não encontrado.", true); return; }
+        state.clienteVenda = c;
+        toast("Cliente: " + c.nome);
+      }
+      state.cliBusca = "";
+      state.cliDropOpen = false;
+      render();
     }
 
-    document.getElementById("btn-finalizar").onclick = () => {
-      if (submitting) return;
-      if (!document.getElementById("emitir").checked) {
-        goldRetorno("Você desmarcou emitir NFC-e. Nada foi enviado à ponte.");
-        document.getElementById("gold-result").innerHTML = "";
+    function bindClienteCombo() {
+      const limparCli = document.getElementById("limpar-cli");
+      if (limparCli) {
+        limparCli.onclick = () => {
+          state.clienteVenda = null;
+          state.cliBusca = "";
+          state.cliDropOpen = true;
+          render();
+          requestAnimationFrame(() => {
+            const inp = document.getElementById("cli-busca");
+            if (inp) inp.focus();
+          });
+        };
+      }
+
+      const cliBusca = document.getElementById("cli-busca");
+      if (cliBusca) {
+        cliBusca.addEventListener("focus", () => {
+          if (state.cliDropOpen) return;
+          state.cliDropOpen = true;
+          const val = cliBusca.value;
+          const caret = cliBusca.selectionStart;
+          render();
+          requestAnimationFrame(() => {
+            const again = document.getElementById("cli-busca");
+            if (!again) return;
+            again.focus();
+            again.value = val;
+            try { again.setSelectionRange(caret, caret); } catch (_) {}
+          });
+        });
+        cliBusca.addEventListener("input", () => {
+          state.cliBusca = cliBusca.value;
+          state.cliDropOpen = true;
+          const caret = cliBusca.selectionStart;
+          render();
+          requestAnimationFrame(() => {
+            const again = document.getElementById("cli-busca");
+            if (!again) return;
+            again.focus();
+            try { again.setSelectionRange(caret, caret); } catch (_) {}
+          });
+        });
+        cliBusca.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            state.cliDropOpen = false;
+            render();
+          }
+        });
+      }
+
+      const lista = document.getElementById("cli-lista");
+      if (lista) {
+        lista.addEventListener("mousedown", (e) => {
+          const btn = e.target.closest("[data-cli]");
+          if (!btn || btn.hasAttribute("data-cli-empty")) return;
+          e.preventDefault();
+          e.stopPropagation();
+          pickClienteVenda(btn.getAttribute("data-cli"));
+        });
+      }
+    }
+
+    function openSangriaModal() {
+      openModal(`<h3>Sangria</h3>
+        <p class="hint">Saída de dinheiro do caixa (não é venda nem consignado).</p>
+        <div class="field"><label>Valor</label><input id="ret-v" value="50,00" /></div>
+        <div class="row"><button type="button" class="btn btn-primary" id="ok-ret">Registrar sangria</button>
+        <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button></div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("ok-ret").onclick = () => {
+        const v = parseFloat(document.getElementById("ret-v").value.replace(".", "").replace(",", ".")) || 0;
+        sangriasDia.push({ valor: v, quando: "25/08/2026 agora" });
+        closeModal();
+        toast("Sangria de " + money(v) + " registrada.");
+        if (state.screen === "caixa") render();
+      };
+    }
+
+    function modalPagamento() {
+      if (state.cart.length === 0) { toast("Adicione pelo menos um item.", true); return; }
+      const sub = cartSubtotal();
+      const desc = cartDesconto();
+      const total = cartTotal();
+      openModal(`
+        <h3>Pagamento</h3>
+        <p class="hint">Subtotal ${money(sub)}${desc > 0 ? ` · desconto −${money(desc)}` : ""}</p>
+        <p>Total <strong>${money(total)}</strong></p>
+        <div class="field"><label>Forma</label>
+          <select id="forma"><option>Dinheiro</option><option>PIX</option><option>Cartão</option><option>À vista (com desconto)</option></select>
+        </div>
+        <label style="display:flex;gap:8px;align-items:center;margin:12px 0;font-size:.9rem">
+          <input type="checkbox" id="emitir" ${state.emitirNfce ? "checked" : ""} /> Emitir NFC-e nesta venda
+        </label>
+        <div class="field"><label>Nesta demonstração, o retorno da nota será</label>
+          <select id="cenario"><option value="ok">Autorizada</option><option value="err">Recusada</option></select>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="confirmar">${state.sub ? "Processando…" : "Confirmar pagamento"}</button>
+          <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>
+        </div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("confirmar").onclick = () => {
+        if (state.sub) return;
+        state.sub = true;
+        state.emitirNfce = document.getElementById("emitir").checked;
+        const cenario = document.getElementById("cenario").value;
+        const btn = document.getElementById("confirmar");
+        btn.disabled = true;
+        btn.textContent = "Processando…";
+        const clienteNome = state.clienteVenda ? state.clienteVenda.nome : "Consumidor final";
+        const saleId = saleSeq++;
+        const descPago = cartDesconto();
+        const totalPago = cartTotal();
+        setTimeout(() => {
+          state.sub = false;
+          state.cart.forEach((i) => {
+            const p = produtos.find((x) => x.id === i.id);
+            if (p) p.estoque = Math.max(0, p.estoque - i.qtd);
+          });
+          let nf = "sem nota";
+          if (state.emitirNfce) {
+            const id = "n" + saleId;
+            if (cenario === "ok") {
+              notes.unshift({ id, sale: saleId, when: "25/08/2026 agora", who: clienteNome, value: totalPago, status: "ok" });
+              nf = "autorizada";
+            } else {
+              notes.unshift({ id, sale: saleId, when: "25/08/2026 agora", who: clienteNome, value: totalPago, status: "err" });
+              nf = "recusada";
+            }
+          }
+          vendasDia.unshift({ id: saleId, cliente: clienteNome, total: totalPago, desconto: descPago, nf });
+          closeModal();
+          if (state.emitirNfce && cenario === "ok") {
+            showCupom(saleId, clienteNome, totalPago);
+            toast("Venda #" + saleId + " paga. NFC-e autorizada.");
+          } else if (state.emitirNfce) {
+            toast("Venda paga, mas a nota foi recusada. Veja em Notas.", true);
+          } else {
+            toast("Venda #" + saleId + " paga.");
+          }
+          state.cart = [];
+          state.clienteVenda = null;
+          state.cliBusca = "";
+          state.cliDropOpen = false;
+          state.descontoTipo = "none";
+          state.descontoValor = 0;
+          render();
+        }, 700);
+      };
+    }
+
+    function printFechamentoCaixa() {
+      const tot = vendasDia.reduce((s, v) => s + v.total, 0);
+      const sang = sangriasDia.reduce((s, x) => s + x.valor, 0);
+      openModal(`
+        <h3>Fechamento de caixa</h3>
+        <div class="cupom" style="width:min(280px,100%)">
+          <strong>Funerária Baldan</strong>
+          <div>Fechamento de caixa</div>
+          <hr />
+          <div>Fundo: ${money(state.fundoCaixa)}</div>
+          <div>Vendas: ${vendasDia.length}</div>
+          <div>Total vendido: ${money(tot)}</div>
+          <div>Sangrias: ${money(sang)}</div>
+          <hr />
+          <div class="hint">25/08/2026 · ${state.user}</div>
+        </div>
+        <p class="hint">Na produção, envia para a impressora. Aqui é a prévia.</p>
+        <button type="button" class="btn btn-primary" id="fechar-cupom">Fechar</button>`);
+      document.getElementById("fechar-cupom").onclick = closeModal;
+    }
+
+    function modalConsignar(prefillProdId) {
+      if (!state.clienteVenda) {
+        toast("Escolha o cliente antes de consignar.", true);
         return;
       }
-      submitting = true;
-      const btn = document.getElementById("btn-finalizar");
-      btn.disabled = true;
-      btn.textContent = "Processando…";
-      goldRetorno("Enviando pedido G-1042… a equipe espera nesta tela.");
-      const cenario = document.getElementById("cenario").value;
-      setTimeout(() => {
-        submitting = false;
-        btn.disabled = false;
-        btn.textContent = "Finalizar venda";
-        if (cenario === "ok") {
-          upsertNote("ok", "");
-          goldRetorno("Autorizada · link do cupom recebido. O Gold chama o link e imprime.");
-          document.getElementById("gold-result").innerHTML = `
-            <div class="pill ok">Autorizada</div>
-            <p style="font-size:.85rem;margin:8px 0">A nota já está no painel Baldan. Impressão automática pelo link — ou de novo no painel.</p>
-            <button type="button" class="g-btn" id="gold-print">Imprimir cupom</button>
-            <button type="button" class="g-btn sec" id="gold-ver-painel" style="margin-top:6px">Ver no painel Baldan</button>`;
-          document.getElementById("gold-print").onclick = showCupom;
-          document.getElementById("gold-ver-painel").onclick = () => {
-            panel.screen = "list";
-            switchView("panel");
-            renderPanel();
+      openModal(`
+        <h3>Novo consignado</h3>
+        <p class="hint">Cliente: <strong>${state.clienteVenda.nome}</strong>. Gera notinha para assinatura.</p>
+        <div class="field"><label>Produto</label>
+          <select id="cg-prod">${produtos.filter((p) => p.estoque > 0).map((p) =>
+            `<option value="${p.id}" ${p.id === prefillProdId ? "selected" : ""}>${p.nome} (est. ${p.estoque})</option>`).join("")}</select>
+        </div>
+        <div class="field"><label>Quantidade</label><input id="cg-qtd" value="1" /></div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="ok-cg">${state.sub ? "Processando…" : "Registrar consignado"}</button>
+          <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>
+        </div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("ok-cg").onclick = () => {
+        if (state.sub) return;
+        state.sub = true;
+        const p = produtos.find((x) => x.id === document.getElementById("cg-prod").value);
+        const qtd = Math.max(1, parseInt(document.getElementById("cg-qtd").value, 10) || 1);
+        document.getElementById("ok-cg").disabled = true;
+        document.getElementById("ok-cg").textContent = "Processando…";
+        setTimeout(() => {
+          state.sub = false;
+          if (!p || p.estoque < qtd) { toast("Estoque insuficiente.", true); closeModal(); return; }
+          p.estoque -= qtd;
+          const id = "cg" + (consSeq++);
+          consignados.unshift({
+            id, quando: "25/08/2026 agora", clienteId: state.clienteVenda.id, cliente: state.clienteVenda.nome,
+            produtoId: p.id, produto: p.nome, qtd, status: "aberto"
+          });
+          closeModal();
+          showNotinhaConsignado(consignados[0]);
+          toast("Consignado registrado.");
+          render();
+        }, 500);
+      };
+    }
+
+    function showNotinhaConsignado(c) {
+      openModal(`
+        <h3>Notinha de consignado</h3>
+        <div class="cupom" style="width:min(280px,100%)">
+          <strong>Funerária Baldan</strong>
+          <div>Consignado (provar)</div>
+          <hr />
+          <div>${c.cliente}</div>
+          <div>${c.qtd}× ${c.produto}</div>
+          <div class="hint">${c.quando}</div>
+          <hr />
+          <div class="hint">Assinatura do cliente: _______________</div>
+        </div>
+        <button type="button" class="btn btn-primary" id="fechar-cupom">Fechar</button>`);
+      document.getElementById("fechar-cupom").onclick = closeModal;
+    }
+
+    function showCupom(saleId, who, total) {
+      openModal(`
+        <h3>Cupom 80 mm</h3>
+        <div class="cupom">
+          <strong>Funerária Baldan</strong>
+          <div>NFC-e · Autorizada</div>
+          <hr />
+          <div>Venda #${saleId}</div>
+          <div>${who}</div>
+          <div>${money(total)}</div>
+        </div>
+        <button type="button" class="btn btn-primary" id="fechar-cupom">Fechar</button>`);
+      document.getElementById("fechar-cupom").onclick = closeModal;
+    }
+
+    function modalProduto(p) {
+      const isNew = !p;
+      const x = p || { barra: "", nome: "", marca: marcas[0].nome, cat: categorias[0].nome, custo: 0, preco: 0, estoque: 0, ref: "", ncm: "" };
+      openModal(`
+        <h3>${isNew ? "Novo produto" : "Editar produto"}</h3>
+        <div class="field"><label>Código de barras</label><input id="f-barra" value="${x.barra}" /></div>
+        <div class="field"><label>Descrição</label><input id="f-nome" value="${x.nome}" /></div>
+        <div class="grid-2">
+          <div class="field"><label>Marca</label><select id="f-marca">${marcas.map((m) => `<option ${m.nome === x.marca ? "selected" : ""}>${m.nome}</option>`).join("")}</select></div>
+          <div class="field"><label>Categoria</label><select id="f-cat">${categorias.map((c) => `<option ${c.nome === x.cat ? "selected" : ""}>${c.nome}</option>`).join("")}</select></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Custo (R$)</label><input id="f-custo" value="${String(x.custo || 0).replace(".", ",")}" /></div>
+          <div class="field"><label>Preço de venda (R$)</label><input id="f-preco" value="${String(x.preco).replace(".", ",")}" /></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Estoque</label><input id="f-est" value="${x.estoque}" /></div>
+          <div class="field"><label>Referência</label><input id="f-ref" value="${x.ref}" /></div>
+        </div>
+        <div class="field"><label>NCM</label><input id="f-ncm" value="${x.ncm}" /></div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="save-prod">${state.sub ? "Processando…" : "Salvar"}</button>
+          <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>
+        </div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("save-prod").onclick = () => {
+        if (state.sub) return;
+        state.sub = true;
+        document.getElementById("save-prod").disabled = true;
+        document.getElementById("save-prod").textContent = "Processando…";
+        setTimeout(() => {
+          state.sub = false;
+          const data = {
+            barra: document.getElementById("f-barra").value.trim(),
+            nome: document.getElementById("f-nome").value.trim(),
+            marca: document.getElementById("f-marca").value,
+            cat: document.getElementById("f-cat").value,
+            custo: parseFloat(document.getElementById("f-custo").value.replace(".", "").replace(",", ".")) || 0,
+            preco: parseFloat(document.getElementById("f-preco").value.replace(".", "").replace(",", ".")) || 0,
+            estoque: parseFloat(document.getElementById("f-est").value.replace(",", ".")) || 0,
+            ref: document.getElementById("f-ref").value.trim(),
+            ncm: document.getElementById("f-ncm").value.trim(),
           };
-        } else {
-          upsertNote("err", "A nota não saiu: falta o código da cidade no cadastro. Corrija no Gold e chame de novo o mesmo pedido.");
-          goldRetorno("Recusada · aviso em português · o Gold pode chamar de novo o mesmo pedido (não cria segunda nota).");
-          document.getElementById("gold-result").innerHTML = `
-            <div class="pill danger">Recusada</div>
-            <p style="font-size:.85rem;margin:8px 0">Falta o código da cidade. Corrija nesta venda e tente de novo. A equipe também pode tentar no painel Baldan.</p>
-            <button type="button" class="g-btn" id="gold-retry">Tentar de novo</button>
-            <button type="button" class="g-btn sec" id="gold-ver-painel2" style="margin-top:6px">Ver no painel Baldan</button>`;
-          document.getElementById("gold-ver-painel2").onclick = () => { panel.screen = "list"; switchView("panel"); renderPanel(); };
-          document.getElementById("gold-retry").onclick = () => {
-            if (submitting) return;
-            submitting = true;
-            document.getElementById("gold-retry").disabled = true;
-            document.getElementById("gold-retry").textContent = "Processando…";
-            setTimeout(() => {
-              submitting = false;
-              upsertNote("ok", "");
-              goldRetorno("Autorizada após nova chamada do mesmo pedido G-1042.");
-              document.getElementById("gold-result").innerHTML = `
-                <div class="pill ok">Autorizada</div>
-                <p style="font-size:.85rem;margin:8px 0">Mesmo pedido. Sem segunda nota. Link do cupom recebido.</p>
-                <button type="button" class="g-btn" id="gold-print2">Imprimir cupom</button>`;
-              document.getElementById("gold-print2").onclick = showCupom;
-            }, 700);
+          if (isNew) produtos.unshift({ id: "p" + Date.now(), ...data });
+          else Object.assign(p, data);
+          closeModal();
+          toast("Produto salvo.");
+          render();
+        }, 500);
+      };
+    }
+
+    function modalClienteEdit(c) {
+      const isNew = !c;
+      const x = c || { nome: "", doc: "", tel: "", email: "", plano: false, dependentes: [] };
+      openModal(`
+        <h3>${isNew ? "Novo cliente" : "Editar cliente"}</h3>
+        <div class="field"><label>Titular</label><input id="c-nome" value="${x.nome}" /></div>
+        <div class="field"><label>CPF / CNPJ</label><input id="c-doc" value="${x.doc}" placeholder="opcional" /></div>
+        <div class="field"><label>Telefone</label><input id="c-tel" value="${x.tel}" /></div>
+        <div class="field"><label>E-mail</label><input id="c-email" value="${x.email}" /></div>
+        <label style="display:flex;gap:8px;font-size:.9rem;margin:8px 0 12px"><input type="checkbox" id="c-plano" ${x.plano ? "checked" : ""} /> Mantém plano funerário</label>
+        <div class="field"><label>Dependentes (um por linha)</label><textarea id="c-deps" rows="3">${(x.dependentes || []).join("\n")}</textarea></div>
+        <p class="hint">Importação em massa: planilha Excel (formato a definir).</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="save-cli">${state.sub ? "Processando…" : "Salvar"}</button>
+          <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button>
+        </div>`);
+      document.getElementById("cancel-m").onclick = closeModal;
+      document.getElementById("save-cli").onclick = () => {
+        if (state.sub) return;
+        state.sub = true;
+        document.getElementById("save-cli").disabled = true;
+        document.getElementById("save-cli").textContent = "Processando…";
+        setTimeout(() => {
+          state.sub = false;
+          const data = {
+            nome: document.getElementById("c-nome").value.trim(),
+            doc: document.getElementById("c-doc").value.trim(),
+            tel: document.getElementById("c-tel").value.trim(),
+            email: document.getElementById("c-email").value.trim(),
+            plano: document.getElementById("c-plano").checked,
+            dependentes: document.getElementById("c-deps").value.split("\n").map((s) => s.trim()).filter(Boolean),
+          };
+          if (isNew) clientes.unshift({ id: "cl" + Date.now(), ...data });
+          else Object.assign(c, data);
+          closeModal();
+          toast("Cliente salvo.");
+          render();
+        }, 500);
+      };
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+      const map = {
+        login: screenLogin,
+        home: screenHome,
+        caixa: screenCaixa,
+        pdv: screenPdv,
+        consignados: screenConsignados,
+        produtos: screenProdutos,
+        marcas: screenMarcas,
+        clientes: screenClientes,
+        estoque: screenEstoque,
+        notas: screenNotas,
+        config: screenConfig,
+      };
+      app.innerHTML = (map[state.screen] || screenHome)();
+      bindNav();
+
+      if (state.screen === "login") {
+        document.getElementById("entrar").onclick = () => {
+          state.role = document.getElementById("as-cont").checked ? "contador" : "equipe";
+          state.user = state.role === "contador" ? "Paulo · contador" : "Márcia";
+          state.screen = "home";
+          state.menuOpen = false;
+          toast("Bem-vinda.");
+        };
+      }
+
+      document.querySelectorAll("[data-tile]").forEach((b) => {
+        b.onclick = () => {
+          const t = b.dataset.tile;
+          if (t === "pdv" && !state.caixaAberto) {
+            state.screen = "caixa";
+            toast("Abra o caixa antes de vender.", true);
+            return;
+          }
+          state.screen = t;
+          state.toast = "";
+          render();
+        };
+      });
+
+      if (state.screen === "caixa") {
+        const abrir = document.getElementById("abrir-cx");
+        if (abrir) abrir.onclick = () => {
+          if (state.sub) return;
+          state.sub = true; render();
+          setTimeout(() => { state.sub = false; state.caixaAberto = true; toast("Caixa aberto."); state.screen = "pdv"; render(); }, 500);
+        };
+        const fechar = document.getElementById("fechar-cx");
+        if (fechar) fechar.onclick = () => {
+          if (state.sub) return;
+          if (state.cart.length) { toast("Finalize ou limpe a venda aberta antes de fechar.", true); return; }
+          state.sub = true; render();
+          setTimeout(() => {
+            state.sub = false;
+            state.caixaAberto = false;
+            toast("Caixa fechado.");
+            printFechamentoCaixa();
+            render();
+          }, 500);
+        };
+        const ir = document.getElementById("ir-pdv");
+        if (ir) ir.onclick = () => { state.screen = "pdv"; render(); };
+        const pr = document.getElementById("print-cx");
+        if (pr) pr.onclick = printFechamentoCaixa;
+        const sang = document.getElementById("btn-ret");
+        if (sang) sang.onclick = openSangriaModal;
+      }
+
+      if (state.screen === "pdv") {
+        document.getElementById("btn-buscar").onclick = () => modalBusca(document.getElementById("busca-rapida").value);
+        document.getElementById("btn-barra").onclick = modalBarra;
+        document.getElementById("busca-rapida").onkeydown = (e) => {
+          if (e.key === "Enter") modalBusca(e.target.value);
+        };
+        document.getElementById("btn-consignar").onclick = () => modalConsignar();
+        document.getElementById("btn-pagar").onclick = modalPagamento;
+        document.getElementById("btn-nova").onclick = () => {
+          state.cart = [];
+          state.clienteVenda = null;
+          state.cliBusca = "";
+          state.cliDropOpen = false;
+          state.descontoTipo = "none";
+          state.descontoValor = 0;
+          toast("Venda limpa.");
+          render();
+        };
+        bindClienteCombo();
+        const descTipo = document.getElementById("desc-tipo");
+        if (descTipo) {
+          descTipo.onchange = () => {
+            state.descontoTipo = descTipo.value;
+            if (state.descontoTipo === "none") state.descontoValor = 0;
+            render();
           };
         }
-      }, 800);
-    };
+        const descValor = document.getElementById("desc-valor");
+        if (descValor) {
+          descValor.onchange = () => {
+            const raw = descValor.value.replace(".", "").replace(",", ".");
+            state.descontoValor = parseFloat(raw) || 0;
+            render();
+          };
+          descValor.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const raw = descValor.value.replace(".", "").replace(",", ".");
+              state.descontoValor = parseFloat(raw) || 0;
+              render();
+            }
+          };
+        }
+        document.querySelectorAll("[data-rm]").forEach((b) => b.onclick = () => { state.cart.splice(+b.dataset.rm, 1); render(); });
+        document.querySelectorAll("[data-inc]").forEach((b) => b.onclick = () => { state.cart[+b.dataset.inc].qtd += 1; render(); });
+        document.querySelectorAll("[data-dec]").forEach((b) => b.onclick = () => {
+          const i = +b.dataset.dec;
+          if (state.cart[i].qtd <= 1) state.cart.splice(i, 1);
+          else state.cart[i].qtd -= 1;
+          render();
+        });
+      }
 
-    document.getElementById("btn-cancelar-gold").onclick = () => {
-      document.getElementById("gold-result").innerHTML = "";
-      goldRetorno("Ainda não enviou.");
-    };
-
-    function switchView(which) {
-      document.getElementById("view-gold").classList.toggle("on", which === "gold");
-      document.getElementById("view-panel").classList.toggle("on", which === "panel");
-      document.getElementById("tab-gold").classList.toggle("on", which === "gold");
-      document.getElementById("tab-panel").classList.toggle("on", which === "panel");
-    }
-    document.getElementById("tab-gold").onclick = () => switchView("gold");
-    document.getElementById("tab-panel").onclick = () => { switchView("panel"); renderPanel(); };
-
-    function pill(s) {
-      if (s === "ok") return '<span class="pill ok">Autorizada</span>';
-      if (s === "err") return '<span class="pill danger">Recusada</span>';
-      return '<span class="pill warn">Tentando de novo</span>';
-    }
-
-    function renderPanel() {
-      const root = document.getElementById("panel-root");
-      if (panel.screen === "login") {
-        root.innerHTML = `
-          <div class="auth">
-            <div class="auth-card">
-              <div style="text-align:center;margin-bottom:16px">
-                <img src="assets/brand/baldan_logo.jpg" alt="Baldan" style="max-width:220px" />
-                <p style="color:var(--brand-muted);font-size:.85rem">o melhor plano para sua família</p>
-              </div>
-              <div class="field"><label>E-mail</label><input type="email" value="marcia@baldan.com.br" /></div>
-              <div class="field"><label>Senha</label><input type="password" value="••••••••" /></div>
-              <div style="display:flex;gap:8px">
-                <button type="button" class="btn btn-primary" id="entrar">Entrar</button>
-                <button type="button" class="btn btn-ghost">Cancelar</button>
-              </div>
-              <p style="font-size:.78rem;color:var(--brand-faint);margin-top:12px">Contador: use o mesmo painel. Configuração só aparece para ele.</p>
-              <label style="display:flex;gap:8px;font-size:.82rem;margin-top:10px"><input type="checkbox" id="as-cont" /> Entrar como contador</label>
-            </div>
-          </div>`;
-        document.getElementById("entrar").onclick = () => {
-          panel.role = document.getElementById("as-cont").checked ? "contador" : "equipe";
-          panel.screen = "list";
-          renderPanel();
+      if (state.screen === "consignados") {
+        document.getElementById("novo-cons").onclick = () => {
+          if (!state.clienteVenda) {
+            state.screen = "pdv";
+            toast("Escolha o cliente na venda e use Consignar, ou selecione o cliente agora.", true);
+            modalCliente();
+            return;
+          }
+          modalConsignar();
         };
-        return;
+        document.querySelectorAll("[data-dev]").forEach((b) => {
+          b.onclick = () => {
+            if (state.sub) return;
+            const c = consignados.find((x) => x.id === b.dataset.dev);
+            if (!c || c.status !== "aberto") return;
+            state.sub = true;
+            setTimeout(() => {
+              state.sub = false;
+              const p = produtos.find((x) => x.id === c.produtoId);
+              if (p) p.estoque += c.qtd;
+              c.status = "devolvido";
+              toast("Produto devolvido. Estoque atualizado.");
+              render();
+            }, 400);
+          };
+        });
+        document.querySelectorAll("[data-venda]").forEach((b) => {
+          b.onclick = () => {
+            const c = consignados.find((x) => x.id === b.dataset.venda);
+            if (!c || c.status !== "aberto") return;
+            const p = produtos.find((x) => x.id === c.produtoId);
+            state.clienteVenda = clientes.find((x) => x.id === c.clienteId) || state.clienteVenda;
+            state.cart = [{ id: p.id, nome: p.nome, barra: p.barra, preco: p.preco, qtd: c.qtd }];
+            c.status = "vendido";
+            if (p) p.estoque += c.qtd;
+            state.caixaAberto = true;
+            state.screen = "pdv";
+            toast("Consignado convertido: finalize o pagamento.");
+            render();
+          };
+        });
+        document.querySelectorAll("[data-nota]").forEach((b) => {
+          b.onclick = () => showNotinhaConsignado(consignados.find((x) => x.id === b.dataset.nota));
+        });
       }
 
-      const rows = Object.values(NOTES).map((n) => `
-        <tr>
-          <td>${n.when}</td>
-          <td>${n.who}<div style="color:var(--brand-faint);font-size:.78rem">${n.doc} · ${n.gold}</div></td>
-          <td>${n.value}</td>
-          <td>${pill(n.status)}</td>
-          <td>
-            <button type="button" class="linkish" data-open="${n.id}">Ver</button>
-            ${n.status === "ok"
-              ? `<button type="button" class="linkish" data-print="${n.id}">Imprimir cupom</button>`
-              : `<button type="button" class="linkish" data-retry="${n.id}">Tentar de novo</button>`}
-          </td>
-        </tr>`).join("") || `<tr><td colspan="5" style="color:var(--brand-muted)">Ainda não chegou venda do Gold. Faça a simulação na aba 1.</td></tr>`;
-
-      let body = "";
-      if (panel.screen === "list") {
-        body = `
-          <div class="toast ${panel.toast ? "on" : ""} ${panel.toastErr ? "err" : ""}">${panel.toast}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <h2 style="margin:0;color:var(--brand-primary)">Notas</h2>
-            <button type="button" class="btn btn-ghost" id="atualizar">Atualizar</button>
-          </div>
-          <table class="data">
-            <thead><tr><th>Quando</th><th>Quem</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <p style="font-size:.8rem;color:var(--brand-faint)">Não existe “Nova nota” aqui. A venda nasce no Gold.</p>`;
+      if (state.screen === "produtos") {
+        document.getElementById("novo-prod").onclick = () => modalProduto(null);
+        document.getElementById("filtrar-prod").onclick = () => {
+          state.filtroProd = document.getElementById("busca-prod").value;
+          render();
+        };
+        document.querySelectorAll("[data-ed-prod]").forEach((b) => {
+          b.onclick = () => modalProduto(produtos.find((p) => p.id === b.dataset.edProd));
+        });
       }
 
-      if (panel.screen === "detail") {
-        const n = NOTES[panel.noteId];
-        if (!n) { panel.screen = "list"; renderPanel(); return; }
-        body = `
-          <div class="toast ${panel.toast ? "on" : ""} ${panel.toastErr ? "err" : ""}">${panel.toast}</div>
-          <button type="button" class="btn btn-ghost" id="voltar">Voltar</button>
-          <h2 style="color:var(--brand-primary)">${n.who} ${pill(n.status)}</h2>
-          <div class="grid-2">
-            <div>
-              <p>${n.doc} · ${n.value}<br /><span style="color:var(--brand-faint)">${n.gold}</span></p>
-              ${n.msg ? `<p>${n.msg}</p>` : `<p>O Gold já pode ter impresso pelo link. Aqui você imprime de novo se quiser.</p>`}
-              ${n.status === "ok"
-                ? `<button type="button" class="btn btn-primary" id="print-d">Imprimir cupom</button>
-                   <button type="button" class="btn btn-ghost" id="xml">Baixar XML</button>`
-                : `<button type="button" class="btn btn-primary" id="retry-d">${panel.sub ? "Processando…" : "Tentar de novo"}</button>
-                   <button type="button" class="btn btn-ghost" id="voltar2">Cancelar</button>`}
-            </div>
-            <div>${n.status === "ok" ? `<div class="cupom"><strong>Funerária Baldan</strong><div>NFC-e</div><hr />${n.who}<br />${n.value}</div>` : `<p style="color:var(--brand-muted)">Cupom só depois de autorizada.</p>`}</div>
-          </div>`;
-      }
-
-      if (panel.screen === "config") {
-        body = `
-          <div class="toast ${panel.toast ? "on" : ""}">${panel.toast}</div>
-          <h2 style="color:var(--brand-primary)">Configuração</h2>
-          <div class="grid-2">
-            <div>
-              <div class="field"><label>Razão social</label><input value="Funerária Baldan Ltda" /></div>
-              <div class="field"><label>CNPJ</label><input value="12.ABC.345/0001-90" /></div>
-              <div class="field"><label>UF</label><select><option>SP</option></select></div>
-              <div class="field"><label>Ambiente</label><select><option>Teste (ainda não vale)</option><option>Oficial</option></select></div>
-            </div>
-            <div>
-              <div class="field"><label>Certificado A1 (.pfx)</label><input type="file" accept=".pfx,.p12" /></div>
-              <div class="field"><label>Senha do certificado</label><input type="password" /></div>
-              <button type="button" class="btn btn-primary" id="salvar">${panel.sub ? "Processando…" : "Salvar configuração"}</button>
-              <button type="button" class="btn btn-ghost" id="cancel-cfg">Cancelar</button>
-            </div>
-          </div>`;
-      }
-
-      root.innerHTML = `
-        <div class="shell">
-          <aside class="side">
-            <img src="assets/brand/baldan_logo.jpg" alt="Baldan" style="width:100%;max-width:160px;background:#fff;border-radius:8px;padding:6px" />
-            <p style="font-size:.75rem;margin:8px 0 16px;opacity:.85">SERVIÇOS HUMANIZADOS</p>
-            <button type="button" class="${panel.screen !== "config" ? "on" : ""}" id="nav-list">Notas</button>
-            ${panel.role === "contador" ? `<button type="button" class="${panel.screen === "config" ? "on" : ""}" id="nav-cfg">Configuração</button>` : `<p style="font-size:.75rem;opacity:.7;padding:8px">Configuração: só o contador.</p>`}
-          </aside>
-          <div>
-            <div class="top">
-              <span>${panel.role === "contador" ? "Paulo · contador" : "Márcia"}</span>
-              <button type="button" class="btn btn-ghost" id="sair">Sair</button>
-            </div>
-            <div class="main">${body}</div>
-          </div>
-        </div>`;
-
-      const $ = (id) => document.getElementById(id);
-      if ($("sair")) $("sair").onclick = () => { panel.screen = "login"; renderPanel(); };
-      if ($("nav-list")) $("nav-list").onclick = () => { panel.screen = "list"; panel.toast = ""; renderPanel(); };
-      if ($("nav-cfg")) $("nav-cfg").onclick = () => { panel.screen = "config"; panel.toast = ""; renderPanel(); };
-      if ($("atualizar")) $("atualizar").onclick = () => { panel.toast = "Lista atualizada."; panel.toastErr = false; renderPanel(); };
-      if ($("voltar")) $("voltar").onclick = () => { panel.screen = "list"; renderPanel(); };
-      if ($("voltar2")) $("voltar2").onclick = () => { panel.screen = "list"; renderPanel(); };
-      if ($("cancel-cfg")) $("cancel-cfg").onclick = () => { panel.screen = "list"; renderPanel(); };
-      root.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => { panel.noteId = b.dataset.open; panel.screen = "detail"; renderPanel(); });
-      root.querySelectorAll("[data-print]").forEach((b) => b.onclick = showCupom);
-      root.querySelectorAll("[data-retry]").forEach((b) => {
-        b.onclick = () => { panel.noteId = b.dataset.retry; panel.screen = "detail"; renderPanel(); };
-      });
-      if ($("print-d")) $("print-d").onclick = showCupom;
-      if ($("xml")) $("xml").onclick = () => { panel.toast = "XML baixado."; panel.toastErr = false; renderPanel(); };
-      if ($("retry-d")) {
-        $("retry-d").onclick = () => {
-          if (panel.sub) return;
-          panel.sub = true;
-          renderPanel();
-          setTimeout(() => {
-            NOTES[panel.noteId].status = "ok";
-            NOTES[panel.noteId].msg = "";
-            panel.sub = false;
-            panel.toast = "Nota autorizada. Pode imprimir o cupom.";
-            panel.toastErr = false;
-            renderPanel();
-          }, 700);
+      if (state.screen === "marcas") {
+        document.getElementById("add-marca").onclick = () => {
+          const n = document.getElementById("nova-marca").value.trim();
+          if (!n) return;
+          marcas.push({ id: "m" + Date.now(), nome: n });
+          toast("Marca adicionada.");
+          render();
+        };
+        document.getElementById("add-cat").onclick = () => {
+          const n = document.getElementById("nova-cat").value.trim();
+          if (!n) return;
+          categorias.push({ id: "c" + Date.now(), nome: n });
+          toast("Categoria adicionada.");
+          render();
         };
       }
-      if ($("salvar")) {
-        $("salvar").onclick = () => {
-          if (panel.sub) return;
-          panel.sub = true;
-          renderPanel();
-          setTimeout(() => { panel.sub = false; panel.toast = "Configuração salva."; renderPanel(); }, 700);
+
+      if (state.screen === "clientes") {
+        document.getElementById("novo-cli").onclick = () => modalClienteEdit(null);
+        document.getElementById("import-cli").onclick = () => {
+          openModal(`<h3>Importar Excel</h3>
+            <p class="hint">Formato da planilha de titulares e dependentes ainda a definir com a Baldan.</p>
+            <div class="field"><label>Arquivo (.xlsx)</label><input type="file" accept=".xlsx,.xls,.csv" /></div>
+            <button type="button" class="btn btn-ghost" id="cancel-m">Fechar</button>`);
+          document.getElementById("cancel-m").onclick = closeModal;
+        };
+        document.getElementById("filtrar-cli").onclick = () => {
+          state.filtroCli = document.getElementById("busca-cli").value;
+          render();
+        };
+        document.querySelectorAll("[data-ed-cli]").forEach((b) => {
+          b.onclick = () => modalClienteEdit(clientes.find((c) => c.id === b.dataset.edCli));
+        });
+      }
+
+      if (state.screen === "estoque") {
+        document.querySelectorAll("[data-aj]").forEach((b) => {
+          b.onclick = () => {
+            const p = produtos.find((x) => x.id === b.dataset.aj);
+            openModal(`<h3>Ajustar estoque</h3><p>${p.nome}</p>
+              <div class="field"><label>Novo saldo</label><input id="novo-est" value="${p.estoque}" /></div>
+              <div class="row"><button type="button" class="btn btn-primary" id="ok-est">Salvar</button>
+              <button type="button" class="btn btn-ghost" id="cancel-m">Cancelar</button></div>`);
+            document.getElementById("cancel-m").onclick = closeModal;
+            document.getElementById("ok-est").onclick = () => {
+              p.estoque = parseFloat(document.getElementById("novo-est").value.replace(",", ".")) || 0;
+              closeModal();
+              toast("Estoque atualizado.");
+              render();
+            };
+          };
+        });
+      }
+
+      if (state.screen === "notas") {
+        document.querySelectorAll("[data-print]").forEach((b) => {
+          b.onclick = () => {
+            const n = notes.find((x) => x.id === b.dataset.print);
+            showCupom(n.sale, n.who, n.value);
+          };
+        });
+        document.querySelectorAll("[data-retry]").forEach((b) => {
+          b.onclick = () => {
+            if (state.sub) return;
+            state.sub = true;
+            setTimeout(() => {
+              state.sub = false;
+              notes.find((x) => x.id === b.dataset.retry).status = "ok";
+              toast("Nota autorizada.");
+              render();
+            }, 700);
+          };
+        });
+      }
+
+      if (state.screen === "config") {
+        const s = document.getElementById("salvar-cfg");
+        if (s) s.onclick = () => {
+          if (state.sub) return;
+          state.sub = true; render();
+          setTimeout(() => { state.sub = false; toast("Configuração salva."); render(); }, 600);
         };
       }
     }
 
-    renderPanel();
+    render();
   </script>
 </body>
 </html>

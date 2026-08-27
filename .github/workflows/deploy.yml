@@ -2,7 +2,6 @@ name: Deploy to Production
 
 # CI no GitHub (hosted). Deploy no runner da EC2 — SSH 22 fica só no IP do admin.
 # Padrão: educraft-devkit/standards/DEPLOY-GITHUB.md (self-hosted + Deploy Key no disco).
-# Troque KEYFILE / remote pelo slug do projeto (ex.: gestorjob_github, nfse_github).
 on:
   workflow_run:
     workflows: ["CI"]
@@ -36,7 +35,7 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
           # Um arquivo por repo na mesma EC2 — não usar id_rsa.
-          KEYFILE="$HOME/.ssh/PROJECT_github"
+          KEYFILE="$HOME/.ssh/funeraria-baldan-nf_github"
           if [ ! -f "$KEYFILE" ] && [ -n "$REPO_DEPLOY_KEY" ]; then
             printf '%s\n' "$REPO_DEPLOY_KEY" > "$KEYFILE"
             chmod 600 "$KEYFILE"
@@ -49,7 +48,7 @@ jobs:
           chmod 600 "$KEYFILE"
           export GIT_SSH_COMMAND="ssh -i $KEYFILE -o IdentitiesOnly=yes"
 
-          git remote set-url origin git@github.com:ORG/REPO.git
+          git remote set-url origin git@github.com:vitaovolt/funeraria-baldan-nf.git
           git fetch origin
           git reset --hard origin/main
 
@@ -66,6 +65,9 @@ jobs:
           cd "$DEPLOY_PATH/code/frontend"
           npm ci
           npm run build
+
+          # Pack queues=sim — worker NFC-e (fila fiscal).
+          sudo systemctl restart funeraria-baldan-nf-queue 2>/dev/null || true
 
           sudo systemctl reload php8.3-fpm 2>/dev/null || sudo systemctl reload php8.2-fpm 2>/dev/null || true
           sudo systemctl reload nginx 2>/dev/null || true

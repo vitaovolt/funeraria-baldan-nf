@@ -1,0 +1,160 @@
+<?php
+
+namespace App\Actions;
+
+use App\Jobs\EmitirNfceJob;
+use App\Models\Cliente;
+use App\Models\ItemVenda;
+use App\Models\NotaNfce;
+use App\Models\Produto;
+use App\Models\SessaoCaixa;
+use App\Models\User;
+use App\Models\Venda;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+
+class FinalizarVenda
+{
+    /**
+     * @param  array{
+     *   itens: list<array{produto_id:int, quantidade:float|int|string}>,
+     *   cliente_id?: int|null,
+     *   desconto_tipo?: string,
+     *   desconto_valor?: float|int|string,
+     *   forma_pagamento?: string,
+     *   idempotency_key?: string|null
+     * }  $dados
+     */
+    public function handle(User $usuario, array $dados): Venda
+    {
+        $itens = $dados['itens'] ?? [];
+        if ($itens === []) {
+            throw new InvalidArgumentException('Informe ao menos um item.');
+        }
+
+        $idemKey = isset($dados['idempotency_key']) && is_string($dados['idempotency_key'])
+            ? trim($dados['idempotency_key'])
+            : null;
+        if ($idemKey === '') {
+            $idemKey = null;
+        }
+
+        if ($idemKey !== null) {
+            $existing = Venda::query()->where('idempotency_key', $idemKey)->first();
+            if ($existing) {
+                return $existing->load(['itens.produto', 'cliente', 'notaNfce']);
+            }
+
+            return Cache::lock('venda_idem:'.$idemKey, 30)->block(10, function () use ($usuario, $dados, $itens, $idemKey) {
+                $existing = Venda::query()->where('idempotency_key', $idemKey)->first();
+                if ($existing) {
+                    return $existing->load(['itens.produto', 'cliente', 'notaNfce']);
+                }
+
+                return $this->criarVenda($usuario, $dados, $itens, $idemKey);
+            });
+        }
+
+        return $this->criarVenda($usuario, $dados, $itens, null);
+    }
+
+    /**
+     * @param  list<array{produto_id:int, quantidade:float|int|string}>  $itens
+     */
+    private function criarVenda(User $usuario, array $dados, array $itens, ?string $idemKey): Venda
+    {
+        return DB::transaction(function () use ($usuario, $dados, $itens, $idemKey) {
+            /** @var SessaoCaixa|null $caixa */
+            $caixa = SessaoCaixa::query()->abertas()->lockForUpdate()->first();
+            if (! $caixa) {
+                throw new InvalidArgumentException('Abra o caixa antes de vender.');
+            }
+
+            $linhas = [];
+            $subtotal = 0.0;
+
+            foreach ($itens as $item) {
+                $produtoId = (int) $item['produto_id'];
+                $qtd = (float) $item['quantidade'];
+                if ($qtd <= 0) {
+                    throw new InvalidArgumentException('Quantidade inválida.');
+                }
+
+                /** @var Produto $produto */
+                $produto = Produto::query()->whereKey($produtoId)->lockForUpdate()->firstOrFail();
+                if ((float) $produto->estoque_atual < $qtd) {
+                    throw new InvalidArgumentException("Estoque insuficiente para {$produto->descricao}.");
+                }
+
+                $preco = (float) $produto->preco_venda;
+                $totalLinha = round($preco * $qtd, 2);
+                $subtotal += $totalLinha;
+
+                $linhas[] = [
+                    'produto' => $produto,
+                    'quantidade' => $qtd,
+                    'preco_unitario' => $preco,
+                    'custo_unitario' => (float) $produto->custo,
+                    'total_linha' => $totalLinha,
+                ];
+            }
+
+            $descontoTipo = $dados['desconto_tipo'] ?? 'nenhum';
+            $descontoValor = (float) ($dados['desconto_valor'] ?? 0);
+            $desconto = 0.0;
+            if ($descontoTipo === 'percentual') {
+                $desconto = round($subtotal * ($descontoValor / 100), 2);
+            } elseif ($descontoTipo === 'valor') {
+                $desconto = round($descontoValor, 2);
+            }
+            if ($desconto > $subtotal) {
+                throw new InvalidArgumentException('Desconto maior que o subtotal.');
+            }
+
+            $total = round($subtotal - $desconto, 2);
+            $clienteId = $dados['cliente_id'] ?? null;
+            if ($clienteId) {
+                Cliente::query()->whereKey($clienteId)->firstOrFail();
+            }
+
+            $venda = Venda::query()->create([
+                'sessao_caixa_id' => $caixa->id,
+                'user_id' => $usuario->id,
+                'cliente_id' => $clienteId,
+                'status' => 'finalizada',
+                'subtotal' => $subtotal,
+                'desconto_tipo' => $descontoTipo,
+                'desconto_valor' => $descontoValor,
+                'total' => $total,
+                'forma_pagamento' => $dados['forma_pagamento'] ?? 'dinheiro',
+                'idempotency_key' => $idemKey,
+                'finalizada_em' => now(),
+            ]);
+
+            foreach ($linhas as $linha) {
+                ItemVenda::query()->create([
+                    'venda_id' => $venda->id,
+                    'produto_id' => $linha['produto']->id,
+                    'quantidade' => $linha['quantidade'],
+                    'preco_unitario' => $linha['preco_unitario'],
+                    'custo_unitario' => $linha['custo_unitario'],
+                    'total_linha' => $linha['total_linha'],
+                ]);
+
+                $produto = $linha['produto'];
+                $produto->estoque_atual = (float) $produto->estoque_atual - $linha['quantidade'];
+                $produto->save();
+            }
+
+            $nota = NotaNfce::query()->create([
+                'venda_id' => $venda->id,
+                'status' => 'pendente',
+            ]);
+
+            EmitirNfceJob::dispatch($nota->id)->onQueue('fiscal');
+
+            return $venda->load(['itens.produto', 'cliente', 'notaNfce']);
+        });
+    }
+}

@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --brand-primary: #0d2a5c;
+  --brand-accent: #f5b400;
+  --brand-sky: #5ba8e0;
+  --ink: #0d2a5c;
+  --muted: #5a6b7d;
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --line: #d5dee8;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Poppins, system-ui, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(13, 42, 92, 0.08), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 10%, rgba(245, 180, 0, 0.1), transparent 50%),
+    var(--bg);
+}
+
+button:not(:disabled),
+a {
+  cursor: pointer;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #fechamento-print,
+  #fechamento-print * {
+    visibility: visible;
+  }
+
+  #fechamento-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 80mm;
+    padding: 8mm;
+    color: #000;
+    background: #fff;
+  }
+}
