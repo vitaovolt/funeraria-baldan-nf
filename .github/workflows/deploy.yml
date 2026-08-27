@@ -67,6 +67,10 @@ jobs:
           php artisan view:cache
           mkdir -p storage/logs
           touch storage/logs/laravel.log
+
+          # Sai da manutenção ANTES do chown (senão artisan up falha: down é www-data).
+          php artisan up 2>/dev/null || sudo rm -f storage/framework/down || true
+
           sudo chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
           sudo chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
@@ -77,7 +81,8 @@ jobs:
           # Pack queues=sim — worker NFC-e (fila fiscal).
           sudo systemctl restart funeraria-baldan-nf-queue 2>/dev/null || true
 
-          (cd "$DEPLOY_PATH/code/backend" && php artisan up || true)
+          # Garantia final (caso down tenha sido recriado).
+          (cd "$DEPLOY_PATH/code/backend" && (php artisan up 2>/dev/null || sudo rm -f storage/framework/down || true))
 
           sudo systemctl reload php8.3-fpm 2>/dev/null || sudo systemctl reload php8.2-fpm 2>/dev/null || true
           sudo systemctl reload nginx 2>/dev/null || true
