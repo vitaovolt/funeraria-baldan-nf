@@ -35,6 +35,11 @@ GIT_SSH_COMMAND="ssh -i ~/.ssh/funeraria-baldan-nf_github -o IdentitiesOnly=yes"
 
 Self-hosted runner (labels `self-hosted`, `Linux`, `X64`) apontando para este repo.
 
+## Código vs SSH
+
+App versionado (`code/`, workflows, docs): **só** commit + push → CI/CD.  
+SSH/SCP: `.env`, certs, nginx/systemd/certbot — ver [DEPLOY-GITHUB.md](../../../../standards/DEPLOY-GITHUB.md) § Código versionado.
+
 ## App no servidor
 
 1. `code/backend/.env` de produção (não no Git):
