@@ -509,6 +509,40 @@ table.data .actions {
 .pay-options input {
   accent-color: var(--brand-primary);
 }
+.money-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--brand-line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.money-input:focus-within {
+  outline: 2px solid rgba(46, 107, 181, 0.35);
+  border-color: var(--brand-primary-mid);
+}
+.money-prefix {
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+  background: var(--brand-primary-soft);
+  color: var(--brand-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-right: 1px solid var(--brand-line);
+}
+.money-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  padding: 11px 12px;
+  background: transparent;
+}
+.field .money-input {
+  width: 100%;
+}
 .troco-ok {
   padding: 10px 12px;
   border-radius: 12px;

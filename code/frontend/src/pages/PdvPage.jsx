@@ -4,8 +4,10 @@ import { createConsignado } from '../api/consignado'
 import { listClientes, listProdutos } from '../api/dominio'
 import { finalizarVenda, getCaixaAtual } from '../api/pdv'
 import { Pagination, SearchBar } from '../components/ListToolbar'
+import MoneyInput from '../components/MoneyInput'
 import { useToast } from '../context/ToastContext'
 import { formatQtd, money, metaFromResponse } from '../utils/format'
+import { parseBrl } from '../utils/moneyMask'
 
 function newIdempotencyKey() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -86,7 +88,7 @@ export default function PdvPage() {
   )
 
   const descontoAplicado = useMemo(() => {
-    const dv = Number(descontoValor || 0)
+    const dv = descontoTipo === 'valor' ? parseBrl(descontoValor) || 0 : Number(descontoValor || 0)
     if (descontoTipo === 'percentual') return (subtotal * dv) / 100
     if (descontoTipo === 'valor') return dv
     return 0
@@ -94,11 +96,7 @@ export default function PdvPage() {
 
   const total = useMemo(() => Math.max(0, subtotal - descontoAplicado), [subtotal, descontoAplicado])
 
-  const recebidoNum = useMemo(() => {
-    if (valorRecebido === '' || valorRecebido == null) return null
-    const n = Number(valorRecebido)
-    return Number.isFinite(n) ? n : null
-  }, [valorRecebido])
+  const recebidoNum = useMemo(() => parseBrl(valorRecebido), [valorRecebido])
 
   const troco = useMemo(() => {
     if (formaPagamento !== 'dinheiro' || recebidoNum == null) return null
@@ -185,7 +183,8 @@ export default function PdvPage() {
         })),
         cliente_id: cliente?.id || undefined,
         desconto_tipo: descontoTipo,
-        desconto_valor: Number(descontoValor || 0),
+        desconto_valor:
+          descontoTipo === 'valor' ? parseBrl(descontoValor) || 0 : Number(descontoValor || 0),
         forma_pagamento: formaPagamento,
       }
       const res = await finalizarVenda(payload, { idempotencyKey: newIdempotencyKey() })
@@ -389,7 +388,10 @@ export default function PdvPage() {
                 <select
                   id="desc-tipo"
                   value={descontoTipo}
-                  onChange={(e) => setDescontoTipo(e.target.value)}
+                  onChange={(e) => {
+                    setDescontoTipo(e.target.value)
+                    setDescontoValor('')
+                  }}
                   data-testid="desconto-tipo"
                 >
                   <option value="nenhum">Sem desconto</option>
@@ -400,16 +402,25 @@ export default function PdvPage() {
               {descontoTipo !== 'nenhum' ? (
                 <div className="field">
                   <label htmlFor="desc-valor">{descontoTipo === 'percentual' ? 'Percentual' : 'Valor em R$'}</label>
-                  <input
-                    id="desc-valor"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={descontoValor}
-                    onChange={(e) => setDescontoValor(e.target.value)}
-                    placeholder={descontoTipo === 'percentual' ? '10' : '50,00'}
-                    data-testid="desconto-valor"
-                  />
+                  {descontoTipo === 'valor' ? (
+                    <MoneyInput
+                      id="desc-valor"
+                      value={descontoValor}
+                      onChange={setDescontoValor}
+                      placeholder="0,00"
+                      data-testid="desconto-valor"
+                    />
+                  ) : (
+                    <input
+                      id="desc-valor"
+                      type="text"
+                      inputMode="decimal"
+                      value={descontoValor}
+                      onChange={(e) => setDescontoValor(e.target.value.replace(/[^\d.,]/g, ''))}
+                      placeholder="10"
+                      data-testid="desconto-valor"
+                    />
+                  )}
                 </div>
               ) : null}
               {descontoAplicado > 0 ? <p className="hint">Desconto aplicado: −{money(descontoAplicado)}</p> : null}
@@ -442,15 +453,11 @@ export default function PdvPage() {
               {formaPagamento === 'dinheiro' ? (
                 <div className="field" data-testid="campo-troco">
                   <label htmlFor="valor-recebido">Valor recebido (opcional)</label>
-                  <input
+                  <MoneyInput
                     id="valor-recebido"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    placeholder={total > 0 ? total.toFixed(2) : '0,00'}
                     value={valorRecebido}
-                    onChange={(e) => setValorRecebido(e.target.value)}
+                    onChange={setValorRecebido}
+                    placeholder={total > 0 ? total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00'}
                     data-testid="valor-recebido"
                   />
                   <p className="hint m-0 mt-1">Informe se o cliente pagar com valor maior para ver o troco.</p>

@@ -9,8 +9,10 @@ import {
   registrarSangria,
 } from '../api/pdv'
 import { Pagination, SearchBar } from '../components/ListToolbar'
+import MoneyInput from '../components/MoneyInput'
 import { useToast } from '../context/ToastContext'
 import { money, metaFromResponse } from '../utils/format'
+import { parseBrl } from '../utils/moneyMask'
 
 export default function CaixaPage() {
   const toast = useToast()
@@ -86,14 +88,14 @@ export default function CaixaPage() {
   async function onSangria(event) {
     event.preventDefault()
     if (actionRef.current) return
-    if (Number(sangriaValor) <= 0 || !sangriaMotivo.trim()) {
+    if (parseBrl(sangriaValor) == null || parseBrl(sangriaValor) <= 0 || !sangriaMotivo.trim()) {
       toast.error('Informe valor e motivo da sangria.')
       return
     }
     actionRef.current = true
     setAction('sangria')
     try {
-      await registrarSangria({ valor: Number(sangriaValor), motivo: sangriaMotivo })
+      await registrarSangria({ valor: parseBrl(sangriaValor), motivo: sangriaMotivo })
       toast.success('Sangria registrada.')
       setSangriaValor('')
       setSangriaMotivo('')
@@ -143,13 +145,10 @@ export default function CaixaPage() {
             <form className="mt-4 grid gap-2 md:grid-cols-[160px_1fr_auto]" onSubmit={onSangria}>
               <div className="field" style={{ margin: 0 }}>
                 <label>Valor</label>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  placeholder="Valor da sangria"
+                <MoneyInput
                   value={sangriaValor}
-                  onChange={(e) => setSangriaValor(e.target.value)}
+                  onChange={setSangriaValor}
+                  placeholder="0,00"
                   data-testid="sangria-valor"
                 />
               </div>

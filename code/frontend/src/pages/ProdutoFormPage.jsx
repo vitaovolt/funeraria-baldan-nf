@@ -7,11 +7,19 @@ import {
   listMarcas,
   updateProduto,
 } from '../api/dominio'
+import MoneyInput from '../components/MoneyInput'
 import { useToast } from '../context/ToastContext'
+import { formatBrlNumber, parseBrl } from '../utils/moneyMask'
 
 const inicial = {
-  codigo_barras: '', descricao: '', ncm: '', custo: '', preco_venda: '',
-  estoque_atual: '', marca_id: '', categoria_id: '',
+  codigo_barras: '',
+  descricao: '',
+  ncm: '',
+  custo: '',
+  preco_venda: '',
+  estoque_atual: '',
+  marca_id: '',
+  categoria_id: '',
 }
 
 export default function ProdutoFormPage() {
@@ -34,7 +42,16 @@ export default function ProdutoFormPage() {
         setMarcas(m.data || [])
         setCategorias(c.data || [])
         if (p?.data) {
-          setForm(Object.fromEntries(Object.keys(inicial).map((key) => [key, p.data[key] ?? ''])))
+          setForm({
+            codigo_barras: p.data.codigo_barras ?? '',
+            descricao: p.data.descricao ?? '',
+            ncm: p.data.ncm ?? '',
+            custo: formatBrlNumber(p.data.custo),
+            preco_venda: formatBrlNumber(p.data.preco_venda),
+            estoque_atual: p.data.estoque_atual != null ? String(Math.trunc(Number(p.data.estoque_atual))) : '',
+            marca_id: p.data.marca_id ?? '',
+            categoria_id: p.data.categoria_id ?? '',
+          })
         }
       })
       .catch(() => toast.error('Não foi possível carregar o formulário.'))
@@ -57,8 +74,8 @@ export default function ProdutoFormPage() {
       ...form,
       marca_id: form.marca_id || null,
       categoria_id: form.categoria_id || null,
-      custo: Number(form.custo || 0),
-      preco_venda: Number(form.preco_venda || 0),
+      custo: parseBrl(form.custo) || 0,
+      preco_venda: parseBrl(form.preco_venda) || 0,
       estoque_atual: Math.trunc(Number(form.estoque_atual || 0)),
     }
     try {
@@ -72,43 +89,67 @@ export default function ProdutoFormPage() {
     }
   }
 
-  const inputClass = 'rounded-lg border border-[var(--line)] px-3 py-2'
   return (
     <form className="mx-auto max-w-3xl" onSubmit={salvar} data-testid="produto-form">
-      <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">{id ? 'Editar produto' : 'Novo produto'}</h1>
-      <div className="mt-5 grid gap-4 rounded-[10px] border border-[var(--line)] bg-white p-5 md:grid-cols-2">
-        {[
-          ['codigo_barras', 'Código de barras', 'text', undefined],
-          ['descricao', 'Descrição', 'text', undefined],
-          ['ncm', 'NCM', 'text', undefined],
-          ['custo', 'Custo', 'number', '0.01'],
-          ['preco_venda', 'Preço de venda', 'number', '0.01'],
-          ['estoque_atual', 'Estoque atual', 'number', '1'],
-        ].map(([nome, label, type, step]) => (
-          <label key={nome} className="grid gap-1 text-sm font-semibold">
-            {label}
-            <input
-              className={inputClass}
-              type={type}
-              min={nome === 'estoque_atual' ? '0' : undefined}
-              step={step}
-              value={form[nome]}
-              onChange={(e) => campo(nome, e.target.value)}
-            />
-          </label>
-        ))}
-        <label className="grid gap-1 text-sm font-semibold">Marca
-          <select className={inputClass} value={form.marca_id} onChange={(e) => campo('marca_id', e.target.value)}>
-            <option value="">Sem marca</option>{marcas.map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
-          </select>
-        </label>
-        <label className="grid gap-1 text-sm font-semibold">Categoria
-          <select className={inputClass} value={form.categoria_id} onChange={(e) => campo('categoria_id', e.target.value)}>
-            <option value="">Sem categoria</option>{categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-        </label>
+      <div className="page-head">
+        <div>
+          <h1>{id ? 'Editar produto' : 'Novo produto'}</h1>
+          <p>Cadastro com NCM, custo e preço para a nota.</p>
+        </div>
       </div>
-      <button className="mt-4 rounded-lg bg-[var(--brand-primary)] px-5 py-3 font-bold text-white disabled:opacity-60" disabled={submitting} data-testid="produto-salvar">
+      <div className="panel grid gap-4 md:grid-cols-2">
+        {[
+          ['codigo_barras', 'Código de barras'],
+          ['descricao', 'Descrição'],
+          ['ncm', 'NCM'],
+        ].map(([nome, label]) => (
+          <div key={nome} className="field" style={{ margin: 0 }}>
+            <label>{label}</label>
+            <input value={form[nome]} onChange={(e) => campo(nome, e.target.value)} />
+          </div>
+        ))}
+        <div className="field" style={{ margin: 0 }}>
+          <label>Custo</label>
+          <MoneyInput value={form.custo} onChange={(v) => campo('custo', v)} />
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Preço de venda</label>
+          <MoneyInput value={form.preco_venda} onChange={(v) => campo('preco_venda', v)} />
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Estoque atual</label>
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={form.estoque_atual}
+            onChange={(e) => campo('estoque_atual', e.target.value)}
+          />
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Marca</label>
+          <select value={form.marca_id} onChange={(e) => campo('marca_id', e.target.value)}>
+            <option value="">Sem marca</option>
+            {marcas.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Categoria</label>
+          <select value={form.categoria_id} onChange={(e) => campo('categoria_id', e.target.value)}>
+            <option value="">Sem categoria</option>
+            {categorias.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <button className="btn btn-primary mt-4" disabled={submitting} data-testid="produto-salvar">
         {submitting ? 'Processando…' : 'Salvar produto'}
       </button>
     </form>
