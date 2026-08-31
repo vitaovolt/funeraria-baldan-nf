@@ -27,6 +27,7 @@ export default function PdvPage() {
   const [descontoTipo, setDescontoTipo] = useState('nenhum')
   const [descontoValor, setDescontoValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('dinheiro')
+  const [valorRecebido, setValorRecebido] = useState('')
   const [modo, setModo] = useState('venda')
   const [cliente, setCliente] = useState(null)
   const [cliQ, setCliQ] = useState('')
@@ -93,6 +94,17 @@ export default function PdvPage() {
 
   const total = useMemo(() => Math.max(0, subtotal - descontoAplicado), [subtotal, descontoAplicado])
 
+  const recebidoNum = useMemo(() => {
+    if (valorRecebido === '' || valorRecebido == null) return null
+    const n = Number(valorRecebido)
+    return Number.isFinite(n) ? n : null
+  }, [valorRecebido])
+
+  const troco = useMemo(() => {
+    if (formaPagamento !== 'dinheiro' || recebidoNum == null) return null
+    return Math.round((recebidoNum - total) * 100) / 100
+  }, [formaPagamento, recebidoNum, total])
+
   function addProduto(p) {
     setCarrinho((prev) => {
       const exists = prev.find((i) => i.produto_id === p.id)
@@ -128,6 +140,7 @@ export default function PdvPage() {
     setDescontoTipo('nenhum')
     setDescontoValor('')
     setFormaPagamento('dinheiro')
+    setValorRecebido('')
     setCliente(null)
     setCliQ('')
     setModo('venda')
@@ -141,6 +154,10 @@ export default function PdvPage() {
     }
     if (modo === 'consignado' && !cliente) {
       toast.error('Selecione o cliente para consignar.')
+      return
+    }
+    if (modo === 'venda' && formaPagamento === 'dinheiro' && recebidoNum != null && recebidoNum < total) {
+      toast.error(`Valor recebido insuficiente. Faltam ${money(total - recebidoNum)}.`)
       return
     }
 
@@ -172,7 +189,11 @@ export default function PdvPage() {
         forma_pagamento: formaPagamento,
       }
       const res = await finalizarVenda(payload, { idempotencyKey: newIdempotencyKey() })
-      toast.success(`Venda #${res.data.id} finalizada. NFC-e ${res.data.nota_nfce?.status}.`)
+      const msgTroco =
+        formaPagamento === 'dinheiro' && troco != null && troco > 0
+          ? ` Troco: ${money(troco)}.`
+          : ''
+      toast.success(`Venda #${res.data.id} finalizada. NFC-e ${res.data.nota_nfce?.status}.${msgTroco}`)
       limparVenda()
       navigate('/caixa')
     } catch (err) {
@@ -407,13 +428,44 @@ export default function PdvPage() {
                         name="forma"
                         value={value}
                         checked={formaPagamento === value}
-                        onChange={() => setFormaPagamento(value)}
+                        onChange={() => {
+                          setFormaPagamento(value)
+                          if (value !== 'dinheiro') setValorRecebido('')
+                        }}
                       />
                       {label}
                     </label>
                   ))}
                 </div>
               </div>
+
+              {formaPagamento === 'dinheiro' ? (
+                <div className="field" data-testid="campo-troco">
+                  <label htmlFor="valor-recebido">Valor recebido (opcional)</label>
+                  <input
+                    id="valor-recebido"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder={total > 0 ? total.toFixed(2) : '0,00'}
+                    value={valorRecebido}
+                    onChange={(e) => setValorRecebido(e.target.value)}
+                    data-testid="valor-recebido"
+                  />
+                  <p className="hint m-0 mt-1">Informe se o cliente pagar com valor maior para ver o troco.</p>
+                  {troco != null && troco >= 0 ? (
+                    <p className="troco-ok m-0 mt-2" data-testid="troco-valor">
+                      Troco: <strong>{money(troco)}</strong>
+                    </p>
+                  ) : null}
+                  {troco != null && troco < 0 ? (
+                    <p className="troco-faltando m-0 mt-2" data-testid="troco-faltando">
+                      Faltam {money(Math.abs(troco))}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </>
           ) : null}
 
@@ -425,7 +477,11 @@ export default function PdvPage() {
           <button
             type="button"
             className="btn btn-accent w-full"
-            disabled={submitting || carrinho.length === 0}
+            disabled={
+              submitting ||
+              carrinho.length === 0 ||
+              (modo === 'venda' && formaPagamento === 'dinheiro' && troco != null && troco < 0)
+            }
             onClick={onFinalizar}
             data-testid="pagar-emitir"
           >

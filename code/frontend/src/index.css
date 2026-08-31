@@ -509,6 +509,21 @@ table.data .actions {
 .pay-options input {
   accent-color: var(--brand-primary);
 }
+.troco-ok {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-size: 0.95rem;
+}
+.troco-faltando {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
 .modo-venda {
   display: grid;
   grid-template-columns: 1fr 1fr;
