@@ -18,7 +18,7 @@ class StoreConsignadoRequest extends FormRequest
             'observacao' => ['nullable', 'string', 'max:255'],
             'itens' => ['required', 'array', 'min:1'],
             'itens.*.produto_id' => ['required', 'integer', 'exists:produtos,id'],
-            'itens.*.quantidade' => ['required', 'numeric', 'min:0.001'],
+            'itens.*.quantidade' => ['required', 'integer', 'min:1'],
         ];
     }
 }

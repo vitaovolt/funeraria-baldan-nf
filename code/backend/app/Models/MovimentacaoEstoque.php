@@ -22,9 +22,9 @@ class MovimentacaoEstoque extends Model
     protected function casts(): array
     {
         return [
-            'quantidade' => 'decimal:3',
-            'saldo_anterior' => 'decimal:3',
-            'saldo_posterior' => 'decimal:3',
+            'quantidade' => 'integer',
+            'saldo_anterior' => 'integer',
+            'saldo_posterior' => 'integer',
         ];
     }
 

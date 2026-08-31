@@ -21,14 +21,27 @@ class ConsignadoController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $termo = $request->query('q');
+
         $itens = Consignado::query()
             ->with(['cliente', 'itens.produto'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
             ->when($request->query('abertos') === '1', fn ($q) => $q->abertos())
+            ->when($termo, function ($q) use ($termo) {
+                $q->where(function ($inner) use ($termo) {
+                    if (ctype_digit((string) $termo)) {
+                        $inner->where('id', (int) $termo);
+                    }
+                    $inner->orWhereHas('cliente', function ($c) use ($termo) {
+                        $c->where('nome', 'ilike', '%'.$termo.'%')
+                            ->orWhere('documento', 'ilike', '%'.$termo.'%');
+                    });
+                });
+            })
             ->orderByDesc('id')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($itens);
+        return $this->okPage($itens);
     }
 
     public function store(StoreConsignadoRequest $request, CriarConsignado $action): JsonResponse

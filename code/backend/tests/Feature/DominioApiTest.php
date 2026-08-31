@@ -153,7 +153,7 @@ class DominioApiTest extends TestCase
         ]);
 
         $entrada->assertCreated()
-            ->assertJsonPath('data.produto.estoque_atual', '15.000');
+            ->assertJsonPath('data.produto.estoque_atual', 15);
 
         $this->assertDatabaseHas('produtos', ['id' => $produto->id, 'estoque_atual' => 15]);
         $this->assertDatabaseHas('movimentacoes_estoque', [
@@ -166,14 +166,14 @@ class DominioApiTest extends TestCase
             'tipo' => 'saida',
             'quantidade' => 3,
         ])->assertCreated()
-            ->assertJsonPath('data.produto.estoque_atual', '12.000');
+            ->assertJsonPath('data.produto.estoque_atual', 12);
 
         $this->postJson("/api/v1/produtos/{$produto->id}/movimentacoes", [
             'tipo' => 'saida',
             'quantidade' => 999,
         ])->assertStatus(422);
 
-        $this->assertEquals(12.0, (float) $produto->fresh()->estoque_atual);
+        $this->assertEquals(12, (int) $produto->fresh()->estoque_atual);
     }
 
     public function test_configuracao_fiscal_get_put(): void

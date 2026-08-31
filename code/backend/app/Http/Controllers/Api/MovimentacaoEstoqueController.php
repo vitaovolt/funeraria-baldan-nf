@@ -8,20 +8,29 @@ use App\Http\Requests\StoreMovimentacaoEstoqueRequest;
 use App\Models\Produto;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 class MovimentacaoEstoqueController extends Controller
 {
     use ApiResponse;
 
-    public function index(Produto $produto): JsonResponse
+    public function index(Request $request, Produto $produto): JsonResponse
     {
+        $termo = $request->query('q');
+
         $itens = $produto->movimentacoes()
             ->with('usuario:id,name,email')
+            ->when($termo, function ($q) use ($termo) {
+                $q->where(function ($inner) use ($termo) {
+                    $inner->where('tipo', 'ilike', '%'.$termo.'%')
+                        ->orWhere('observacao', 'ilike', '%'.$termo.'%');
+                });
+            })
             ->orderByDesc('id')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($itens);
+        return $this->okPage($itens);
     }
 
     public function store(

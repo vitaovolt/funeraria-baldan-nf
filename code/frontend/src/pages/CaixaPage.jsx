@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   abrirCaixa,
@@ -8,7 +8,9 @@ import {
   listVendasDoDia,
   registrarSangria,
 } from '../api/pdv'
+import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
+import { money, metaFromResponse } from '../utils/format'
 
 export default function CaixaPage() {
   const toast = useToast()
@@ -16,6 +18,9 @@ export default function CaixaPage() {
   const actionRef = useRef(false)
   const [caixa, setCaixa] = useState(null)
   const [vendas, setVendas] = useState([])
+  const [vendasMeta, setVendasMeta] = useState({ current_page: 1, last_page: 1, total: 0 })
+  const [vendasQ, setVendasQ] = useState('')
+  const [vendasPage, setVendasPage] = useState(1)
   const [fechamento, setFechamento] = useState(null)
   const [sangriaValor, setSangriaValor] = useState('')
   const [sangriaMotivo, setSangriaMotivo] = useState('')
@@ -23,13 +28,27 @@ export default function CaixaPage() {
   const [submitting, setSubmitting] = useState(false)
   const [action, setAction] = useState('')
 
+  const carregarVendas = useCallback(async () => {
+    try {
+      const v = await listVendasDoDia({
+        page: vendasPage,
+        per_page: 15,
+        ...(vendasQ.trim() ? { q: vendasQ.trim() } : {}),
+      })
+      setVendas(v.data || [])
+      setVendasMeta(metaFromResponse(v, (v.data || []).length))
+    } catch {
+      toast.error('Não foi possível carregar as vendas do dia.')
+    }
+  }, [vendasPage, vendasQ, toast])
+
   async function carregar() {
     setLoading(true)
     try {
-      const [c, v, f] = await Promise.all([getCaixaAtual(), listVendasDoDia(), getFechamento()])
+      const [c, f] = await Promise.all([getCaixaAtual(), getFechamento()])
       setCaixa(c.data)
-      setVendas(v.data || [])
       setFechamento(f.data)
+      await carregarVendas()
     } catch {
       toast.error('Não foi possível carregar o caixa.')
     } finally {
@@ -41,6 +60,12 @@ export default function CaixaPage() {
     carregar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (loading) return undefined
+    const t = window.setTimeout(carregarVendas, 200)
+    return () => window.clearTimeout(t)
+  }, [carregarVendas, loading])
 
   async function onAbrir() {
     if (openingRef.current) return
@@ -106,9 +131,7 @@ export default function CaixaPage() {
           <h1>Caixa</h1>
           <p>Abra o caixa para vender. Sangria e fechamento ficam aqui — não na tela de venda.</p>
         </div>
-        <span className={`pill ${caixa ? 'ok' : 'danger'}`}>
-          {caixa ? 'Aberto' : 'Fechado'}
-        </span>
+        <span className={`pill ${caixa ? 'ok' : 'danger'}`}>{caixa ? 'Aberto' : 'Fechado'}</span>
       </div>
 
       <section className="panel">
@@ -118,23 +141,27 @@ export default function CaixaPage() {
               Caixa aberto desde {new Date(caixa.aberto_em).toLocaleString('pt-BR')}
             </p>
             <form className="mt-4 grid gap-2 md:grid-cols-[160px_1fr_auto]" onSubmit={onSangria}>
-              <input
-                className="rounded-xl border border-[var(--brand-line)] px-3 py-2"
-                type="number"
-                min="0.01"
-                step="0.01"
-                placeholder="Valor da sangria"
-                value={sangriaValor}
-                onChange={(e) => setSangriaValor(e.target.value)}
-                data-testid="sangria-valor"
-              />
-              <input
-                className="rounded-xl border border-[var(--brand-line)] px-3 py-2"
-                placeholder="Motivo"
-                value={sangriaMotivo}
-                onChange={(e) => setSangriaMotivo(e.target.value)}
-              />
-              <button className="btn btn-ghost" disabled={Boolean(action)} data-testid="sangria-salvar">
+              <div className="field" style={{ margin: 0 }}>
+                <label>Valor</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="Valor da sangria"
+                  value={sangriaValor}
+                  onChange={(e) => setSangriaValor(e.target.value)}
+                  data-testid="sangria-valor"
+                />
+              </div>
+              <div className="field" style={{ margin: 0 }}>
+                <label>Motivo</label>
+                <input
+                  placeholder="Motivo"
+                  value={sangriaMotivo}
+                  onChange={(e) => setSangriaMotivo(e.target.value)}
+                />
+              </div>
+              <button className="btn btn-ghost self-end" disabled={Boolean(action)} data-testid="sangria-salvar">
                 {action === 'sangria' ? 'Processando…' : 'Registrar sangria'}
               </button>
             </form>
@@ -173,18 +200,41 @@ export default function CaixaPage() {
 
       <section className="panel mt-4">
         <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">Vendas do dia</h2>
+        <SearchBar
+          value={vendasQ}
+          onChange={(v) => {
+            setVendasPage(1)
+            setVendasQ(v)
+          }}
+          placeholder="Buscar venda ou cliente"
+        />
         {vendas.length === 0 ? (
           <p className="text-[var(--brand-muted)]">Nenhuma venda ainda.</p>
         ) : (
-          <ul className="mt-2 space-y-2" data-testid="vendas-dia">
-            {vendas.map((v) => (
-              <li key={v.id} className="rounded-xl border border-[var(--brand-line)] bg-white px-3 py-2 text-sm">
-                #{v.id} · R$ {Number(v.total).toFixed(2)} · {v.cliente?.nome || 'Consumidor'} · NFC-e{' '}
-                {v.nota_nfce?.status || '—'}
-              </li>
-            ))}
-          </ul>
+          <div className="table-wrap" data-testid="vendas-dia">
+            <table className="data">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Cliente</th>
+                  <th>Total</th>
+                  <th>NFC-e</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendas.map((v) => (
+                  <tr key={v.id}>
+                    <td>#{v.id}</td>
+                    <td>{v.cliente?.nome || 'Consumidor'}</td>
+                    <td>{money(v.total)}</td>
+                    <td>{v.nota_nfce?.status || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
+        <Pagination meta={vendasMeta} onPageChange={setVendasPage} />
       </section>
 
       {fechamento ? (
@@ -193,10 +243,10 @@ export default function CaixaPage() {
             <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">
               {fechamento.preview ? 'Prévia do fechamento' : 'Último fechamento'}
             </h2>
-            <p className="mb-0 text-sm">Total de vendas: R$ {Number(fechamento.total_vendas).toFixed(2)}</p>
-            <p className="my-1 text-sm">Total de sangrias: R$ {Number(fechamento.total_sangrias).toFixed(2)}</p>
+            <p className="mb-0 text-sm">Total de vendas: {money(fechamento.total_vendas)}</p>
+            <p className="my-1 text-sm">Total de sangrias: {money(fechamento.total_sangrias)}</p>
             <p className="mt-0 text-sm font-bold">
-              Dinheiro esperado: R$ {Number(fechamento.total_dinheiro_esperado).toFixed(2)}
+              Dinheiro esperado: {money(fechamento.total_dinheiro_esperado)}
             </p>
           </div>
           <button type="button" className="btn btn-ghost mt-3" onClick={() => window.print()} data-testid="imprimir-fechamento">

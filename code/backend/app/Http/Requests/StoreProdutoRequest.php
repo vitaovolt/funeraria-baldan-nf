@@ -23,7 +23,7 @@ class StoreProdutoRequest extends FormRequest
             'ncm' => ['nullable', 'string', 'max:10'],
             'custo' => ['sometimes', 'numeric', 'min:0'],
             'preco_venda' => ['sometimes', 'numeric', 'min:0'],
-            'estoque_atual' => ['sometimes', 'numeric'],
+            'estoque_atual' => ['sometimes', 'integer', 'min:0'],
             'ativo' => ['sometimes', 'boolean'],
         ];
     }

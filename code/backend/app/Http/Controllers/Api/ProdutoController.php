@@ -23,9 +23,9 @@ class ProdutoController extends Controller
             ->when($request->filled('marca_id'), fn ($q) => $q->where('marca_id', $request->query('marca_id')))
             ->when($request->has('ativo'), fn ($q) => $q->where('ativo', filter_var($request->query('ativo'), FILTER_VALIDATE_BOOLEAN)))
             ->orderBy('descricao')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($itens);
+        return $this->okPage($itens);
     }
 
     public function store(StoreProdutoRequest $request): JsonResponse

@@ -16,7 +16,7 @@ class DevolverConsignadoRequest extends FormRequest
         return [
             'itens' => ['required', 'array', 'min:1'],
             'itens.*.item_id' => ['required', 'integer', 'exists:itens_consignado,id'],
-            'itens.*.quantidade' => ['required', 'numeric', 'min:0.001'],
+            'itens.*.quantidade' => ['required', 'integer', 'min:1'],
         ];
     }
 }

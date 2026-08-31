@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { listProdutos } from '../api/dominio'
+import { createConsignado } from '../api/consignado'
+import { listClientes, listProdutos } from '../api/dominio'
 import { finalizarVenda, getCaixaAtual } from '../api/pdv'
+import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
-
-function money(n) {
-  return Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+import { formatQtd, money, metaFromResponse } from '../utils/format'
 
 function newIdempotencyKey() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -21,11 +20,18 @@ export default function PdvPage() {
   const submittingRef = useRef(false)
   const [caixaOk, setCaixaOk] = useState(false)
   const [q, setQ] = useState('')
+  const [prodPage, setProdPage] = useState(1)
   const [produtos, setProdutos] = useState([])
+  const [prodMeta, setProdMeta] = useState({ current_page: 1, last_page: 1, total: 0 })
   const [carrinho, setCarrinho] = useState([])
   const [descontoTipo, setDescontoTipo] = useState('nenhum')
   const [descontoValor, setDescontoValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('dinheiro')
+  const [modo, setModo] = useState('venda')
+  const [cliente, setCliente] = useState(null)
+  const [cliQ, setCliQ] = useState('')
+  const [cliOpts, setCliOpts] = useState([])
+  const [cliOpen, setCliOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -52,26 +58,40 @@ export default function PdvPage() {
   useEffect(() => {
     if (!caixaOk) return undefined
     const t = window.setTimeout(() => {
-      listProdutos({ q: q || undefined, ativo: true })
-        .then((r) => setProdutos(r.data || []))
+      listProdutos({ q: q || undefined, ativo: true, page: prodPage, per_page: 12 })
+        .then((r) => {
+          setProdutos(r.data || [])
+          setProdMeta(metaFromResponse(r, (r.data || []).length))
+        })
         .catch(() => toast.error('Falha ao buscar produtos.'))
     }, 200)
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, caixaOk])
+  }, [q, caixaOk, prodPage])
+
+  useEffect(() => {
+    if (!cliOpen) return undefined
+    const t = window.setTimeout(() => {
+      listClientes({ q: cliQ || undefined, ativo: true, page: 1, per_page: 8 })
+        .then((r) => setCliOpts(r.data || []))
+        .catch(() => setCliOpts([]))
+    }, 200)
+    return () => window.clearTimeout(t)
+  }, [cliQ, cliOpen])
 
   const subtotal = useMemo(
     () => carrinho.reduce((acc, i) => acc + Number(i.preco_venda) * i.quantidade, 0),
     [carrinho],
   )
 
-  const total = useMemo(() => {
-    let d = 0
+  const descontoAplicado = useMemo(() => {
     const dv = Number(descontoValor || 0)
-    if (descontoTipo === 'percentual') d = (subtotal * dv) / 100
-    if (descontoTipo === 'valor') d = dv
-    return Math.max(0, subtotal - d)
+    if (descontoTipo === 'percentual') return (subtotal * dv) / 100
+    if (descontoTipo === 'valor') return dv
+    return 0
   }, [subtotal, descontoTipo, descontoValor])
+
+  const total = useMemo(() => Math.max(0, subtotal - descontoAplicado), [subtotal, descontoAplicado])
 
   function addProduto(p) {
     setCarrinho((prev) => {
@@ -95,7 +115,7 @@ export default function PdvPage() {
   }
 
   function setQty(produtoId, quantidade) {
-    const qtd = Number(quantidade)
+    const qtd = Math.trunc(Number(quantidade))
     if (!qtd || qtd <= 0) {
       setCarrinho((prev) => prev.filter((i) => i.produto_id !== produtoId))
       return
@@ -103,37 +123,74 @@ export default function PdvPage() {
     setCarrinho((prev) => prev.map((i) => (i.produto_id === produtoId ? { ...i, quantidade: qtd } : i)))
   }
 
-  async function onPagar() {
+  function limparVenda() {
+    setCarrinho([])
+    setDescontoTipo('nenhum')
+    setDescontoValor('')
+    setFormaPagamento('dinheiro')
+    setCliente(null)
+    setCliQ('')
+    setModo('venda')
+  }
+
+  async function onFinalizar() {
     if (submittingRef.current) return
     if (carrinho.length === 0) {
       toast.error('Adicione produtos ao carrinho.')
       return
     }
+    if (modo === 'consignado' && !cliente) {
+      toast.error('Selecione o cliente para consignar.')
+      return
+    }
+
     submittingRef.current = true
     setSubmitting(true)
     try {
+      if (modo === 'consignado') {
+        const res = await createConsignado({
+          cliente_id: cliente.id,
+          itens: carrinho.map((i) => ({
+            produto_id: i.produto_id,
+            quantidade: i.quantidade,
+          })),
+        })
+        toast.success(`Consignado #${res.data.id} criado para ${cliente.nome}.`)
+        limparVenda()
+        navigate('/consignado')
+        return
+      }
+
       const payload = {
         itens: carrinho.map((i) => ({
           produto_id: i.produto_id,
           quantidade: i.quantidade,
         })),
+        cliente_id: cliente?.id || undefined,
         desconto_tipo: descontoTipo,
         desconto_valor: Number(descontoValor || 0),
         forma_pagamento: formaPagamento,
       }
       const res = await finalizarVenda(payload, { idempotencyKey: newIdempotencyKey() })
       toast.success(`Venda #${res.data.id} finalizada. NFC-e ${res.data.nota_nfce?.status}.`)
-      setCarrinho([])
-      setDescontoTipo('nenhum')
-      setDescontoValor('')
+      limparVenda()
       navigate('/caixa')
-      // sucesso com redirect: mantém bloqueado
     } catch (err) {
       submittingRef.current = false
       setSubmitting(false)
-      toast.error(err.response?.data?.message || 'Não foi possível finalizar a venda.')
+      toast.error(
+        err.response?.data?.message ||
+          (modo === 'consignado'
+            ? 'Não foi possível criar o consignado.'
+            : 'Não foi possível finalizar a venda.'),
+      )
     }
   }
+
+  const onBuscaProduto = useCallback((value) => {
+    setProdPage(1)
+    setQ(value)
+  }, [])
 
   if (!caixaOk) return <p className="text-[var(--muted)]">Verificando caixa…</p>
 
@@ -142,116 +199,246 @@ export default function PdvPage() {
       <div className="page-head">
         <div>
           <h1>Venda</h1>
-          <p>Buscar produto / código — desconto e NFC-e no painel da direita.</p>
+          <p>Escolha o cliente, monte o carrinho e finalize o pagamento — ou consignar para provar.</p>
         </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_.9fr]">
-      <section className="panel">
-        <input
-          className="w-full rounded-xl border border-[var(--brand-line)] px-3.5 py-3"
-          placeholder="Buscar descrição ou código de barras"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          data-testid="busca-produto"
-        />
-        <ul className="mt-3 max-h-80 space-y-2 overflow-auto" data-testid="lista-produtos">
-          {produtos.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between rounded-xl border border-[var(--brand-line)] bg-white px-3.5 py-3 text-left hover:border-[var(--brand-primary-mid)] hover:bg-[var(--brand-primary-soft)]"
-                onClick={() => addProduto(p)}
-                data-testid={`add-produto-${p.id}`}
-              >
-                <span>
-                  <strong>{p.descricao}</strong>
-                  <br />
-                  <span className="text-xs text-[var(--brand-muted)]">{p.codigo_barras}</span>
+
+      <div className="pdv-grid">
+        <section className="panel">
+          {cliente ? (
+            <div className="cli-chip">
+              <div>
+                <strong>{cliente.nome}</strong>
+                <span className="hint">
+                  {cliente.documento || 'sem documento'}
+                  {cliente.telefone ? ` · ${cliente.telefone}` : ''}
                 </span>
-                <span className="font-bold text-[var(--brand-primary)]">{money(p.preco_venda)}</span>
+              </div>
+              <button type="button" className="btn btn-ghost" style={{ padding: '7px 12px' }} onClick={() => setCliente(null)}>
+                Trocar
               </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+            </div>
+          ) : (
+            <div className="field" style={{ position: 'relative' }}>
+              <label>Cliente da venda</label>
+              <input
+                value={cliQ}
+                placeholder="Buscar por nome ou documento…"
+                onChange={(e) => {
+                  setCliQ(e.target.value)
+                  setCliOpen(true)
+                }}
+                onFocus={() => setCliOpen(true)}
+                data-testid="busca-cliente"
+              />
+              {cliOpen ? (
+                <div className="combo-list panel" style={{ position: 'absolute', zIndex: 5, left: 0, right: 0, marginTop: 4, padding: 8 }}>
+                  <button
+                    type="button"
+                    className="product-pick"
+                    style={{ display: 'block', marginBottom: 4 }}
+                    onClick={() => {
+                      setCliente(null)
+                      setCliQ('')
+                      setCliOpen(false)
+                    }}
+                  >
+                    <strong>Consumidor final</strong>
+                    <span className="hint">Sem vínculo de cadastro</span>
+                  </button>
+                  {cliOpts.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="product-pick"
+                      style={{ display: 'block', marginBottom: 4 }}
+                      onClick={() => {
+                        setCliente(c)
+                        setCliQ('')
+                        setCliOpen(false)
+                      }}
+                    >
+                      <strong>{c.nome}</strong>
+                      <span className="hint">{c.documento}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          )}
 
-      <section className="panel">
-        <h2 className="m-0 text-lg font-bold text-[var(--brand-primary)]">Carrinho</h2>
-        {carrinho.length === 0 ? (
-          <p className="mt-2 text-[var(--muted)]">Vazio.</p>
-        ) : (
-          <ul className="mt-3 space-y-2" data-testid="carrinho">
-            {carrinho.map((i) => (
-              <li key={i.produto_id} className="flex items-center justify-between gap-2 text-sm">
-                <span className="flex-1">{i.descricao}</span>
-                <input
-                  className="w-16 rounded border border-[var(--line)] px-2 py-1"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={i.quantidade}
-                  onChange={(e) => setQty(i.produto_id, e.target.value)}
-                />
-                <span className="w-24 text-right font-semibold">{money(i.preco_venda * i.quantidade)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+          <SearchBar
+            value={q}
+            onChange={onBuscaProduto}
+            placeholder="Produto: nome ou código de barras"
+            testId="busca-produto"
+          />
+          <div className="product-pick" data-testid="lista-produtos">
+            {produtos.length === 0 ? (
+              <div className="empty-state">Nenhum produto encontrado.</div>
+            ) : (
+              produtos.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => addProduto(p)}
+                  data-testid={`add-produto-${p.id}`}
+                >
+                  <span>
+                    <strong>{p.descricao}</strong>
+                    <br />
+                    <span className="meta">{p.codigo_barras} · estoque {formatQtd(p.estoque_atual)}</span>
+                  </span>
+                  <span className="font-bold text-[var(--brand-primary)]">{money(p.preco_venda)}</span>
+                </button>
+              ))
+            )}
+          </div>
+          <Pagination meta={prodMeta} onPageChange={setProdPage} />
 
-        <div className="mt-4 grid gap-2 border-t border-[var(--line)] pt-4 text-sm">
-          <label className="flex items-center justify-between gap-2">
-            <span>Desconto</span>
-            <select
-              className="rounded border border-[var(--line)] px-2 py-1"
-              value={descontoTipo}
-              onChange={(e) => setDescontoTipo(e.target.value)}
-              data-testid="desconto-tipo"
+          <div className="mt-4">
+            <h2 className="m-0 text-base font-bold text-[var(--brand-primary)]">Carrinho</h2>
+            {carrinho.length === 0 ? (
+              <div className="empty-state mt-3">
+                <strong>Carrinho vazio</strong>
+                <br />
+                <span className="hint">Busque um produto acima para adicionar.</span>
+              </div>
+            ) : (
+              <div className="cart-list mt-3" data-testid="carrinho">
+                {carrinho.map((i) => (
+                  <div key={i.produto_id} className="cart-item">
+                    <div>
+                      <strong>{i.descricao}</strong>
+                      <div className="meta">{i.codigo_barras}</div>
+                    </div>
+                    <div className="qty">
+                      <button type="button" onClick={() => setQty(i.produto_id, i.quantidade - 1)} aria-label="Diminuir">
+                        −
+                      </button>
+                      <span>{formatQtd(i.quantidade)}</span>
+                      <button type="button" onClick={() => setQty(i.produto_id, i.quantidade + 1)} aria-label="Aumentar">
+                        +
+                      </button>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <strong>{money(i.preco_venda * i.quantidade)}</strong>
+                      <br />
+                      <button
+                        type="button"
+                        className="hint"
+                        style={{ background: 'none', border: 0, padding: 0, marginTop: 4, textDecoration: 'underline' }}
+                        onClick={() => setQty(i.produto_id, 0)}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <aside className="panel pdv-summary">
+          <div className="modo-venda" role="group" aria-label="Tipo de operação">
+            <button type="button" className={modo === 'venda' ? 'on' : ''} onClick={() => setModo('venda')} data-testid="modo-venda">
+              Venda
+            </button>
+            <button
+              type="button"
+              className={modo === 'consignado' ? 'on' : ''}
+              onClick={() => setModo('consignado')}
+              data-testid="modo-consignado"
             >
-              <option value="nenhum">Nenhum</option>
-              <option value="percentual">%</option>
-              <option value="valor">R$</option>
-            </select>
-          </label>
-          {descontoTipo !== 'nenhum' ? (
-            <input
-              className="rounded border border-[var(--line)] px-2 py-1"
-              type="number"
-              min="0"
-              step="0.01"
-              value={descontoValor}
-              onChange={(e) => setDescontoValor(e.target.value)}
-              data-testid="desconto-valor"
-            />
+              Consignado
+            </button>
+          </div>
+          {modo === 'consignado' ? (
+            <p className="hint m-0 mb-3">Consignado = levar para provar (baixa estoque). Cliente obrigatório.</p>
           ) : null}
-          <label className="flex items-center justify-between gap-2">
-            <span>Pagamento</span>
-            <select
-              className="rounded border border-[var(--line)] px-2 py-1"
-              value={formaPagamento}
-              onChange={(e) => setFormaPagamento(e.target.value)}
-              data-testid="forma-pagamento"
-            >
-              <option value="dinheiro">Dinheiro</option>
-              <option value="pix">PIX</option>
-              <option value="cartao">Cartão</option>
-            </select>
-          </label>
-          <p className="m-0 flex justify-between font-bold text-[var(--brand-primary)]">
-            <span>Total</span>
-            <span data-testid="total-venda">{money(total)}</span>
-          </p>
-        </div>
 
-        <button
-          type="button"
-          className="btn btn-accent mt-4 w-full"
-          disabled={submitting || carrinho.length === 0}
-          onClick={onPagar}
-          data-testid="pagar-emitir"
-        >
-          {submitting ? 'Processando…' : 'Pagar e emitir nota'}
-        </button>
-      </section>
+          <div className="hint">Subtotal</div>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>{money(subtotal)}</div>
+
+          {modo === 'venda' ? (
+            <>
+              <div className="field">
+                <label htmlFor="desc-tipo">Desconto</label>
+                <select
+                  id="desc-tipo"
+                  value={descontoTipo}
+                  onChange={(e) => setDescontoTipo(e.target.value)}
+                  data-testid="desconto-tipo"
+                >
+                  <option value="nenhum">Sem desconto</option>
+                  <option value="percentual">Percentual (%)</option>
+                  <option value="valor">Valor (R$)</option>
+                </select>
+              </div>
+              {descontoTipo !== 'nenhum' ? (
+                <div className="field">
+                  <label htmlFor="desc-valor">{descontoTipo === 'percentual' ? 'Percentual' : 'Valor em R$'}</label>
+                  <input
+                    id="desc-valor"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={descontoValor}
+                    onChange={(e) => setDescontoValor(e.target.value)}
+                    placeholder={descontoTipo === 'percentual' ? '10' : '50,00'}
+                    data-testid="desconto-valor"
+                  />
+                </div>
+              ) : null}
+              {descontoAplicado > 0 ? <p className="hint">Desconto aplicado: −{money(descontoAplicado)}</p> : null}
+
+              <div className="field">
+                <label>Forma de pagamento</label>
+                <div className="pay-options" data-testid="forma-pagamento">
+                  {[
+                    ['dinheiro', 'Dinheiro'],
+                    ['pix', 'PIX'],
+                    ['cartao', 'Cartão'],
+                  ].map(([value, label]) => (
+                    <label key={value} className={formaPagamento === value ? 'on' : ''}>
+                      <input
+                        type="radio"
+                        name="forma"
+                        value={value}
+                        checked={formaPagamento === value}
+                        onChange={() => setFormaPagamento(value)}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          <div className="hint">Total</div>
+          <div className="total" data-testid="total-venda">
+            {money(total)}
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-accent w-full"
+            disabled={submitting || carrinho.length === 0}
+            onClick={onFinalizar}
+            data-testid="pagar-emitir"
+          >
+            {submitting
+              ? 'Processando…'
+              : modo === 'consignado'
+                ? 'Consignar produtos'
+                : 'Pagar e emitir nota'}
+          </button>
+          <button type="button" className="btn btn-ghost mt-2 w-full" disabled={submitting} onClick={limparVenda}>
+            Limpar venda
+          </button>
+        </aside>
       </div>
     </div>
   )

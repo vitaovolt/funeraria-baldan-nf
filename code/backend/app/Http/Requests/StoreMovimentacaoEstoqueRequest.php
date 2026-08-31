@@ -15,7 +15,7 @@ class StoreMovimentacaoEstoqueRequest extends FormRequest
     {
         return [
             'tipo' => ['required', 'in:entrada,saida,ajuste'],
-            'quantidade' => ['required', 'numeric', 'gt:0'],
+            'quantidade' => ['required', 'integer', 'min:1'],
             'observacao' => ['nullable', 'string', 'max:255'],
         ];
     }

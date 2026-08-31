@@ -35,7 +35,7 @@ class Produto extends Model
             'ativo' => 'boolean',
             'custo' => 'decimal:2',
             'preco_venda' => 'decimal:2',
-            'estoque_atual' => 'decimal:3',
+            'estoque_atual' => 'integer',
         ];
     }
 

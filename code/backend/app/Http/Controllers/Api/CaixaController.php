@@ -11,6 +11,7 @@ use App\Http\Requests\RegistrarSangriaRequest;
 use App\Models\SessaoCaixa;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 class CaixaController extends Controller
@@ -103,18 +104,35 @@ class CaixaController extends Controller
         ]);
     }
 
-    public function vendasDoDia(): JsonResponse
+    public function vendasDoDia(Request $request): JsonResponse
     {
         $caixa = SessaoCaixa::query()->abertas()->first();
         if (! $caixa) {
-            return $this->ok([]);
+            return $this->ok([], 'Operação realizada com sucesso', 200, [
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $this->perPage($request),
+                'total' => 0,
+            ]);
         }
+
+        $termo = $request->query('q');
 
         $vendas = $caixa->vendas()
             ->with(['cliente', 'itens.produto', 'notaNfce'])
+            ->when($termo, function ($q) use ($termo) {
+                $q->where(function ($inner) use ($termo) {
+                    if (ctype_digit((string) $termo)) {
+                        $inner->where('id', (int) $termo);
+                    }
+                    $inner->orWhereHas('cliente', function ($c) use ($termo) {
+                        $c->where('nome', 'ilike', '%'.$termo.'%');
+                    });
+                });
+            })
             ->orderByDesc('id')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($vendas);
+        return $this->okPage($vendas);
     }
 }

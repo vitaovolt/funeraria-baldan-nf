@@ -27,8 +27,8 @@ export const updateCliente = (id, payload) =>
   client.put(`/clientes/${id}`, payload).then((r) => r.data)
 export const deleteCliente = (id) => client.delete(`/clientes/${id}`).then((r) => r.data)
 
-export const listDependentes = (clienteId) =>
-  client.get(`/clientes/${clienteId}/dependentes`).then((r) => r.data)
+export const listDependentes = (clienteId, params) =>
+  client.get(`/clientes/${clienteId}/dependentes`, { params }).then((r) => r.data)
 export const createDependente = (clienteId, payload) =>
   client.post(`/clientes/${clienteId}/dependentes`, payload).then((r) => r.data)
 export const updateDependente = (id, payload) =>
@@ -41,7 +41,7 @@ export const updateConfiguracaoFiscal = (payload) =>
 export const uploadCertificado = (formData) =>
   client.post('/configuracao-fiscal/certificado', formData).then((r) => r.data)
 
-export const listMovimentacoes = (produtoId) =>
-  client.get(`/produtos/${produtoId}/movimentacoes`).then((r) => r.data)
+export const listMovimentacoes = (produtoId, params) =>
+  client.get(`/produtos/${produtoId}/movimentacoes`, { params }).then((r) => r.data)
 export const criarMovimentacao = (produtoId, payload) =>
   client.post(`/produtos/${produtoId}/movimentacoes`, payload).then((r) => r.data)

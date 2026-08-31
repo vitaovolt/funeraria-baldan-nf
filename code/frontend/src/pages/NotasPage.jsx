@@ -1,29 +1,59 @@
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { listNotasNfce } from '../api/pdv'
-import { useToast } from '../context/ToastContext'
+import { Pagination, SearchBar } from '../components/ListToolbar'
+import { usePagedList } from '../hooks/usePagedList'
 
 export default function NotasPage() {
-  const toast = useToast()
-  const [notas, setNotas] = useState([])
-
-  useEffect(() => {
-    listNotasNfce()
-      .then((r) => setNotas(r.data || []))
-      .catch(() => toast.error('Falha ao listar notas.'))
-  }, [toast])
+  const fetcher = useCallback((params) => listNotasNfce(params), [])
+  const { q, setQ, setPage, items, meta } = usePagedList(fetcher)
 
   return (
     <div data-testid="page-notas">
-      <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Notas NFC-e</h1>
-      <p className="mt-1 text-[var(--muted)]">Documentos emitidos no fechamento da venda (T15).</p>
-      <ul className="mt-4 space-y-2">
-        {notas.map((n) => (
-          <li key={n.id} className="rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm">
-            Nota #{n.id} · venda #{n.venda_id} · <strong>{n.status}</strong>
-            {n.chave ? ` · ${n.chave.slice(0, 16)}…` : ''}
-          </li>
-        ))}
-      </ul>
+      <div className="page-head">
+        <div>
+          <h1>Notas NFC-e</h1>
+          <p>Documentos emitidos no fechamento da venda.</p>
+        </div>
+      </div>
+
+      <section className="panel">
+        <SearchBar value={q} onChange={setQ} placeholder="Buscar por nº, venda, status ou chave" />
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>Nota</th>
+                <th>Venda</th>
+                <th>Cliente</th>
+                <th>Status</th>
+                <th>Chave</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="hint">
+                    Nenhuma nota encontrada.
+                  </td>
+                </tr>
+              ) : (
+                items.map((n) => (
+                  <tr key={n.id}>
+                    <td>#{n.id}</td>
+                    <td>#{n.venda_id}</td>
+                    <td>{n.venda?.cliente?.nome || 'Consumidor'}</td>
+                    <td>
+                      <strong>{n.status}</strong>
+                    </td>
+                    <td className="hint">{n.chave ? `${n.chave.slice(0, 20)}…` : '—'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination meta={meta} onPageChange={setPage} />
+      </section>
     </div>
   )
 }

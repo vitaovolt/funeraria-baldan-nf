@@ -1,27 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteProduto, listProdutos } from '../api/dominio'
+import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
+import { usePagedList } from '../hooks/usePagedList'
+import { formatQtd, money } from '../utils/format'
 
 export default function ProdutosPage() {
   const toast = useToast()
   const deletingRef = useRef(false)
-  const [q, setQ] = useState('')
-  const [produtos, setProdutos] = useState([])
-
-  const carregar = useCallback(async () => {
-    try {
-      const res = await listProdutos({ q: q || undefined })
-      setProdutos(res.data || [])
-    } catch {
-      toast.error('Não foi possível carregar os produtos.')
-    }
-  }, [q, toast])
-
-  useEffect(() => {
-    const timer = window.setTimeout(carregar, 200)
-    return () => window.clearTimeout(timer)
-  }, [carregar])
+  const fetcher = useCallback((params) => listProdutos(params), [])
+  const { q, setQ, setPage, items, meta, reload } = usePagedList(fetcher)
 
   async function excluir(id) {
     if (deletingRef.current || !window.confirm('Excluir este produto?')) return
@@ -29,7 +18,7 @@ export default function ProdutosPage() {
     try {
       await deleteProduto(id)
       toast.success('Produto excluído.')
-      await carregar()
+      await reload()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Não foi possível excluir o produto.')
     } finally {
@@ -39,39 +28,71 @@ export default function ProdutosPage() {
 
   return (
     <div data-testid="page-produtos">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Produtos</h1>
-        <Link to="/produtos/novo" className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 font-bold text-[var(--brand-primary)]">
+      <div className="page-head">
+        <div>
+          <h1>Produtos</h1>
+          <p>Cadastro com NCM para a nota fiscal.</p>
+        </div>
+        <Link to="/produtos/novo" className="btn btn-accent">
           Novo produto
         </Link>
       </div>
-      <input
-        className="mt-4 w-full rounded-lg border border-[var(--line)] px-3 py-2"
-        placeholder="Buscar por descrição ou código"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-      <div className="mt-4 overflow-x-auto rounded-[10px] border border-[var(--line)] bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--brand-primary)] text-white">
-            <tr><th className="p-3">Código</th><th className="p-3">Descrição</th><th className="p-3">Preço</th><th className="p-3">Estoque</th><th className="p-3">Ações</th></tr>
-          </thead>
-          <tbody>
-            {produtos.map((p) => (
-              <tr key={p.id} className="border-t border-[var(--line)]">
-                <td className="p-3">{p.codigo_barras}</td>
-                <td className="p-3 font-semibold">{p.descricao}</td>
-                <td className="p-3">R$ {Number(p.preco_venda).toFixed(2)}</td>
-                <td className="p-3">{p.estoque_atual}</td>
-                <td className="p-3">
-                  <Link className="mr-3 font-semibold underline" to={`/produtos/${p.id}`}>Editar</Link>
-                  <button type="button" className="font-semibold text-red-700 underline" onClick={() => excluir(p.id)}>Excluir</button>
-                </td>
+
+      <section className="panel">
+        <SearchBar
+          value={q}
+          onChange={setQ}
+          placeholder="Buscar por descrição ou código"
+          testId="busca-produto-lista"
+        />
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Descrição</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="hint">
+                    Nenhum produto encontrado.
+                  </td>
+                </tr>
+              ) : (
+                items.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.codigo_barras}</td>
+                    <td>
+                      <strong>{p.descricao}</strong>
+                    </td>
+                    <td>{money(p.preco_venda)}</td>
+                    <td>{formatQtd(p.estoque_atual)}</td>
+                    <td className="actions">
+                      <Link className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: '0.8rem' }} to={`/produtos/${p.id}`}>
+                        Editar
+                      </Link>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        onClick={() => excluir(p.id)}
+                      >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination meta={meta} onPageChange={setPage} />
+      </section>
     </div>
   )
 }

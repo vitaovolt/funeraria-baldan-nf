@@ -16,7 +16,7 @@ class FinalizarVendaRequest extends FormRequest
         return [
             'itens' => ['required', 'array', 'min:1'],
             'itens.*.produto_id' => ['required', 'integer', 'exists:produtos,id'],
-            'itens.*.quantidade' => ['required', 'numeric', 'gt:0'],
+            'itens.*.quantidade' => ['required', 'integer', 'min:1'],
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'desconto_tipo' => ['sometimes', 'in:nenhum,percentual,valor'],
             'desconto_valor' => ['sometimes', 'numeric', 'min:0'],

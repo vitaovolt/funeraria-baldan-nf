@@ -21,9 +21,9 @@ class ItemConsignado extends Model
     protected function casts(): array
     {
         return [
-            'quantidade' => 'decimal:3',
-            'quantidade_devolvida' => 'decimal:3',
-            'quantidade_vendida' => 'decimal:3',
+            'quantidade' => 'integer',
+            'quantidade_devolvida' => 'integer',
+            'quantidade_vendida' => 'integer',
             'preco_unitario' => 'decimal:2',
         ];
     }
@@ -38,10 +38,10 @@ class ItemConsignado extends Model
         return $this->belongsTo(Produto::class);
     }
 
-    public function quantidadePendente(): float
+    public function quantidadePendente(): int
     {
-        return (float) $this->quantidade
-            - (float) $this->quantidade_devolvida
-            - (float) $this->quantidade_vendida;
+        return (int) $this->quantidade
+            - (int) $this->quantidade_devolvida
+            - (int) $this->quantidade_vendida;
     }
 }

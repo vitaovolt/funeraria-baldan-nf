@@ -6,7 +6,8 @@ export const abrirCaixa = (valor_abertura = 0) =>
 export const registrarSangria = (payload) => client.post('/caixa/sangria', payload).then((r) => r.data)
 export const fecharCaixa = () => client.post('/caixa/fechar').then((r) => r.data)
 export const getFechamento = () => client.get('/caixa/fechamento').then((r) => r.data)
-export const listVendasDoDia = () => client.get('/caixa/vendas-do-dia').then((r) => r.data)
+export const listVendasDoDia = (params) =>
+  client.get('/caixa/vendas-do-dia', { params }).then((r) => r.data)
 export const finalizarVenda = (payload, { idempotencyKey } = {}) =>
   client
     .post('/vendas/finalizar', payload, {

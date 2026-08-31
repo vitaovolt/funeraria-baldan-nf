@@ -22,9 +22,9 @@ class ClienteController extends Controller
             ->when($request->has('tem_plano'), fn ($q) => $q->where('tem_plano', filter_var($request->query('tem_plano'), FILTER_VALIDATE_BOOLEAN)))
             ->when($request->has('ativo'), fn ($q) => $q->where('ativo', filter_var($request->query('ativo'), FILTER_VALIDATE_BOOLEAN)))
             ->orderBy('nome')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($itens);
+        return $this->okPage($itens);
     }
 
     public function store(StoreClienteRequest $request): JsonResponse

@@ -6,12 +6,14 @@ import {
   listConsignados,
 } from '../api/consignado'
 import { listClientes, listProdutos } from '../api/dominio'
+import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
+import { usePagedList } from '../hooks/usePagedList'
+import { formatQtd } from '../utils/format'
 
 export default function ConsignadoPage() {
   const toast = useToast()
   const submittingRef = useRef(false)
-  const [consignados, setConsignados] = useState([])
   const [clientes, setClientes] = useState([])
   const [produtos, setProdutos] = useState([])
   const [clienteId, setClienteId] = useState('')
@@ -19,25 +21,20 @@ export default function ConsignadoPage() {
   const [quantidade, setQuantidade] = useState('1')
   const [submitting, setSubmitting] = useState('')
 
-  const carregar = useCallback(async () => {
-    try {
-      const [cons, cli, prod] = await Promise.all([
-        listConsignados({ abertos: 1 }),
-        listClientes({ ativo: true }),
-        listProdutos({ ativo: true }),
-      ])
-      setConsignados(cons.data || [])
-      setClientes(cli.data || [])
-      setProdutos(prod.data || [])
-    } catch {
-      toast.error('Não foi possível carregar os consignados.')
-    }
-  }, [toast])
+  const fetcher = useCallback((params) => listConsignados({ ...params, abertos: 1 }), [])
+  const { q, setQ, setPage, items, meta, reload } = usePagedList(fetcher)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    carregar()
-  }, [carregar])
+    Promise.all([
+      listClientes({ ativo: true, per_page: 100 }),
+      listProdutos({ ativo: true, per_page: 100 }),
+    ])
+      .then(([cli, prod]) => {
+        setClientes(cli.data || [])
+        setProdutos(prod.data || [])
+      })
+      .catch(() => toast.error('Não foi possível carregar clientes/produtos.'))
+  }, [toast])
 
   async function criar(event) {
     event.preventDefault()
@@ -51,12 +48,12 @@ export default function ConsignadoPage() {
     try {
       await createConsignado({
         cliente_id: Number(clienteId),
-        itens: [{ produto_id: Number(produtoId), quantidade: Number(quantidade) }],
+        itens: [{ produto_id: Number(produtoId), quantidade: Math.trunc(Number(quantidade)) }],
       })
       toast.success('Consignado criado.')
       setProdutoId('')
       setQuantidade('1')
-      await carregar()
+      await reload()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Não foi possível criar o consignado.')
     } finally {
@@ -70,7 +67,9 @@ export default function ConsignadoPage() {
     const itens = consignado.itens
       .map((item) => ({
         item_id: item.id,
-        quantidade: Number(item.quantidade) - Number(item.quantidade_devolvida) - Number(item.quantidade_vendida),
+        quantidade: Math.trunc(
+          Number(item.quantidade) - Number(item.quantidade_devolvida) - Number(item.quantidade_vendida),
+        ),
       }))
       .filter((item) => item.quantidade > 0)
     if (!itens.length) return toast.error('Não há itens pendentes.')
@@ -80,7 +79,7 @@ export default function ConsignadoPage() {
       if (acao === 'devolver') await devolverConsignado(consignado.id, itens)
       else await converterConsignado(consignado.id, { itens, forma_pagamento: 'dinheiro' })
       toast.success(acao === 'devolver' ? 'Devolução registrada.' : 'Consignado convertido em venda.')
-      await carregar()
+      await reload()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Não foi possível concluir a operação.')
     } finally {
@@ -89,41 +88,120 @@ export default function ConsignadoPage() {
     }
   }
 
-  const inputClass = 'rounded-lg border border-[var(--line)] px-3 py-2'
   return (
     <div data-testid="page-consignado">
-      <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Consignado</h1>
-      <form className="mt-5 grid gap-3 rounded-[10px] border border-[var(--line)] bg-white p-4 md:grid-cols-[1fr_1fr_120px_auto]" onSubmit={criar}>
-        <select className={inputClass} value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
-          <option value="">Selecione o cliente</option>{clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-        </select>
-        <select className={inputClass} value={produtoId} onChange={(e) => setProdutoId(e.target.value)}>
-          <option value="">Selecione o produto</option>{produtos.map((p) => <option key={p.id} value={p.id}>{p.descricao}</option>)}
-        </select>
-        <input className={inputClass} type="number" min="0.001" step="0.001" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
-        <button className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 font-bold text-[var(--brand-primary)] disabled:opacity-60" disabled={Boolean(submitting)} data-testid="consignado-criar">
+      <div className="page-head">
+        <div>
+          <h1>Consignado</h1>
+          <p>Produtos levados para provar. Também pode consignar pelo PDV.</p>
+        </div>
+      </div>
+
+      <form className="panel mb-4 grid gap-3 md:grid-cols-[1fr_1fr_120px_auto]" onSubmit={criar}>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Cliente</label>
+          <select value={clienteId} onChange={(e) => setClienteId(e.target.value)}>
+            <option value="">Selecione o cliente</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Produto</label>
+          <select value={produtoId} onChange={(e) => setProdutoId(e.target.value)}>
+            <option value="">Selecione o produto</option>
+            {produtos.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.descricao}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field" style={{ margin: 0 }}>
+          <label>Qtd</label>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value={quantidade}
+            onChange={(e) => setQuantidade(e.target.value)}
+          />
+        </div>
+        <button className="btn btn-accent self-end" disabled={Boolean(submitting)} data-testid="consignado-criar">
           {submitting === 'criar' ? 'Processando…' : 'Criar consignado'}
         </button>
       </form>
-      <div className="mt-5 grid gap-4">
-        {consignados.map((c) => (
-          <article key={c.id} className="rounded-[10px] border border-[var(--line)] bg-white p-4">
-            <div className="flex flex-wrap justify-between gap-3">
-              <div><strong>Consignado #{c.id} · {c.cliente?.nome}</strong>
-                <ul className="mt-2 text-sm text-[var(--muted)]">{c.itens.map((i) => <li key={i.id}>{i.produto?.descricao} · {i.quantidade} enviado(s)</li>)}</ul>
-              </div>
-              <div className="flex items-start gap-2">
-                <button type="button" className="rounded-lg border border-[var(--brand-primary)] px-3 py-2 text-sm font-bold disabled:opacity-60" disabled={Boolean(submitting)} onClick={() => agir(c, 'devolver')} data-testid="consignado-devolver">
-                  {submitting === `devolver-${c.id}` ? 'Processando…' : 'Devolver pendentes'}
-                </button>
-                <button type="button" className="rounded-lg bg-[var(--brand-primary)] px-3 py-2 text-sm font-bold text-white disabled:opacity-60" disabled={Boolean(submitting)} onClick={() => agir(c, 'converter')} data-testid="consignado-converter">
-                  {submitting === `converter-${c.id}` ? 'Processando…' : 'Virar venda'}
-                </button>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+
+      <section className="panel">
+        <SearchBar value={q} onChange={setQ} placeholder="Buscar por cliente ou nº" />
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Itens</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="hint">
+                    Nenhum consignado aberto.
+                  </td>
+                </tr>
+              ) : (
+                items.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.id}</td>
+                    <td>
+                      <strong>{c.cliente?.nome}</strong>
+                    </td>
+                    <td>
+                      {(c.itens || []).map((i) => (
+                        <div key={i.id} className="hint">
+                          {i.produto?.descricao} · {formatQtd(i.quantidade)} un.
+                        </div>
+                      ))}
+                    </td>
+                    <td>
+                      <span className="pill warn">{c.status}</span>
+                    </td>
+                    <td className="actions">
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        disabled={Boolean(submitting)}
+                        onClick={() => agir(c, 'devolver')}
+                        data-testid="consignado-devolver"
+                      >
+                        {submitting === `devolver-${c.id}` ? 'Processando…' : 'Devolver'}
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        disabled={Boolean(submitting)}
+                        onClick={() => agir(c, 'converter')}
+                        data-testid="consignado-converter"
+                      >
+                        {submitting === `converter-${c.id}` ? 'Processando…' : 'Virar venda'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination meta={meta} onPageChange={setPage} />
+      </section>
     </div>
   )
 }

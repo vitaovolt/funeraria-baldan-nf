@@ -9,14 +9,27 @@ use App\Models\Cliente;
 use App\Models\Dependente;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class DependenteController extends Controller
 {
     use ApiResponse;
 
-    public function index(Cliente $cliente): JsonResponse
+    public function index(Request $request, Cliente $cliente): JsonResponse
     {
-        return $this->ok($cliente->dependentes()->orderBy('nome')->get());
+        $termo = $request->query('q');
+
+        $itens = $cliente->dependentes()
+            ->when($termo, function ($q) use ($termo) {
+                $q->where(function ($inner) use ($termo) {
+                    $inner->where('nome', 'ilike', '%'.$termo.'%')
+                        ->orWhere('parentesco', 'ilike', '%'.$termo.'%');
+                });
+            })
+            ->orderBy('nome')
+            ->paginate($this->perPage($request));
+
+        return $this->okPage($itens);
     }
 
     public function store(StoreDependenteRequest $request, Cliente $cliente): JsonResponse

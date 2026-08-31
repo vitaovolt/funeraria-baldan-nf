@@ -28,6 +28,7 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A7 | 25/08/2026 | e3 | Áudios: desconto livre; consignado MVP; custo+preço; vendas do dia; imprimir caixa; sangria; dependentes; import Excel TBD | feito | não (só projeto) |
 | A9 | 27/08/2026 | e4/f6 | SPA muito diferente do hi-fi; espelhar layout + regra no Devkit | feito | sim: tips/2026-08-27-e4-paridade-hifi.md |
 | A10 | 27/08/2026 | e4/f6 | Prod: não SCP de código versionado; só commit/push + CI/CD | feito | sim: tips/2026-08-27-prod-so-git-cicd.md |
+| A11 | 31/08/2026 | e4/f6 | PDV layout desconto/pagamento; consignado no PDV; paginação+busca em listas; qtd inteira; clientes em tabela | feito | não |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

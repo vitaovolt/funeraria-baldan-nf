@@ -20,9 +20,9 @@ class MarcaController extends Controller
             ->busca($request->query('q'))
             ->when($request->has('ativo'), fn ($q) => $q->where('ativo', filter_var($request->query('ativo'), FILTER_VALIDATE_BOOLEAN)))
             ->orderBy('nome')
-            ->get();
+            ->paginate($this->perPage($request));
 
-        return $this->ok($itens);
+        return $this->okPage($itens);
     }
 
     public function store(StoreMarcaRequest $request): JsonResponse

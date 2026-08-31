@@ -1,26 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteCliente, listClientes } from '../api/dominio'
+import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
+import { usePagedList } from '../hooks/usePagedList'
 
 export default function ClientesPage() {
   const toast = useToast()
   const deletingRef = useRef(false)
-  const [q, setQ] = useState('')
-  const [clientes, setClientes] = useState([])
-  const carregar = useCallback(async () => {
-    try {
-      const res = await listClientes({ q: q || undefined })
-      setClientes(res.data || [])
-    } catch {
-      toast.error('Não foi possível carregar os clientes.')
-    }
-  }, [q, toast])
-
-  useEffect(() => {
-    const timer = window.setTimeout(carregar, 200)
-    return () => window.clearTimeout(timer)
-  }, [carregar])
+  const fetcher = useCallback((params) => listClientes(params), [])
+  const { q, setQ, setPage, items, meta, reload } = usePagedList(fetcher)
 
   async function excluir(id) {
     if (deletingRef.current || !window.confirm('Excluir este cliente?')) return
@@ -28,7 +17,7 @@ export default function ClientesPage() {
     try {
       await deleteCliente(id)
       toast.success('Cliente excluído.')
-      await carregar()
+      await reload()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Não foi possível excluir o cliente.')
     } finally {
@@ -38,22 +27,71 @@ export default function ClientesPage() {
 
   return (
     <div data-testid="page-clientes">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Clientes</h1>
-        <Link to="/clientes/novo" className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 font-bold text-[var(--brand-primary)]">Novo cliente</Link>
+      <div className="page-head">
+        <div>
+          <h1>Clientes</h1>
+          <p>Cadastro de titulares e dependentes para venda e consignado.</p>
+        </div>
+        <Link to="/clientes/novo" className="btn btn-accent">
+          Novo cliente
+        </Link>
       </div>
-      <input className="mt-4 w-full rounded-lg border border-[var(--line)] px-3 py-2" placeholder="Buscar nome ou documento" value={q} onChange={(e) => setQ(e.target.value)} />
-      <ul className="mt-4 divide-y divide-[var(--line)] rounded-[10px] border border-[var(--line)] bg-white px-4">
-        {clientes.map((c) => (
-          <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
-            <span><strong>{c.nome}</strong><br /><span className="text-[var(--muted)]">{c.documento} · {c.telefone || 'sem telefone'}</span></span>
-            <span>
-              <Link className="mr-3 font-semibold underline" to={`/clientes/${c.id}`}>Editar</Link>
-              <button type="button" className="font-semibold text-red-700 underline" onClick={() => excluir(c.id)}>Excluir</button>
-            </span>
-          </li>
-        ))}
-      </ul>
+
+      <section className="panel">
+        <SearchBar
+          value={q}
+          onChange={setQ}
+          placeholder="Buscar nome ou documento"
+          testId="busca-cliente-lista"
+        />
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Documento</th>
+                <th>Telefone</th>
+                <th>Plano</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="hint">
+                    Nenhum cliente encontrado.
+                  </td>
+                </tr>
+              ) : (
+                items.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <strong>{c.nome}</strong>
+                    </td>
+                    <td>{c.documento || '—'}</td>
+                    <td>{c.telefone || '—'}</td>
+                    <td>{c.tem_plano ? c.plano_nome || 'Sim' : '—'}</td>
+                    <td className="actions">
+                      <Link className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: '0.8rem' }} to={`/clientes/${c.id}`}>
+                        Editar
+                      </Link>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        onClick={() => excluir(c.id)}
+                      >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination meta={meta} onPageChange={setPage} />
+      </section>
     </div>
   )
 }

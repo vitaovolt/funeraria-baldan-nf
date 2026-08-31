@@ -25,7 +25,11 @@ export default function ProdutoFormPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    Promise.all([listMarcas(), listCategorias(), id ? getProduto(id) : Promise.resolve(null)])
+    Promise.all([
+      listMarcas({ per_page: 100 }),
+      listCategorias({ per_page: 100 }),
+      id ? getProduto(id) : Promise.resolve(null),
+    ])
       .then(([m, c, p]) => {
         setMarcas(m.data || [])
         setCategorias(c.data || [])
@@ -55,7 +59,7 @@ export default function ProdutoFormPage() {
       categoria_id: form.categoria_id || null,
       custo: Number(form.custo || 0),
       preco_venda: Number(form.preco_venda || 0),
-      estoque_atual: Number(form.estoque_atual || 0),
+      estoque_atual: Math.trunc(Number(form.estoque_atual || 0)),
     }
     try {
       await (id ? updateProduto(id, payload) : createProduto(payload))
@@ -74,16 +78,23 @@ export default function ProdutoFormPage() {
       <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">{id ? 'Editar produto' : 'Novo produto'}</h1>
       <div className="mt-5 grid gap-4 rounded-[10px] border border-[var(--line)] bg-white p-5 md:grid-cols-2">
         {[
-          ['codigo_barras', 'Código de barras', 'text'],
-          ['descricao', 'Descrição', 'text'],
-          ['ncm', 'NCM', 'text'],
-          ['custo', 'Custo', 'number'],
-          ['preco_venda', 'Preço de venda', 'number'],
-          ['estoque_atual', 'Estoque atual', 'number'],
-        ].map(([nome, label, type]) => (
+          ['codigo_barras', 'Código de barras', 'text', undefined],
+          ['descricao', 'Descrição', 'text', undefined],
+          ['ncm', 'NCM', 'text', undefined],
+          ['custo', 'Custo', 'number', '0.01'],
+          ['preco_venda', 'Preço de venda', 'number', '0.01'],
+          ['estoque_atual', 'Estoque atual', 'number', '1'],
+        ].map(([nome, label, type, step]) => (
           <label key={nome} className="grid gap-1 text-sm font-semibold">
             {label}
-            <input className={inputClass} type={type} step={type === 'number' ? '0.01' : undefined} value={form[nome]} onChange={(e) => campo(nome, e.target.value)} />
+            <input
+              className={inputClass}
+              type={type}
+              min={nome === 'estoque_atual' ? '0' : undefined}
+              step={step}
+              value={form[nome]}
+              onChange={(e) => campo(nome, e.target.value)}
+            />
           </label>
         ))}
         <label className="grid gap-1 text-sm font-semibold">Marca
