@@ -77,6 +77,7 @@ class MontarPayloadNfce
         ];
 
         $this->anexarDestinatario($payload, $venda->cliente, $homologacao);
+        $this->anexarIbsCbs($payload, $config);
 
         return $payload;
     }
@@ -101,6 +102,85 @@ class MontarPayloadNfce
         $payload['nome_destinatario'] = $homologacao
             ? self::NOME_HOMOLOGACAO
             : ($cliente?->nome ?: self::NOME_CONSUMIDOR);
+    }
+
+    /**
+     * Reforma 2026: alíquotas-teste nacionais (IBS 0,1% + CBS 0,9%). Homolog SP rejeita 1115 sem o grupo.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function anexarIbsCbs(array &$payload, ConfiguracaoFiscal $config): void
+    {
+        if (! config('focusnfe.reforma_tributaria.habilitar_ibs_cbs', true)) {
+            return;
+        }
+
+        $cbsAliquota = max((float) config('focusnfe.reforma_tributaria.cbs.aliquota', 0.9), 0);
+        $ibsUf = max((float) config('focusnfe.reforma_tributaria.ibs.uf_aliquota', 0), 0);
+        $ibsMun = max((float) config('focusnfe.reforma_tributaria.ibs.municipio_aliquota', 0), 0);
+        $ibsTotal = max((float) config('focusnfe.reforma_tributaria.ibs.aliquota', 0.1), 0);
+        if ($ibsUf + $ibsMun <= 0 && $ibsTotal > 0) {
+            $ibsUf = $ibsTotal;
+        }
+
+        $cst = (string) config('focusnfe.reforma_tributaria.ibs_cbs_situacao_tributaria', '000');
+        $classificacao = (string) config('focusnfe.reforma_tributaria.ibs_cbs_classificacao_tributaria', '000001');
+
+        $somaBase = 0;
+        $somaCbs = 0;
+        $somaIbsUf = 0;
+        $somaIbsMun = 0;
+        $somaIbs = 0;
+
+        foreach ($payload['itens'] as $index => $item) {
+            $base = round(
+                (float) $item['quantidade_comercial'] * (float) $item['valor_unitario_comercial'] - (float) $item['valor_desconto'],
+                2
+            );
+            if ($base <= 0) {
+                continue;
+            }
+
+            $cbs = round($base * ($cbsAliquota / 100), 2);
+            $vIbsUf = round($base * ($ibsUf / 100), 2);
+            $vIbsMun = round($base * ($ibsMun / 100), 2);
+            $vIbs = round($vIbsUf + $vIbsMun, 2);
+
+            $payload['itens'][$index]['ibs_cbs_situacao_tributaria'] = $cst;
+            $payload['itens'][$index]['ibs_cbs_classificacao_tributaria'] = $classificacao;
+            $payload['itens'][$index]['ibs_cbs_base_calculo'] = number_format($base, 2, '.', '');
+            $payload['itens'][$index]['cbs_aliquota'] = number_format($cbsAliquota, 4, '.', '');
+            $payload['itens'][$index]['cbs_valor'] = number_format($cbs, 2, '.', '');
+            $payload['itens'][$index]['ibs_uf_aliquota'] = number_format($ibsUf, 4, '.', '');
+            $payload['itens'][$index]['ibs_uf_valor'] = number_format($vIbsUf, 2, '.', '');
+            $payload['itens'][$index]['ibs_mun_aliquota'] = number_format($ibsMun, 4, '.', '');
+            $payload['itens'][$index]['ibs_mun_valor'] = number_format($vIbsMun, 2, '.', '');
+            $payload['itens'][$index]['ibs_valor_total'] = number_format($vIbs, 2, '.', '');
+
+            $somaBase += $base;
+            $somaCbs += $cbs;
+            $somaIbsUf += $vIbsUf;
+            $somaIbsMun += $vIbsMun;
+            $somaIbs += $vIbs;
+        }
+
+        if ($somaBase <= 0) {
+            return;
+        }
+
+        $ibge = preg_replace('/\D/', '', (string) $config->codigo_ibge) ?? '';
+        if (strlen($ibge) === 7) {
+            $payload['ibs_cbs_municipio'] = $ibge;
+        }
+
+        $payload['ibs_cbs_base_calculo'] = number_format($somaBase, 2, '.', '');
+        $payload['cbs_valor_total'] = number_format($somaCbs, 2, '.', '');
+        $payload['ibs_valor_total'] = number_format($somaIbs, 2, '.', '');
+        $payload['ibs_uf_valor_total'] = number_format($somaIbsUf, 2, '.', '');
+        if ($somaIbsMun > 0) {
+            $payload['ibs_mun_valor_total'] = number_format($somaIbsMun, 2, '.', '');
+        }
+        $payload['ibs_cbs_is_valor_total'] = number_format($somaIbs + $somaCbs, 2, '.', '');
     }
 
     private function ncm(?string $ncm): string

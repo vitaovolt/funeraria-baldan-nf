@@ -52,6 +52,8 @@ SSH/SCP: `.env`, certs, nginx/systemd/certbot — ver [DEPLOY-GITHUB.md](../../.
    - Focus NFe: `FOCUSNFE_DRIVER=focus`, `FOCUSNFE_AMBIENTE=homologacao` (ou `producao`),
      `FOCUSNFE_TOKEN_HOMOLOGACAO` / `FOCUSNFE_TOKEN_PRODUCAO` (token da empresa no painel Focus).
      CSC, A1 e endereço da empresa **não** vão no `.env` — ficam no cadastro Focus.
+   - IBS/CBS 2026 (teste nacional): `FOCUSNFE_HABILITAR_IBS_CBS=true`,
+     `FOCUSNFE_IBS_ALIQUOTA=0.1`, `FOCUSNFE_CBS_ALIQUOTA=0.9`
 2. `php artisan key:generate` na 1ª vez
 3. Nginx: ver `nginx-spa-api.conf.example`
 4. Queue worker: ver `queue-worker.service.example` (fila `fiscal,default`)

@@ -83,6 +83,15 @@ class MontarPayloadNfceTest extends TestCase
             now('America/Sao_Paulo')->format('Y-m-d H:i:s'),
             $payload['data_emissao']
         );
+        $this->assertSame('000', $payload['itens'][0]['ibs_cbs_situacao_tributaria']);
+        $this->assertSame('000001', $payload['itens'][0]['ibs_cbs_classificacao_tributaria']);
+        $this->assertSame('20.00', $payload['itens'][0]['ibs_cbs_base_calculo']);
+        $this->assertSame('0.9000', $payload['itens'][0]['cbs_aliquota']);
+        $this->assertSame('0.18', $payload['itens'][0]['cbs_valor']);
+        $this->assertSame('0.1000', $payload['itens'][0]['ibs_uf_aliquota']);
+        $this->assertSame('0.02', $payload['itens'][0]['ibs_uf_valor']);
+        $this->assertSame('0.18', $payload['cbs_valor_total']);
+        $this->assertSame('0.02', $payload['ibs_valor_total']);
     }
 
     public function test_sem_cliente_nao_inventa_cpf_nem_nome(): void
