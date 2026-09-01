@@ -77,5 +77,62 @@ class MontarPayloadNfceTest extends TestCase
         $this->assertSame('2', $payload['itens'][0]['quantidade_comercial']);
         $this->assertSame('34060000', $payload['itens'][0]['codigo_ncm']);
         $this->assertSame('4.00', $payload['itens'][0]['valor_desconto']);
+        $this->assertSame('9', $payload['indicador_inscricao_estadual_destinatario']);
+        $this->assertSame('NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL', $payload['itens'][0]['descricao']);
+    }
+
+    public function test_sem_cliente_nao_inventa_cpf_nem_nome(): void
+    {
+        $user = User::factory()->create();
+        $produto = Produto::query()->create([
+            'codigo_barras' => '7891000100059',
+            'descricao' => 'Vela 7 Dias',
+            'ncm' => '34060000',
+            'preco_venda' => 12,
+        ]);
+        $caixa = SessaoCaixa::query()->create([
+            'user_id' => $user->id,
+            'aberto_em' => now(),
+            'status' => 'aberta',
+        ]);
+        $venda = Venda::query()->create([
+            'sessao_caixa_id' => $caixa->id,
+            'user_id' => $user->id,
+            'status' => 'finalizada',
+            'subtotal' => 12,
+            'desconto_tipo' => 'nenhum',
+            'desconto_valor' => 0,
+            'total' => 12,
+            'forma_pagamento' => 'dinheiro',
+        ]);
+        ItemVenda::query()->create([
+            'venda_id' => $venda->id,
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+            'preco_unitario' => 12,
+            'custo_unitario' => 4,
+            'total_linha' => 12,
+        ]);
+
+        $config = ConfiguracaoFiscal::query()->create([
+            'razao_social' => 'FUNERARIA BALDAN LTDA',
+            'cnpj' => '68480268000101',
+            'ambiente_nfce' => 'homologacao',
+        ]);
+
+        $payload = app(MontarPayloadNfce::class)->handle($venda->fresh(['itens.produto', 'cliente']), $config, 1, 1);
+
+        $this->assertArrayNotHasKey('nome_destinatario', $payload);
+        $this->assertArrayNotHasKey('cpf_destinatario', $payload);
+        $this->assertArrayNotHasKey('cnpj_destinatario', $payload);
+        $this->assertSame('9', $payload['indicador_inscricao_estadual_destinatario']);
+        $this->assertSame('NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL', $payload['itens'][0]['descricao']);
+
+        $config->ambiente_nfce = 'producao';
+        $config->save();
+        $prod = app(MontarPayloadNfce::class)->handle($venda->fresh(['itens.produto', 'cliente']), $config->fresh(), 1, 1);
+        $this->assertArrayNotHasKey('nome_destinatario', $prod);
+        $this->assertArrayNotHasKey('cpf_destinatario', $prod);
+        $this->assertSame('Vela 7 Dias', $prod['itens'][0]['descricao']);
     }
 }

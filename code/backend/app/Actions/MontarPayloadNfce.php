@@ -8,6 +8,12 @@ use App\Models\Venda;
 
 class MontarPayloadNfce
 {
+    private const NOME_HOMOLOGACAO = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
+
+    private const ITEM_HOMOLOGACAO = 'NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
+
+    private const NOME_CONSUMIDOR = 'Consumidor';
+
     /**
      * @return array<string, mixed>
      */
@@ -30,10 +36,15 @@ class MontarPayloadNfce
                 $descontoItem = min($descontoRestante, (float) $item->total_linha);
             }
 
+            $descricao = $item->produto?->descricao ?: 'Item';
+            if ($homologacao && $index === 0) {
+                $descricao = self::ITEM_HOMOLOGACAO;
+            }
+
             $itens[] = [
                 'numero_item' => $index + 1,
                 'codigo_produto' => $item->produto?->codigo_barras ?: (string) $item->produto_id,
-                'descricao' => $item->produto?->descricao ?: 'Item',
+                'descricao' => $descricao,
                 'codigo_ncm' => $this->ncm($item->produto?->ncm),
                 'cfop' => (string) config('focusnfe.cfop_padrao', '5102'),
                 'unidade_comercial' => 'UN',
@@ -70,25 +81,26 @@ class MontarPayloadNfce
         return $payload;
     }
 
-    /** @param  array<string, mixed>  $payload */
+    /**
+     * Destino só entra com CPF/CNPJ real (padrão clínica 2V / exemplo Focus).
+     * Sem documento = consumidor não identificado — não inventar CPF nem mandar só o nome.
+     *
+     * @param  array<string, mixed>  $payload
+     */
     private function anexarDestinatario(array &$payload, ?Cliente $cliente, bool $homologacao): void
     {
-        if ($homologacao) {
-            $payload['nome_destinatario'] = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
-        } elseif ($cliente) {
-            $payload['nome_destinatario'] = $cliente->nome;
-        }
-
-        if (! $cliente?->documento) {
-            return;
-        }
-
-        $doc = preg_replace('/\D/', '', $cliente->documento) ?? '';
+        $doc = preg_replace('/\D/', '', (string) $cliente?->documento) ?? '';
         if (strlen($doc) === 11) {
             $payload['cpf_destinatario'] = $doc;
         } elseif (strlen($doc) >= 14) {
             $payload['cnpj_destinatario'] = $doc;
+        } else {
+            return;
         }
+
+        $payload['nome_destinatario'] = $homologacao
+            ? self::NOME_HOMOLOGACAO
+            : ($cliente?->nome ?: self::NOME_CONSUMIDOR);
     }
 
     private function ncm(?string $ncm): string

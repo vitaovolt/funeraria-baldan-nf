@@ -77,7 +77,10 @@ class FocusNfceTest extends TestCase
         $this->assertSame(4, (int) ConfiguracaoFiscal::query()->first()->proximo_numero_nfce);
 
         Http::assertSent(fn ($request) => str_contains($request->url(), '/v2/nfce')
-            && ($request['cnpj_emitente'] ?? null) === '68480268000101');
+            && ($request['cnpj_emitente'] ?? null) === '68480268000101'
+            && ! isset($request['nome_destinatario'])
+            && ! isset($request['cpf_destinatario'])
+            && ($request['indicador_inscricao_estadual_destinatario'] ?? null) === '9');
     }
 
     public function test_job_usa_fila_fiscal(): void
