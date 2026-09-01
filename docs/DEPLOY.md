@@ -43,7 +43,7 @@ SSH/SCP: `.env`, certs, nginx/systemd/certbot — ver [DEPLOY-GITHUB.md](../../.
 ## App no servidor
 
 1. `code/backend/.env` de produção (não no Git):
-   - `APP_ENV=production`, `APP_DEBUG=false`
+   - `APP_ENV=production`, `APP_DEBUG=false`, `APP_TIMEZONE=America/Sao_Paulo`
    - `APP_URL=https://api.…` (ou mesmo host da SPA + `/api`)
    - `FRONTEND_URL=https://pdv.…` (**obrigatório** — CORS)
    - `DB_*` PostgreSQL

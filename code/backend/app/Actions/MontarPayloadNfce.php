@@ -61,7 +61,7 @@ class MontarPayloadNfce
 
         $payload = [
             'cnpj_emitente' => $cnpj,
-            'data_emissao' => now()->format('Y-m-d H:i:s'),
+            'data_emissao' => now('America/Sao_Paulo')->format('Y-m-d H:i:s'),
             'natureza_operacao' => 'Venda de mercadorias',
             'serie' => $serie,
             'numero' => $numero,

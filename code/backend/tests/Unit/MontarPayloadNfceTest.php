@@ -79,6 +79,10 @@ class MontarPayloadNfceTest extends TestCase
         $this->assertSame('4.00', $payload['itens'][0]['valor_desconto']);
         $this->assertSame('9', $payload['indicador_inscricao_estadual_destinatario']);
         $this->assertSame('NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL', $payload['itens'][0]['descricao']);
+        $this->assertLessThanOrEqual(
+            now('America/Sao_Paulo')->format('Y-m-d H:i:s'),
+            $payload['data_emissao']
+        );
     }
 
     public function test_sem_cliente_nao_inventa_cpf_nem_nome(): void
