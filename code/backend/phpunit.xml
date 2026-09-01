@@ -32,5 +32,6 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="FILESYSTEM_DISK" value="local"/>
+        <env name="FOCUSNFE_DRIVER" value="fake"/>
     </php>
 </phpunit>

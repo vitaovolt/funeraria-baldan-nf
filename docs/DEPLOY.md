@@ -49,6 +49,9 @@ SSH/SCP: `.env`, certs, nginx/systemd/certbot — ver [DEPLOY-GITHUB.md](../../.
    - `DB_*` PostgreSQL
    - `QUEUE_CONNECTION=database` (ou `redis`)
    - `FILESYSTEM_DISK=local` (XML/DANFE) ou `s3` se migrar
+   - Focus NFe: `FOCUSNFE_DRIVER=focus`, `FOCUSNFE_AMBIENTE=homologacao` (ou `producao`),
+     `FOCUSNFE_TOKEN_HOMOLOGACAO` / `FOCUSNFE_TOKEN_PRODUCAO` (token da empresa no painel Focus).
+     CSC, A1 e endereço da empresa **não** vão no `.env` — ficam no cadastro Focus.
 2. `php artisan key:generate` na 1ª vez
 3. Nginx: ver `nginx-spa-api.conf.example`
 4. Queue worker: ver `queue-worker.service.example` (fila `fiscal,default`)

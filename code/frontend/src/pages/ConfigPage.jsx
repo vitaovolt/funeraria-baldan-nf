@@ -8,9 +8,35 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
 const inicial = {
-  razao_social: '', nome_fantasia: '', cnpj: '', inscricao_estadual: '',
-  regime_tributario: 'simples', ambiente_nfce: 'homologacao', serie_nfce: 1,
-  proximo_numero_nfce: 1, uf: 'SP', municipio: '', codigo_ibge: '',
+  razao_social: '',
+  nome_fantasia: '',
+  cnpj: '',
+  inscricao_estadual: '',
+  regime_tributario: 'simples',
+  ambiente_nfce: 'homologacao',
+  serie_nfce: 1,
+  proximo_numero_nfce: 1,
+  uf: 'SP',
+  municipio: '',
+  codigo_ibge: '',
+}
+
+function maskCnpj(raw) {
+  const d = String(raw || '').replace(/\D/g, '').slice(0, 14)
+  return d
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+}
+
+function erroValidacao(err) {
+  const errors = err.response?.data?.errors
+  if (errors && typeof errors === 'object') {
+    const first = Object.values(errors).flat()[0]
+    if (first) return String(first)
+  }
+  return err.response?.data?.message || 'Não foi possível salvar a configuração.'
 }
 
 export default function ConfigPage() {
@@ -52,8 +78,8 @@ export default function ConfigPage() {
       return
     }
     if (saveRef.current) return
-    if (!form.razao_social.trim() || !form.cnpj.trim()) {
-      toast.error('Informe razão social e CNPJ.')
+    if (!form.cnpj.trim()) {
+      toast.error('Informe o CNPJ — é o que a Focus usa na emissão.')
       return
     }
     saveRef.current = true
@@ -61,13 +87,19 @@ export default function ConfigPage() {
     try {
       const res = await updateConfiguracaoFiscal({
         ...form,
+        razao_social: form.razao_social || null,
+        nome_fantasia: form.nome_fantasia || null,
+        inscricao_estadual: form.inscricao_estadual || null,
+        municipio: form.municipio || null,
+        codigo_ibge: form.codigo_ibge || null,
+        regime_tributario: form.regime_tributario || null,
         serie_nfce: Number(form.serie_nfce),
         proximo_numero_nfce: Number(form.proximo_numero_nfce),
       })
       toast.success('Configuração fiscal salva.')
       setTemCertificado(Boolean(res?.data?.tem_certificado))
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Não foi possível salvar a configuração.')
+      toast.error(erroValidacao(err))
     } finally {
       saveRef.current = false
       setSaving(false)
@@ -98,63 +130,136 @@ export default function ConfigPage() {
     }
   }
 
-  const inputClass = 'rounded-lg border border-[var(--line)] px-3 py-2'
   return (
     <div data-testid="page-config">
       <form onSubmit={salvar}>
-        <h1 className="m-0 text-2xl font-extrabold text-[var(--brand-primary)]">Configuração fiscal</h1>
+        <div className="page-head">
+          <div>
+            <h1>Configuração fiscal</h1>
+            <p>
+              A Focus NFe já tem empresa, certificado e CSC. Aqui o sistema só precisa do CNPJ, ambiente, série e
+              próximo número para montar a NFC-e.
+            </p>
+          </div>
+        </div>
         {!isAdmin ? (
-          <p className="mt-2 text-sm text-[var(--muted)]" data-testid="config-somente-leitura">
-            Somente leitura. Alterações e certificado A1 exigem perfil admin.
+          <p className="hint" data-testid="config-somente-leitura">
+            Somente leitura. Alterações exigem perfil admin.
           </p>
         ) : null}
-        <div className="mt-5 grid gap-4 rounded-[10px] border border-[var(--line)] bg-white p-5 md:grid-cols-2">
-          {[
-            ['razao_social', 'Razão social'], ['nome_fantasia', 'Nome fantasia'], ['cnpj', 'CNPJ'],
-            ['inscricao_estadual', 'Inscrição estadual'], ['regime_tributario', 'Regime tributário'],
-            ['municipio', 'Município'], ['codigo_ibge', 'Código IBGE'], ['uf', 'UF'],
-          ].map(([nome, label]) => (
-            <label key={nome} className="grid gap-1 text-sm font-semibold">{label}
+
+        <section className="panel">
+          <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Usado na emissão</h2>
+          <p className="hint mt-0">Enviado à Focus em cada venda (CNPJ + série/número). Ambiente escolhe o token.</p>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <div className="field" style={{ margin: 0 }}>
+              <label>CNPJ</label>
               <input
-                className={inputClass}
-                value={form[nome]}
-                onChange={(e) => campo(nome, e.target.value)}
-                readOnly={!isAdmin}
+                value={form.cnpj}
+                onChange={(e) => campo('cnpj', maskCnpj(e.target.value))}
+                disabled={!isAdmin}
+                placeholder="00.000.000/0000-00"
+              />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Ambiente NFC-e</label>
+              <select value={form.ambiente_nfce} onChange={(e) => campo('ambiente_nfce', e.target.value)} disabled={!isAdmin}>
+                <option value="homologacao">Homologação</option>
+                <option value="producao">Produção</option>
+              </select>
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Série NFC-e</label>
+              <input type="number" min="1" step="1" value={form.serie_nfce} onChange={(e) => campo('serie_nfce', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Próximo número</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={form.proximo_numero_nfce}
+                onChange={(e) => campo('proximo_numero_nfce', e.target.value)}
                 disabled={!isAdmin}
               />
-            </label>
-          ))}
-          <label className="grid gap-1 text-sm font-semibold">Ambiente NFC-e
-            <select
-              className={inputClass}
-              value={form.ambiente_nfce}
-              onChange={(e) => campo('ambiente_nfce', e.target.value)}
-              disabled={!isAdmin}
-            >
-              <option value="homologacao">Homologação</option><option value="producao">Produção</option>
-            </select>
-          </label>
-          <label className="grid gap-1 text-sm font-semibold">Série NFC-e
-            <input className={inputClass} type="number" min="1" value={form.serie_nfce} onChange={(e) => campo('serie_nfce', e.target.value)} disabled={!isAdmin} />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold">Próximo número
-            <input className={inputClass} type="number" min="1" value={form.proximo_numero_nfce} onChange={(e) => campo('proximo_numero_nfce', e.target.value)} disabled={!isAdmin} />
-          </label>
-        </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="panel mt-4">
+          <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Referência local (opcional)</h2>
+          <p className="hint mt-0">Não vão na chamada da Focus — já estão no cadastro da empresa lá. Só para conferência aqui.</p>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <div className="field" style={{ margin: 0 }}>
+              <label>Razão social</label>
+              <input value={form.razao_social} onChange={(e) => campo('razao_social', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Nome fantasia</label>
+              <input value={form.nome_fantasia} onChange={(e) => campo('nome_fantasia', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Inscrição estadual</label>
+              <input value={form.inscricao_estadual} onChange={(e) => campo('inscricao_estadual', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Regime tributário</label>
+              <select
+                value={form.regime_tributario || ''}
+                onChange={(e) => campo('regime_tributario', e.target.value)}
+                disabled={!isAdmin}
+              >
+                <option value="simples">Simples Nacional</option>
+                <option value="lucro_presumido">Lucro presumido</option>
+                <option value="lucro_real">Lucro real</option>
+              </select>
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Município</label>
+              <input value={form.municipio} onChange={(e) => campo('municipio', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>UF</label>
+              <input value={form.uf} maxLength={2} onChange={(e) => campo('uf', e.target.value.toUpperCase())} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Código IBGE</label>
+              <input
+                value={form.codigo_ibge}
+                onChange={(e) => campo('codigo_ibge', e.target.value.replace(/\D/g, '').slice(0, 7))}
+                disabled={!isAdmin}
+                placeholder="3517306"
+              />
+            </div>
+          </div>
+        </section>
+
         {isAdmin ? (
-          <button className="mt-4 rounded-lg bg-[var(--brand-primary)] px-5 py-3 font-bold text-white disabled:opacity-60" disabled={saving} data-testid="config-salvar">
+          <button className="btn btn-primary mt-4" disabled={saving} data-testid="config-salvar">
             {saving ? 'Processando…' : 'Salvar configuração'}
           </button>
         ) : null}
       </form>
-      <section className="mt-7 rounded-[10px] border border-[var(--line)] bg-white p-5">
+
+      <section className="panel mt-6">
         <h2 className="m-0 text-lg font-extrabold">Certificado A1</h2>
-        <p className="text-sm text-[var(--muted)]">{temCertificado ? 'Certificado armazenado.' : 'Nenhum certificado armazenado.'}</p>
+        <p className="hint">
+          A emissão usa o A1 cadastrado na Focus. O upload abaixo é só cópia local (opcional), não substitui o da Focus.
+        </p>
+        <p className="text-sm text-[var(--muted)]">
+          {temCertificado ? 'Cópia local armazenada.' : 'Nenhuma cópia local.'}
+        </p>
         {isAdmin ? (
           <div className="flex flex-wrap gap-3">
             <input type="file" accept=".pfx,.p12" onChange={(e) => setCertificado(e.target.files?.[0] || null)} />
-            <button type="button" className="rounded-lg bg-[var(--brand-accent)] px-4 py-2 font-bold disabled:opacity-60" disabled={uploading} onClick={enviarCertificado} data-testid="certificado-upload">
-              {uploading ? 'Processando…' : 'Enviar certificado'}
+            <button
+              type="button"
+              className="btn btn-accent"
+              disabled={uploading}
+              onClick={enviarCertificado}
+              data-testid="certificado-upload"
+            >
+              {uploading ? 'Processando…' : 'Enviar cópia local'}
             </button>
           </div>
         ) : null}

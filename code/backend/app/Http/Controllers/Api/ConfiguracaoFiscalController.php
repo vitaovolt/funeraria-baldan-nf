@@ -31,12 +31,13 @@ class ConfiguracaoFiscalController extends Controller
 
         if (! $config) {
             $dados = $request->validated();
-            if (! isset($dados['razao_social'], $dados['cnpj'])) {
-                return $this->fail('Configuração fiscal ainda não existe. Informe razao_social e cnpj.', [
-                    'razao_social' => ['Obrigatório na primeira gravação.'],
+            if (! isset($dados['cnpj'])) {
+                return $this->fail('Configuração fiscal ainda não existe. Informe o CNPJ.', [
                     'cnpj' => ['Obrigatório na primeira gravação.'],
                 ]);
             }
+            $dados['razao_social'] = $dados['razao_social'] ?? 'Empresa';
+            $dados['regime_tributario'] = $dados['regime_tributario'] ?? 'simples';
             $config = ConfiguracaoFiscal::query()->create($dados);
         } else {
             $config->update($request->validated());

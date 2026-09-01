@@ -10,7 +10,7 @@ Catálogo: [../../capabilities/INDEX.md](../../capabilities/INDEX.md)
 | multi-tenant | nao | MVP = uma empresa (Baldan) |
 | realtime | nao | Refresh / polling |
 | files | sim | XML + DANFE cupom 80 mm |
-| fiscal | sim | NFC-e no fechamento da venda; config + A1 |
+| fiscal | sim | NFC-e via Focus NFe no fechamento da venda; CSC/A1 no painel Focus |
 | mobile | nao | Desktop (caixa) |
 | integrations | nao | Sem integração com ERP terceiro no MVP |
 | reporting | nao | Lista de notas / movimentos; sem BI |
