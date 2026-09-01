@@ -7,9 +7,11 @@ import {
 } from '../api/consignado'
 import { listClientes, listProdutos } from '../api/dominio'
 import { Pagination, SearchBar } from '../components/ListToolbar'
+import NfcePerguntaModal from '../components/NfcePerguntaModal'
 import { useToast } from '../context/ToastContext'
 import { usePagedList } from '../hooks/usePagedList'
 import { formatQtd } from '../utils/format'
+import { abrirHtmlImpressao, imprimirPosVenda, maskCpfCnpj } from '../utils/impressao'
 
 export default function ConsignadoPage() {
   const toast = useToast()
@@ -20,6 +22,8 @@ export default function ConsignadoPage() {
   const [produtoId, setProdutoId] = useState('')
   const [quantidade, setQuantidade] = useState('1')
   const [submitting, setSubmitting] = useState('')
+  const [alvoConverter, setAlvoConverter] = useState(null)
+  const [documentoNfce, setDocumentoNfce] = useState('')
 
   const fetcher = useCallback((params) => listConsignados({ ...params, abertos: 1 }), [])
   const { q, setQ, setPage, items, meta, reload } = usePagedList(fetcher)
@@ -36,6 +40,17 @@ export default function ConsignadoPage() {
       .catch(() => toast.error('Não foi possível carregar clientes/produtos.'))
   }, [toast])
 
+  function itensPendentes(consignado) {
+    return (consignado.itens || [])
+      .map((item) => ({
+        item_id: item.id,
+        quantidade: Math.trunc(
+          Number(item.quantidade) - Number(item.quantidade_devolvida) - Number(item.quantidade_vendida),
+        ),
+      }))
+      .filter((item) => item.quantidade > 0)
+  }
+
   async function criar(event) {
     event.preventDefault()
     if (submittingRef.current) return
@@ -46,11 +61,16 @@ export default function ConsignadoPage() {
     submittingRef.current = true
     setSubmitting('criar')
     try {
-      await createConsignado({
+      const res = await createConsignado({
         cliente_id: Number(clienteId),
         itens: [{ produto_id: Number(produtoId), quantidade: Math.trunc(Number(quantidade)) }],
       })
       toast.success('Consignado criado.')
+      try {
+        await abrirHtmlImpressao(`/consignados/${res.data.id}/notinha`)
+      } catch (err) {
+        toast.error(err.message || 'Consignado criado. Impressão da notinha bloqueada.')
+      }
       setProdutoId('')
       setQuantidade('1')
       await reload()
@@ -62,23 +82,58 @@ export default function ConsignadoPage() {
     }
   }
 
-  async function agir(consignado, acao) {
+  function pedirConverter(consignado) {
     if (submittingRef.current) return
-    const itens = consignado.itens
-      .map((item) => ({
-        item_id: item.id,
-        quantidade: Math.trunc(
-          Number(item.quantidade) - Number(item.quantidade_devolvida) - Number(item.quantidade_vendida),
-        ),
-      }))
-      .filter((item) => item.quantidade > 0)
+    if (!itensPendentes(consignado).length) {
+      toast.error('Não há itens pendentes.')
+      return
+    }
+    setDocumentoNfce(maskCpfCnpj(consignado.cliente?.documento || ''))
+    setAlvoConverter(consignado)
+  }
+
+  async function confirmarConverter(emitir, documento) {
+    if (submittingRef.current || !alvoConverter) return
+    const itens = itensPendentes(alvoConverter)
+    if (!itens.length) {
+      toast.error('Não há itens pendentes.')
+      return
+    }
+    submittingRef.current = true
+    setSubmitting(`converter-${alvoConverter.id}`)
+    try {
+      const res = await converterConsignado(alvoConverter.id, {
+        itens,
+        forma_pagamento: 'dinheiro',
+        emitir_nfce: emitir,
+        documento_nfce: documento || undefined,
+      })
+      toast.success('Consignado convertido em venda.')
+      try {
+        await imprimirPosVenda(res.data)
+      } catch (err) {
+        toast.error(err.message || 'Venda ok. Impressão bloqueada.')
+      }
+      setAlvoConverter(null)
+      await reload()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Não foi possível concluir a operação.')
+    } finally {
+      submittingRef.current = false
+      setSubmitting('')
+    }
+  }
+
+  async function devolver(consignado) {
+    if (submittingRef.current) return
+    if (!window.confirm('Devolver os itens pendentes ao estoque?')) return
+    const itens = itensPendentes(consignado)
     if (!itens.length) return toast.error('Não há itens pendentes.')
     submittingRef.current = true
-    setSubmitting(`${acao}-${consignado.id}`)
+    setSubmitting(`devolver-${consignado.id}`)
     try {
-      if (acao === 'devolver') await devolverConsignado(consignado.id, itens)
-      else await converterConsignado(consignado.id, { itens, forma_pagamento: 'dinheiro' })
-      toast.success(acao === 'devolver' ? 'Devolução registrada.' : 'Consignado convertido em venda.')
+      await devolverConsignado(consignado.id, itens)
+      toast.success('Devolução registrada.')
       await reload()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Não foi possível concluir a operação.')
@@ -123,11 +178,9 @@ export default function ConsignadoPage() {
         <div className="field" style={{ margin: 0 }}>
           <label>Qtd</label>
           <input
-            type="number"
-            min="1"
-            step="1"
+            inputMode="numeric"
             value={quantidade}
-            onChange={(e) => setQuantidade(e.target.value)}
+            onChange={(e) => setQuantidade(e.target.value.replace(/\D/g, '') || '')}
           />
         </div>
         <button className="btn btn-accent self-end" disabled={Boolean(submitting)} data-testid="consignado-criar">
@@ -178,7 +231,20 @@ export default function ConsignadoPage() {
                         className="btn btn-ghost"
                         style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                         disabled={Boolean(submitting)}
-                        onClick={() => agir(c, 'devolver')}
+                        onClick={() =>
+                          abrirHtmlImpressao(`/consignados/${c.id}/notinha`).catch((err) =>
+                            toast.error(err.message || 'Não foi possível imprimir.'),
+                          )
+                        }
+                      >
+                        Notinha
+                      </button>{' '}
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        disabled={Boolean(submitting)}
+                        onClick={() => devolver(c)}
                         data-testid="consignado-devolver"
                       >
                         {submitting === `devolver-${c.id}` ? 'Processando…' : 'Devolver'}
@@ -188,7 +254,7 @@ export default function ConsignadoPage() {
                         className="btn btn-primary"
                         style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                         disabled={Boolean(submitting)}
-                        onClick={() => agir(c, 'converter')}
+                        onClick={() => pedirConverter(c)}
                         data-testid="consignado-converter"
                       >
                         {submitting === `converter-${c.id}` ? 'Processando…' : 'Virar venda'}
@@ -202,6 +268,17 @@ export default function ConsignadoPage() {
         </div>
         <Pagination meta={meta} onPageChange={setPage} />
       </section>
+
+      <NfcePerguntaModal
+        open={Boolean(alvoConverter)}
+        documento={documentoNfce}
+        onDocumento={setDocumentoNfce}
+        submitting={Boolean(submitting)}
+        onConfirmar={confirmarConverter}
+        onCancelar={() => {
+          if (!submitting) setAlvoConverter(null)
+        }}
+      />
     </div>
   )
 }

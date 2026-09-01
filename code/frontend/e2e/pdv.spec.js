@@ -24,10 +24,12 @@ test('fluxo feliz T3–T6: caixa → PDV → pagar e emitir NFC-e', async ({ pag
   await page.getByTestId('lista-produtos').locator('button').first().click()
   await expect(page.getByTestId('carrinho')).toBeVisible()
 
+  page.on('popup', (popup) => popup.close().catch(() => {}))
   await page.getByTestId('pagar-emitir').click()
+  await expect(page.getByTestId('modal-nfce')).toBeVisible()
+  await page.getByTestId('nfce-sim').click()
   await expect(page.getByTestId('toast-success')).toBeVisible({ timeout: 20_000 })
-  await expect(page.getByTestId('page-caixa')).toBeVisible()
-  await expect(page.getByTestId('vendas-dia')).toContainText(/NFC-e autorizada/i)
+  await expect(page.getByTestId('page-pdv')).toBeVisible()
 
   await page.getByRole('link', { name: 'Notas' }).click()
   await expect(page.getByTestId('page-notas')).toBeVisible()

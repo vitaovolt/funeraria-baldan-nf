@@ -20,8 +20,9 @@ class FecharSessaoCaixa
 
             $totalVendas = (float) $caixa->vendas()->sum('total');
             $totalSangrias = (float) $caixa->sangrias()->sum('valor');
+            $totalSuprimentos = (float) $caixa->suprimentos()->sum('valor');
             $vendasDinheiro = (float) $caixa->vendas()->where('forma_pagamento', 'dinheiro')->sum('total');
-            $esperado = round((float) $caixa->valor_abertura + $vendasDinheiro - $totalSangrias, 2);
+            $esperado = round((float) $caixa->valor_abertura + $vendasDinheiro + $totalSuprimentos - $totalSangrias, 2);
 
             $caixa->update([
                 'status' => 'fechada',

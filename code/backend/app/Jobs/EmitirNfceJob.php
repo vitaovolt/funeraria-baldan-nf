@@ -2,9 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Actions\EmitirNfceFocus;
+use App\Actions\EmitirNfceSincrono;
 use App\Models\NotaNfce;
-use App\Services\Fiscal\EmissorNfceFake;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -25,20 +24,14 @@ class EmitirNfceJob implements ShouldQueue
         $this->onQueue('fiscal');
     }
 
-    public function handle(EmissorNfceFake $fake, EmitirNfceFocus $focus): void
+    public function handle(EmitirNfceSincrono $emitir): void
     {
         $nota = NotaNfce::query()->find($this->notaNfceId);
         if (! $nota || $nota->status === 'autorizada') {
             return;
         }
 
-        if (config('focusnfe.driver') === 'fake') {
-            $fake->emitir($nota);
-
-            return;
-        }
-
-        $focus->handle($nota);
+        $emitir->handle($nota);
     }
 
     public function failed(?Throwable $e): void

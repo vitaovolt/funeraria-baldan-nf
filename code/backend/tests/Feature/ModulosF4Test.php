@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\EmitirNfceJob;
 use App\Models\Cliente;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\Consignado;
@@ -10,7 +9,6 @@ use App\Models\Produto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -41,6 +39,10 @@ class ModulosF4Test extends TestCase
             ->assertCreated()
             ->assertJsonPath('data.valor', '30.00');
 
+        $this->postJson('/api/v1/caixa/suprimento', ['valor' => 15, 'motivo' => 'Troco extra'])
+            ->assertCreated()
+            ->assertJsonPath('data.tipo', 'suprimento');
+
         $this->assertDatabaseHas('sangrias_caixa', [
             'valor' => 30.00,
             'motivo' => 'Troco banco',
@@ -50,7 +52,7 @@ class ModulosF4Test extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'fechada')
             ->assertJsonPath('data.total_sangrias', '30.00')
-            ->assertJsonPath('data.total_dinheiro_esperado', '70.00');
+            ->assertJsonPath('data.total_dinheiro_esperado', '85.00');
 
         $this->getJson('/api/v1/caixa/atual')->assertOk()->assertJsonPath('data', null);
 
@@ -63,7 +65,6 @@ class ModulosF4Test extends TestCase
     public function test_consignado_criar_devolver_e_converter(): void
     {
         Storage::fake('local');
-        Queue::fake();
         $user = User::factory()->create();
         Sanctum::actingAs($user);
         $this->seedFiscal();
@@ -107,7 +108,7 @@ class ModulosF4Test extends TestCase
         $this->assertEquals(9.0, (float) $produto->fresh()->estoque_atual);
         $this->assertDatabaseHas('consignados', ['id' => $consignadoId, 'status' => 'vendido']);
         $this->assertDatabaseHas('vendas', ['cliente_id' => $cliente->id, 'total' => 50.00]);
-        Queue::assertPushedOn('fiscal', EmitirNfceJob::class);
+        $this->assertDatabaseHas('notas_nfce', ['status' => 'autorizada']);
     }
 
     public function test_upload_certificado_a1(): void

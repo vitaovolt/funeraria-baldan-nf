@@ -148,4 +148,49 @@ class MontarPayloadNfceTest extends TestCase
         $this->assertArrayNotHasKey('cpf_destinatario', $prod);
         $this->assertSame('Vela 7 Dias', $prod['itens'][0]['descricao']);
     }
+
+    public function test_documento_informado_na_venda_vai_para_o_payload(): void
+    {
+        $user = User::factory()->create();
+        $produto = Produto::query()->create([
+            'codigo_barras' => '7891000100059',
+            'descricao' => 'Vela 7 Dias',
+            'ncm' => '34060000',
+            'preco_venda' => 12,
+        ]);
+        $caixa = SessaoCaixa::query()->create([
+            'user_id' => $user->id,
+            'aberto_em' => now(),
+            'status' => 'aberta',
+        ]);
+        $venda = Venda::query()->create([
+            'sessao_caixa_id' => $caixa->id,
+            'user_id' => $user->id,
+            'status' => 'finalizada',
+            'subtotal' => 12,
+            'desconto_tipo' => 'nenhum',
+            'desconto_valor' => 0,
+            'total' => 12,
+            'forma_pagamento' => 'dinheiro',
+            'documento_destinatario_nfce' => '39053344705',
+        ]);
+        ItemVenda::query()->create([
+            'venda_id' => $venda->id,
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+            'preco_unitario' => 12,
+            'custo_unitario' => 4,
+            'total_linha' => 12,
+        ]);
+        $config = ConfiguracaoFiscal::query()->create([
+            'razao_social' => 'FUNERARIA BALDAN LTDA',
+            'cnpj' => '68480268000101',
+            'ambiente_nfce' => 'producao',
+        ]);
+
+        $payload = app(MontarPayloadNfce::class)->handle($venda->fresh(['itens.produto', 'cliente']), $config, 1, 1);
+
+        $this->assertSame('39053344705', $payload['cpf_destinatario']);
+        $this->assertSame('Consumidor', $payload['nome_destinatario']);
+    }
 }

@@ -2,14 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Jobs\EmitirNfceJob;
 use App\Models\Cliente;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Models\Produto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -118,27 +116,67 @@ class PdvSliceTest extends TestCase
         $this->assertEquals(1.0, (float) $produto->fresh()->estoque_atual);
     }
 
-    public function test_dispatch_job_nfce_na_fila_fiscal(): void
+    public function test_venda_sem_nfce_gera_so_comprovante(): void
     {
-        Queue::fake();
         $user = User::factory()->create();
         Sanctum::actingAs($user);
 
         $produto = Produto::query()->create([
             'codigo_barras' => '7890000222000',
-            'descricao' => 'Item fila',
+            'descricao' => 'Item comprovante',
             'preco_venda' => 20,
             'estoque_atual' => 3,
         ]);
 
         $this->postJson('/api/v1/caixa/abrir')->assertCreated();
 
-        $this->postJson('/api/v1/vendas/finalizar', [
+        $venda = $this->postJson('/api/v1/vendas/finalizar', [
             'itens' => [['produto_id' => $produto->id, 'quantidade' => 1]],
+            'emitir_nfce' => false,
+            'documento_nfce' => '390.533.447-05',
+            'valor_recebido' => 50,
         ])->assertCreated();
 
-        Queue::assertPushedOn('fiscal', EmitirNfceJob::class);
-        $this->assertDatabaseHas('notas_nfce', ['status' => 'pendente']);
+        $this->assertNull($venda->json('data.nota_nfce'));
+        $this->assertDatabaseMissing('notas_nfce', ['venda_id' => $venda->json('data.id')]);
+        $this->assertDatabaseHas('vendas', [
+            'id' => $venda->json('data.id'),
+            'documento_destinatario_nfce' => '39053344705',
+        ]);
+
+        $this->get("/api/v1/vendas/{$venda->json('data.id')}/comprovante")
+            ->assertOk()
+            ->assertSee('COMPROVANTE DA VENDA', false)
+            ->assertSee('Sem valor fiscal', false);
+    }
+
+    public function test_emite_nfce_depois_do_comprovante(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+        ConfiguracaoFiscal::query()->create([
+            'razao_social' => 'Baldan Teste',
+            'cnpj' => '12345678000199',
+            'serie_nfce' => 1,
+            'proximo_numero_nfce' => 1,
+            'ambiente_nfce' => 'homologacao',
+        ]);
+        $produto = Produto::query()->create([
+            'codigo_barras' => '7890000333000',
+            'descricao' => 'Item tarde',
+            'preco_venda' => 15,
+            'estoque_atual' => 2,
+        ]);
+        $this->postJson('/api/v1/caixa/abrir')->assertCreated();
+        $venda = $this->postJson('/api/v1/vendas/finalizar', [
+            'itens' => [['produto_id' => $produto->id, 'quantidade' => 1]],
+            'emitir_nfce' => false,
+        ])->assertCreated();
+
+        $this->postJson('/api/v1/vendas/'.$venda->json('data.id').'/emitir-nfce', [
+            'documento_nfce' => '39053344705',
+        ])->assertOk()->assertJsonPath('data.nota_nfce.status', 'autorizada');
     }
 
     public function test_pdv_exige_auth(): void

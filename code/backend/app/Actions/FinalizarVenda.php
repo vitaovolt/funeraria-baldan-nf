@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-use App\Jobs\EmitirNfceJob;
 use App\Models\Cliente;
 use App\Models\ItemVenda;
 use App\Models\NotaNfce;
@@ -16,6 +15,8 @@ use InvalidArgumentException;
 
 class FinalizarVenda
 {
+    public function __construct(private EmitirNfceSincrono $emitirNfce) {}
+
     /**
      * @param  array{
      *   itens: list<array{produto_id:int, quantidade:float|int|string}>,
@@ -23,6 +24,9 @@ class FinalizarVenda
      *   desconto_tipo?: string,
      *   desconto_valor?: float|int|string,
      *   forma_pagamento?: string,
+     *   emitir_nfce?: bool,
+     *   documento_nfce?: string|null,
+     *   valor_recebido?: float|int|string|null,
      *   idempotency_key?: string|null
      * }  $dados
      */
@@ -52,11 +56,37 @@ class FinalizarVenda
                     return $existing->load(['itens.produto', 'cliente', 'notaNfce']);
                 }
 
-                return $this->criarVenda($usuario, $dados, $itens, $idemKey);
+                return $this->criarEEmitir($usuario, $dados, $itens, $idemKey);
             });
         }
 
-        return $this->criarVenda($usuario, $dados, $itens, null);
+        return $this->criarEEmitir($usuario, $dados, $itens, null);
+    }
+
+    /**
+     * @param  list<array{produto_id:int, quantidade:float|int|string}>  $itens
+     */
+    private function criarEEmitir(User $usuario, array $dados, array $itens, ?string $idemKey): Venda
+    {
+        $venda = $this->criarVenda($usuario, $dados, $itens, $idemKey);
+
+        if ($this->deveEmitir($dados) && $venda->notaNfce) {
+            $this->emitirNfce->handle($venda->notaNfce);
+        }
+
+        return $venda->fresh(['itens.produto', 'cliente', 'notaNfce']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $dados
+     */
+    private function deveEmitir(array $dados): bool
+    {
+        if (! array_key_exists('emitir_nfce', $dados)) {
+            return true;
+        }
+
+        return filter_var($dados['emitir_nfce'], FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -118,6 +148,11 @@ class FinalizarVenda
                 Cliente::query()->whereKey($clienteId)->firstOrFail();
             }
 
+            $documentoNfce = preg_replace('/\D/', '', (string) ($dados['documento_nfce'] ?? '')) ?? '';
+            $valorRecebido = isset($dados['valor_recebido']) && $dados['valor_recebido'] !== '' && $dados['valor_recebido'] !== null
+                ? round((float) $dados['valor_recebido'], 2)
+                : null;
+
             $venda = Venda::query()->create([
                 'sessao_caixa_id' => $caixa->id,
                 'user_id' => $usuario->id,
@@ -128,6 +163,8 @@ class FinalizarVenda
                 'desconto_valor' => $descontoValor,
                 'total' => $total,
                 'forma_pagamento' => $dados['forma_pagamento'] ?? 'dinheiro',
+                'documento_destinatario_nfce' => $documentoNfce !== '' ? $documentoNfce : null,
+                'valor_recebido' => $valorRecebido,
                 'idempotency_key' => $idemKey,
                 'finalizada_em' => now(),
             ]);
@@ -147,12 +184,12 @@ class FinalizarVenda
                 $produto->save();
             }
 
-            $nota = NotaNfce::query()->create([
-                'venda_id' => $venda->id,
-                'status' => 'pendente',
-            ]);
-
-            EmitirNfceJob::dispatch($nota->id)->onQueue('fiscal');
+            if ($this->deveEmitir($dados)) {
+                NotaNfce::query()->create([
+                    'venda_id' => $venda->id,
+                    'status' => 'pendente',
+                ]);
+            }
 
             return $venda->load(['itens.produto', 'cliente', 'notaNfce']);
         });

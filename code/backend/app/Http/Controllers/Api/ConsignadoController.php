@@ -80,11 +80,15 @@ class ConsignadoController extends Controller
         ConverterConsignadoEmVenda $action
     ): JsonResponse {
         try {
+            $emitir = ! array_key_exists('emitir_nfce', $request->validated())
+                || filter_var($request->validated('emitir_nfce'), FILTER_VALIDATE_BOOLEAN);
             $venda = $action->handle(
                 $consignado,
                 $request->user(),
                 $request->validated('itens'),
-                $request->validated('forma_pagamento') ?? 'dinheiro'
+                $request->validated('forma_pagamento') ?? 'dinheiro',
+                $emitir,
+                $request->validated('documento_nfce') ?: null,
             );
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['consignado' => [$e->getMessage()]], 422);

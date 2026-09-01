@@ -33,9 +33,11 @@ class EmitirNfceFocus
 
         return Cache::lock('nfce_numero_'.$serie, 30)->block(10, function () use ($nota, $config, $ambiente, $serie) {
             $config = ConfiguracaoFiscal::query()->lockForUpdate()->firstOrFail();
-            $numero = (int) $config->proximo_numero_nfce;
-            $config->proximo_numero_nfce = $numero + 1;
-            $config->save();
+            $numero = (int) $nota->numero ?: (int) $config->proximo_numero_nfce;
+            if (! $nota->numero) {
+                $config->proximo_numero_nfce = $numero + 1;
+                $config->save();
+            }
 
             $payload = $this->montarPayload->handle($nota->venda, $config, $numero, $serie);
             $ref = 'venda_'.$nota->venda_id.'_nota_'.$nota->id;

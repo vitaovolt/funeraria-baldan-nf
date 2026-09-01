@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ConfiguracaoFiscalController;
 use App\Http\Controllers\Api\ConsignadoController;
 use App\Http\Controllers\Api\DependenteController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\ImpressaoController;
 use App\Http\Controllers\Api\MarcaController;
 use App\Http\Controllers\Api\MovimentacaoEstoqueController;
 use App\Http\Controllers\Api\NotaNfceController;
@@ -46,8 +47,11 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::middleware('throttle:mutations')->group(function () {
             Route::post('/caixa/abrir', [CaixaController::class, 'abrir']);
             Route::post('/caixa/sangria', [CaixaController::class, 'sangria']);
+            Route::post('/caixa/suprimento', [CaixaController::class, 'suprimento']);
             Route::post('/caixa/fechar', [CaixaController::class, 'fechar']);
             Route::post('/vendas/finalizar', [VendaController::class, 'finalizar']);
+            Route::post('/vendas/{venda}/emitir-nfce', [VendaController::class, 'emitirNfce']);
+            Route::post('/notas-nfce/{nota}/reemitir', [NotaNfceController::class, 'reemitir']);
             Route::post('/consignados', [ConsignadoController::class, 'store']);
             Route::post('/consignados/{consignado}/devolver', [ConsignadoController::class, 'devolver']);
             Route::post('/consignados/{consignado}/converter', [ConsignadoController::class, 'converter']);
@@ -58,11 +62,16 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::get('/caixa/vendas-do-dia', [CaixaController::class, 'vendasDoDia']);
 
         Route::get('/vendas/{venda}', [VendaController::class, 'show']);
+        Route::get('/vendas/{venda}/comprovante', [ImpressaoController::class, 'comprovanteVenda']);
 
         Route::get('/notas-nfce', [NotaNfceController::class, 'index']);
+        Route::get('/notas-nfce/{nota}/danfe', [NotaNfceController::class, 'danfe']);
+        Route::get('/notas-nfce/{nota}/xml', [NotaNfceController::class, 'xml']);
         Route::get('/notas-nfce/{nota}', [NotaNfceController::class, 'show']);
 
         Route::get('/consignados', [ConsignadoController::class, 'index']);
+        Route::get('/consignados/{consignado}/notinha', [ImpressaoController::class, 'notinhaConsignado']);
         Route::get('/consignados/{consignado}', [ConsignadoController::class, 'show']);
+        Route::get('/caixa/fechamento/impressao', [ImpressaoController::class, 'fechamentoCaixa']);
     });
 });

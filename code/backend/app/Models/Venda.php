@@ -19,6 +19,8 @@ class Venda extends Model
         'desconto_valor',
         'total',
         'forma_pagamento',
+        'documento_destinatario_nfce',
+        'valor_recebido',
         'idempotency_key',
         'finalizada_em',
     ];
@@ -36,6 +38,7 @@ class Venda extends Model
             'subtotal' => 'decimal:2',
             'desconto_valor' => 'decimal:2',
             'total' => 'decimal:2',
+            'valor_recebido' => 'decimal:2',
             'finalizada_em' => 'datetime',
         ];
     }

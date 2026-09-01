@@ -13,7 +13,12 @@ class SangriaCaixa extends Model
         'sessao_caixa_id',
         'user_id',
         'valor',
+        'tipo',
         'motivo',
+    ];
+
+    protected $attributes = [
+        'tipo' => 'sangria',
     ];
 
     protected function casts(): array
@@ -21,6 +26,11 @@ class SangriaCaixa extends Model
         return [
             'valor' => 'decimal:2',
         ];
+    }
+
+    public function ehSuprimento(): bool
+    {
+        return $this->tipo === 'suprimento';
     }
 
     public function sessaoCaixa(): BelongsTo

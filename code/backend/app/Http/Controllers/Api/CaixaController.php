@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api;
 use App\Actions\AbrirSessaoCaixa;
 use App\Actions\FecharSessaoCaixa;
 use App\Actions\RegistrarSangria;
+use App\Actions\RegistrarSuprimento;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AbrirCaixaRequest;
 use App\Http\Requests\RegistrarSangriaRequest;
 use App\Models\SessaoCaixa;
 use App\Support\ApiResponse;
+use App\Support\ResumoCaixa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -22,7 +24,7 @@ class CaixaController extends Controller
     {
         $caixa = SessaoCaixa::query()
             ->abertas()
-            ->with(['usuario:id,name,email', 'sangrias'])
+            ->with(['usuario:id,name,email', 'sangrias', 'suprimentos'])
             ->first();
 
         return $this->ok($caixa);
@@ -57,6 +59,21 @@ class CaixaController extends Controller
         return $this->ok($sangria->load('usuario:id,name,email'), 'Sangria registrada', 201);
     }
 
+    public function suprimento(RegistrarSangriaRequest $request, RegistrarSuprimento $action): JsonResponse
+    {
+        try {
+            $movimento = $action->handle(
+                $request->user(),
+                (float) $request->validated('valor'),
+                $request->validated('motivo')
+            );
+        } catch (InvalidArgumentException $e) {
+            return $this->fail($e->getMessage(), ['suprimento' => [$e->getMessage()]], 422);
+        }
+
+        return $this->ok($movimento->load('usuario:id,name,email'), 'Suprimento registrado', 201);
+    }
+
     public function fechar(FecharSessaoCaixa $action): JsonResponse
     {
         try {
@@ -70,38 +87,21 @@ class CaixaController extends Controller
 
     public function fechamento(): JsonResponse
     {
+        $aberta = SessaoCaixa::query()->abertas()->first();
+        if ($aberta) {
+            return $this->ok(ResumoCaixa::montar($aberta, true));
+        }
+
         $caixa = SessaoCaixa::query()
             ->where('status', 'fechada')
-            ->with(['usuario:id,name,email', 'sangrias', 'vendas.notaNfce'])
             ->orderByDesc('fechado_em')
             ->first();
 
         if (! $caixa) {
-            $aberta = SessaoCaixa::query()->abertas()->with(['sangrias', 'vendas'])->first();
-            if (! $aberta) {
-                return $this->ok(null);
-            }
-
-            $totalVendas = (float) $aberta->vendas->sum('total');
-            $totalSangrias = (float) $aberta->sangrias->sum('valor');
-            $vendasDinheiro = (float) $aberta->vendas->where('forma_pagamento', 'dinheiro')->sum('total');
-
-            return $this->ok([
-                'sessao' => $aberta,
-                'preview' => true,
-                'total_vendas' => round($totalVendas, 2),
-                'total_sangrias' => round($totalSangrias, 2),
-                'total_dinheiro_esperado' => round((float) $aberta->valor_abertura + $vendasDinheiro - $totalSangrias, 2),
-            ]);
+            return $this->ok(null);
         }
 
-        return $this->ok([
-            'sessao' => $caixa,
-            'preview' => false,
-            'total_vendas' => (float) $caixa->total_vendas,
-            'total_sangrias' => (float) $caixa->total_sangrias,
-            'total_dinheiro_esperado' => (float) $caixa->total_dinheiro_esperado,
-        ]);
+        return $this->ok(ResumoCaixa::montar($caixa, false));
     }
 
     public function vendasDoDia(Request $request): JsonResponse

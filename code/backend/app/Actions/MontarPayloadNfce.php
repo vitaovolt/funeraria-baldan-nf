@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-use App\Models\Cliente;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\Venda;
 
@@ -76,7 +75,7 @@ class MontarPayloadNfce
             ]],
         ];
 
-        $this->anexarDestinatario($payload, $venda->cliente, $homologacao);
+        $this->anexarDestinatario($payload, $venda, $homologacao);
         $this->anexarIbsCbs($payload, $config);
 
         return $payload;
@@ -84,13 +83,17 @@ class MontarPayloadNfce
 
     /**
      * Destino só entra com CPF/CNPJ real (padrão clínica 2V / exemplo Focus).
+     * Prioridade: documento informado na finalização; senão, cadastro do cliente.
      * Sem documento = consumidor não identificado — não inventar CPF nem mandar só o nome.
      *
      * @param  array<string, mixed>  $payload
      */
-    private function anexarDestinatario(array &$payload, ?Cliente $cliente, bool $homologacao): void
+    private function anexarDestinatario(array &$payload, Venda $venda, bool $homologacao): void
     {
-        $doc = preg_replace('/\D/', '', (string) $cliente?->documento) ?? '';
+        $doc = preg_replace('/\D/', '', (string) $venda->documento_destinatario_nfce) ?? '';
+        if ($doc === '') {
+            $doc = preg_replace('/\D/', '', (string) $venda->cliente?->documento) ?? '';
+        }
         if (strlen($doc) === 11) {
             $payload['cpf_destinatario'] = $doc;
         } elseif (strlen($doc) >= 14) {
@@ -101,7 +104,7 @@ class MontarPayloadNfce
 
         $payload['nome_destinatario'] = $homologacao
             ? self::NOME_HOMOLOGACAO
-            : ($cliente?->nome ?: self::NOME_CONSUMIDOR);
+            : ($venda->cliente?->nome ?: self::NOME_CONSUMIDOR);
     }
 
     /**

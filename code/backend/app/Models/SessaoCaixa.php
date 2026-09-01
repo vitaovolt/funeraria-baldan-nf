@@ -49,9 +49,22 @@ class SessaoCaixa extends Model
         return $this->hasMany(Venda::class, 'sessao_caixa_id');
     }
 
-    public function sangrias(): HasMany
+    public function movimentosCaixa(): HasMany
     {
         return $this->hasMany(SangriaCaixa::class, 'sessao_caixa_id');
+    }
+
+    public function sangrias(): HasMany
+    {
+        return $this->hasMany(SangriaCaixa::class, 'sessao_caixa_id')
+            ->where(function ($q) {
+                $q->where('tipo', 'sangria')->orWhereNull('tipo');
+            });
+    }
+
+    public function suprimentos(): HasMany
+    {
+        return $this->hasMany(SangriaCaixa::class, 'sessao_caixa_id')->where('tipo', 'suprimento');
     }
 
     public function scopeAbertas(Builder $query): Builder

@@ -18,8 +18,8 @@ class EmissorNfceFake
         return DB::transaction(function () use ($nota) {
             $config = ConfiguracaoFiscal::query()->lockForUpdate()->first();
             $serie = (int) ($config?->serie_nfce ?: 1);
-            $numero = 1;
-            if ($config) {
+            $numero = (int) $nota->numero ?: 1;
+            if ($config && ! $nota->numero) {
                 $numero = (int) $config->proximo_numero_nfce;
                 $config->proximo_numero_nfce = $numero + 1;
                 $config->save();

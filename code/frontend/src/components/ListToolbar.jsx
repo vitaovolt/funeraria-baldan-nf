@@ -1,14 +1,16 @@
 /**
  * Barra de busca + paginação para listas CRUD.
  */
-export function SearchBar({ value, onChange, placeholder = 'Pesquisar…', testId }) {
+export function SearchBar({ value, onChange, placeholder = 'Pesquisar…', testId, onKeyDown, inputRef }) {
   return (
     <div className="search-bar">
       <input
+        ref={inputRef}
         type="search"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         data-testid={testId}
         aria-label={placeholder}
       />

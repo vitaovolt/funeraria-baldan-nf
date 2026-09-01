@@ -2,7 +2,6 @@
 
 namespace App\Actions;
 
-use App\Jobs\EmitirNfceJob;
 use App\Models\Consignado;
 use App\Models\ItemConsignado;
 use App\Models\ItemVenda;
@@ -15,19 +14,31 @@ use InvalidArgumentException;
 
 class ConverterConsignadoEmVenda
 {
+    public function __construct(private EmitirNfceSincrono $emitirNfce) {}
+
     /**
      * Converte quantidades pendentes em venda (estoque já baixado no consignado).
      *
      * @param  list<array{item_id:int, quantidade?:float|int|string}>|null  $itens
      *   null = todo o pendente
      */
-    public function handle(Consignado $consignado, User $usuario, ?array $itens = null, string $formaPagamento = 'dinheiro'): Venda
+    public function handle(
+        Consignado $consignado,
+        User $usuario,
+        ?array $itens = null,
+        string $formaPagamento = 'dinheiro',
+        bool $emitirNfce = true,
+        ?string $documentoNfce = null,
+    ): Venda
     {
         if (! in_array($consignado->status, ['aberto', 'parcial'], true)) {
             throw new InvalidArgumentException('Consignado não está aberto para virar venda.');
         }
 
-        return DB::transaction(function () use ($consignado, $usuario, $itens, $formaPagamento) {
+        $doc = preg_replace('/\D/', '', (string) $documentoNfce) ?? '';
+        $documentoNfce = $doc !== '' ? $doc : null;
+
+        $venda = DB::transaction(function () use ($consignado, $usuario, $itens, $formaPagamento, $emitirNfce, $documentoNfce) {
             /** @var Consignado $travado */
             $travado = Consignado::query()->whereKey($consignado->id)->lockForUpdate()->firstOrFail();
 
@@ -89,6 +100,7 @@ class ConverterConsignadoEmVenda
                 'desconto_valor' => 0,
                 'total' => round($subtotal, 2),
                 'forma_pagamento' => $formaPagamento,
+                'documento_destinatario_nfce' => $documentoNfce,
                 'finalizada_em' => now(),
             ]);
 
@@ -107,11 +119,12 @@ class ConverterConsignadoEmVenda
                 $item->save();
             }
 
-            $nota = NotaNfce::query()->create([
-                'venda_id' => $venda->id,
-                'status' => 'pendente',
-            ]);
-            EmitirNfceJob::dispatch($nota->id)->onQueue('fiscal');
+            if ($emitirNfce) {
+                NotaNfce::query()->create([
+                    'venda_id' => $venda->id,
+                    'status' => 'pendente',
+                ]);
+            }
 
             $travado->load('itens');
             $pendente = $travado->itens->sum(fn (ItemConsignado $i) => $i->quantidadePendente());
@@ -120,5 +133,11 @@ class ConverterConsignadoEmVenda
 
             return $venda->load(['itens.produto', 'cliente', 'notaNfce']);
         });
+
+        if ($emitirNfce && $venda->notaNfce) {
+            $this->emitirNfce->handle($venda->notaNfce);
+        }
+
+        return $venda->fresh(['itens.produto', 'cliente', 'notaNfce']);
     }
 }
