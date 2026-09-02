@@ -31,6 +31,8 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A11 | 31/08/2026 | e4/f6 | PDV layout desconto/pagamento; consignado no PDV; paginação+busca em listas; qtd inteira; clientes em tabela | feito | sim: tips/2026-08-31-lista-sempre-paginacao-busca.md + API-CONTRATO/UX-PROTOTIPO |
 | A12 | 31/08/2026 | e4/f6 | Valor recebido/troco e demais BRL com máscara; reforçar padrão em todos os projetos | feito | já existia: tips/2026-08-14-gestor-job-mascaras-padrao.md (reforçado: auxiliares + proibir type=number) |
 | A13 | 02/09/2026 | e4/f6 | Toggle módulo fiscal (off = venda só comprovante); tela de usuários com login sem e-mail | feito | não |
+| A14 | 02/09/2026 | e4/f6 | NF-e de saída no menu Notas (padrão Lindinha/Focus); cartão crédito/débito no PDV | feito | não |
+| A15 | 02/09/2026 | e4/f6 | ViaCEP em todo endereço + padrão KB (UX + tip) | feito | sim: tips/2026-09-02-endereco-sempre-viacep.md + UX-PROTOTIPO |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

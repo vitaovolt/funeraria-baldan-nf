@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CaixaController;
 use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\CepController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\ConfiguracaoFiscalController;
 use App\Http\Controllers\Api\ConsignadoController;
@@ -26,6 +27,8 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+
+        Route::get('/cep/{cep}', [CepController::class, 'show'])->where('cep', '[0-9.\-]{1,10}');
 
         Route::get('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'show']);
         Route::put('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'update']);
@@ -54,6 +57,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
             Route::post('/caixa/fechar', [CaixaController::class, 'fechar']);
             Route::post('/vendas/finalizar', [VendaController::class, 'finalizar']);
             Route::post('/vendas/{venda}/emitir-nfce', [VendaController::class, 'emitirNfce']);
+            Route::post('/vendas/{venda}/emitir-nfe', [VendaController::class, 'emitirNfe']);
             Route::post('/notas-nfce/{nota}/reemitir', [NotaNfceController::class, 'reemitir']);
             Route::post('/consignados', [ConsignadoController::class, 'store']);
             Route::post('/consignados/{consignado}/devolver', [ConsignadoController::class, 'devolver']);
@@ -64,6 +68,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::get('/caixa/fechamento', [CaixaController::class, 'fechamento']);
         Route::get('/caixa/vendas-do-dia', [CaixaController::class, 'vendasDoDia']);
 
+        Route::get('/vendas', [VendaController::class, 'index']);
         Route::get('/vendas/{venda}', [VendaController::class, 'show']);
         Route::get('/vendas/{venda}/comprovante', [ImpressaoController::class, 'comprovanteVenda']);
 

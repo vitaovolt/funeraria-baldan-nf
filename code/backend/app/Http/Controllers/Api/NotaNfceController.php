@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\EmitirNfceSincrono;
+use App\Actions\EmitirNfeSincrono;
 use App\Http\Controllers\Controller;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
@@ -23,6 +24,7 @@ class NotaNfceController extends Controller
         $notas = NotaNfce::query()
             ->with(['venda.cliente', 'venda.itens.produto'])
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->query('status')))
+            ->when($request->filled('tipo'), fn ($q) => $q->where('tipo', $request->query('tipo')))
             ->when($termo, function ($q) use ($termo) {
                 $q->where(function ($inner) use ($termo) {
                     if (ctype_digit((string) $termo)) {
@@ -44,7 +46,7 @@ class NotaNfceController extends Controller
         return $this->ok($nota->load(['venda.cliente', 'venda.itens.produto']));
     }
 
-    public function reemitir(NotaNfce $nota, EmitirNfceSincrono $emitir): JsonResponse
+    public function reemitir(NotaNfce $nota, EmitirNfceSincrono $emitirNfce, EmitirNfeSincrono $emitirNfe): JsonResponse
     {
         if (! ConfiguracaoFiscal::moduloAtivo()) {
             return $this->fail('Módulo fiscal desabilitado nas configurações.', [
@@ -53,14 +55,19 @@ class NotaNfceController extends Controller
         }
 
         if ($nota->status === 'autorizada') {
-            return $this->ok($nota->fresh(['venda.cliente']), 'NFC-e já autorizada');
+            return $this->ok($nota->fresh(['venda.cliente']), $nota->isNfe() ? 'NF-e já autorizada' : 'NFC-e já autorizada');
         }
 
-        $atualizada = $emitir->handle($nota);
+        $atualizada = $nota->isNfe()
+            ? $emitirNfe->handle($nota)
+            : $emitirNfce->handle($nota);
+
+        $ok = $atualizada->status === 'autorizada';
+        $rotulo = $nota->isNfe() ? 'NF-e' : 'NFC-e';
 
         return $this->ok(
             $atualizada->load(['venda.cliente', 'venda.itens.produto']),
-            $atualizada->status === 'autorizada' ? 'NFC-e autorizada' : 'NFC-e não autorizada'
+            $ok ? "{$rotulo} autorizada" : "{$rotulo} não autorizada"
         );
     }
 

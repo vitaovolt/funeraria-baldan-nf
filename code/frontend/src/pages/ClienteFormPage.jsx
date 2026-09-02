@@ -8,11 +8,29 @@ import {
   listDependentes,
   updateCliente,
 } from '../api/dominio'
+import AddressFields from '../components/AddressFields'
 import { Pagination, SearchBar } from '../components/ListToolbar'
 import { useToast } from '../context/ToastContext'
 import { metaFromResponse } from '../utils/format'
+import { maskCep } from '../utils/cepMask'
 
-const inicial = { tipo: 'pf', documento: '', nome: '', telefone: '', email: '', tem_plano: false, plano_nome: '' }
+const inicial = {
+  tipo: 'pf',
+  documento: '',
+  inscricao_estadual: '',
+  nome: '',
+  telefone: '',
+  email: '',
+  cep: '',
+  logradouro: '',
+  numero: '',
+  complemento: '',
+  bairro: '',
+  cidade: '',
+  uf: '',
+  tem_plano: false,
+  plano_nome: '',
+}
 
 export default function ClienteFormPage() {
   const { id } = useParams()
@@ -45,7 +63,15 @@ export default function ClienteFormPage() {
     if (!id) return
     getCliente(id)
       .then((cliente) => {
-        setForm(Object.fromEntries(Object.keys(inicial).map((key) => [key, cliente.data[key] ?? inicial[key]])))
+        const data = cliente.data || {}
+        setForm(
+          Object.fromEntries(
+            Object.keys(inicial).map((key) => [
+              key,
+              key === 'cep' ? maskCep(data[key] ?? '') : (data[key] ?? inicial[key]),
+            ]),
+          ),
+        )
       })
       .catch(() => toast.error('Não foi possível carregar o cliente.'))
   }, [id, toast])
@@ -140,6 +166,7 @@ export default function ClienteFormPage() {
             ['nome', 'Nome', 'text'],
             ['telefone', 'Telefone', 'tel'],
             ['email', 'E-mail', 'email'],
+            ['inscricao_estadual', 'Inscrição estadual (PJ)', 'text'],
             ['plano_nome', 'Nome do plano', 'text'],
           ].map(([nome, label, type]) => (
             <div key={nome} className="field" style={{ margin: 0 }}>
@@ -152,11 +179,17 @@ export default function ClienteFormPage() {
               />
             </div>
           ))}
-          <label className="flex items-center gap-2 text-sm font-semibold">
+          <label className="flex items-center gap-2 text-sm font-semibold md:col-span-2">
             <input type="checkbox" checked={form.tem_plano} onChange={(e) => campo('tem_plano', e.target.checked)} /> Tem
             plano
           </label>
         </div>
+
+        <section className="panel mt-4">
+          <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Endereço (obrigatório para NF-e)</h2>
+          <AddressFields values={form} onChange={campo} />
+        </section>
+
         <button className="btn btn-primary mt-4" disabled={submitting} data-testid="cliente-salvar">
           {submitting ? 'Processando…' : 'Salvar cliente'}
         </button>

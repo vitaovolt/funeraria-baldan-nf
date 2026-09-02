@@ -4,6 +4,7 @@ import {
   updateConfiguracaoFiscal,
   uploadCertificado,
 } from '../api/dominio'
+import AddressFields from '../components/AddressFields'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
@@ -17,9 +18,12 @@ const inicial = {
   ambiente_nfce: 'homologacao',
   serie_nfce: 1,
   proximo_numero_nfce: 1,
+  serie_nfe: 1,
+  proximo_numero_nfe: 1,
   uf: 'SP',
   municipio: '',
   codigo_ibge: '',
+  cep: '',
 }
 
 function maskCnpj(raw) {
@@ -97,6 +101,9 @@ export default function ConfigPage() {
         regime_tributario: form.regime_tributario || null,
         serie_nfce: Number(form.serie_nfce),
         proximo_numero_nfce: Number(form.proximo_numero_nfce),
+        serie_nfe: Number(form.serie_nfe),
+        proximo_numero_nfe: Number(form.proximo_numero_nfe),
+        cep: undefined,
       })
       toast.success('Configuração fiscal salva.')
       setForm((atual) => ({
@@ -196,13 +203,28 @@ export default function ConfigPage() {
               <input type="number" min="1" step="1" value={form.serie_nfce} onChange={(e) => campo('serie_nfce', e.target.value)} disabled={!isAdmin} />
             </div>
             <div className="field" style={{ margin: 0 }}>
-              <label>Próximo número</label>
+              <label>Próximo número NFC-e</label>
               <input
                 type="number"
                 min="1"
                 step="1"
                 value={form.proximo_numero_nfce}
                 onChange={(e) => campo('proximo_numero_nfce', e.target.value)}
+                disabled={!isAdmin}
+              />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Série NF-e</label>
+              <input type="number" min="1" step="1" value={form.serie_nfe} onChange={(e) => campo('serie_nfe', e.target.value)} disabled={!isAdmin} />
+            </div>
+            <div className="field" style={{ margin: 0 }}>
+              <label>Próximo número NF-e</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={form.proximo_numero_nfe}
+                onChange={(e) => campo('proximo_numero_nfe', e.target.value)}
                 disabled={!isAdmin}
               />
             </div>
@@ -237,23 +259,16 @@ export default function ConfigPage() {
                 <option value="lucro_real">Lucro real</option>
               </select>
             </div>
-            <div className="field" style={{ margin: 0 }}>
-              <label>Município</label>
-              <input value={form.municipio} onChange={(e) => campo('municipio', e.target.value)} disabled={!isAdmin} />
-            </div>
-            <div className="field" style={{ margin: 0 }}>
-              <label>UF</label>
-              <input value={form.uf} maxLength={2} onChange={(e) => campo('uf', e.target.value.toUpperCase())} disabled={!isAdmin} />
-            </div>
-            <div className="field" style={{ margin: 0 }}>
-              <label>Código IBGE</label>
-              <input
-                value={form.codigo_ibge}
-                onChange={(e) => campo('codigo_ibge', e.target.value.replace(/\D/g, '').slice(0, 7))}
-                disabled={!isAdmin}
-                placeholder="3517306"
-              />
-            </div>
+          </div>
+          <div className="mt-4">
+            <p className="hint mt-0 mb-2">Município / UF / IBGE — preencha pelo CEP:</p>
+            <AddressFields
+              mode="localidade"
+              includeCodigoIbge
+              values={form}
+              onChange={campo}
+              disabled={!isAdmin}
+            />
           </div>
         </section>
 

@@ -17,8 +17,11 @@ export const finalizarVenda = (payload, { idempotencyKey } = {}) =>
     })
     .then((r) => r.data)
 export const getVenda = (id) => client.get(`/vendas/${id}`).then((r) => r.data)
+export const listVendas = (params) => client.get('/vendas', { params }).then((r) => r.data)
 export const emitirNfceVenda = (id, payload = {}) =>
   client.post(`/vendas/${id}/emitir-nfce`, payload, { timeout: 120000 }).then((r) => r.data)
+export const emitirNfeVenda = (id, payload = {}) =>
+  client.post(`/vendas/${id}/emitir-nfe`, payload, { timeout: 120000 }).then((r) => r.data)
 export const listNotasNfce = (params) => client.get('/notas-nfce', { params }).then((r) => r.data)
 export const reemitirNotaNfce = (id) =>
   client.post(`/notas-nfce/${id}/reemitir`, {}, { timeout: 120000 }).then((r) => r.data)

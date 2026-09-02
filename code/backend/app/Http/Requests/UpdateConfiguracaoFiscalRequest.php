@@ -45,6 +45,8 @@ class UpdateConfiguracaoFiscalRequest extends FormRequest
             'ambiente_nfce' => ['sometimes', 'in:homologacao,producao'],
             'serie_nfce' => ['sometimes', 'integer', 'min:1'],
             'proximo_numero_nfce' => ['sometimes', 'integer', 'min:1'],
+            'serie_nfe' => ['sometimes', 'integer', 'min:1'],
+            'proximo_numero_nfe' => ['sometimes', 'integer', 'min:1'],
             'certificado_nome' => ['nullable', 'string', 'max:255'],
             'certificado_validade' => ['nullable', 'date'],
             'uf' => ['sometimes', 'nullable', 'string', 'size:2'],

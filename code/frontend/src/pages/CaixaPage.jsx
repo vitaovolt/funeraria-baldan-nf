@@ -314,7 +314,8 @@ export default function CaixaPage() {
             <p className="my-1 text-sm">Total de vendas: {money(fechamento.total_vendas)}</p>
             <p className="my-1 text-sm">
               Dinheiro {money(fechamento.totais_forma?.dinheiro)} · PIX {money(fechamento.totais_forma?.pix)} ·
-              Cartão {money(fechamento.totais_forma?.cartao)}
+              Crédito {money(fechamento.totais_forma?.cartao_credito)} · Débito{' '}
+              {money(fechamento.totais_forma?.cartao_debito)}
             </p>
             <p className="my-1 text-sm">Suprimentos: {money(fechamento.total_suprimentos)}</p>
             <p className="my-1 text-sm">Sangrias: {money(fechamento.total_sangrias)}</p>

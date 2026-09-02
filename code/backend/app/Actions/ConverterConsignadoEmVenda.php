@@ -124,6 +124,7 @@ class ConverterConsignadoEmVenda
             if ($emitirNfce) {
                 NotaNfce::query()->create([
                     'venda_id' => $venda->id,
+                    'tipo' => 'nfce',
                     'status' => 'pendente',
                 ]);
             }

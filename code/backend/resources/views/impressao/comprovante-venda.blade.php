@@ -33,7 +33,7 @@
             <tr><td>Desconto</td><td class="dir">-{{ number_format((float) $venda->subtotal - (float) $venda->total, 2, ',', '.') }}</td></tr>
         @endif
         <tr><td><strong>Total</strong></td><td class="dir"><strong>{{ number_format((float) $venda->total, 2, ',', '.') }}</strong></td></tr>
-        <tr><td>Pagamento</td><td class="dir">{{ strtoupper($venda->forma_pagamento) }}</td></tr>
+        <tr><td>Pagamento</td><td class="dir">{{ strtoupper(str_replace('_', ' ', $venda->forma_pagamento)) }}</td></tr>
         @if($venda->valor_recebido !== null)
             <tr><td>Recebido</td><td class="dir">{{ number_format((float) $venda->valor_recebido, 2, ',', '.') }}</td></tr>
             @php $troco = round((float) $venda->valor_recebido - (float) $venda->total, 2); @endphp

@@ -17,6 +17,8 @@ class ConfiguracaoFiscal extends Model
         'ambiente_nfce',
         'serie_nfce',
         'proximo_numero_nfce',
+        'serie_nfe',
+        'proximo_numero_nfe',
         'certificado_path',
         'certificado_nome',
         'certificado_validade',
@@ -31,6 +33,8 @@ class ConfiguracaoFiscal extends Model
         'ambiente_nfce' => 'homologacao',
         'serie_nfce' => 1,
         'proximo_numero_nfce' => 1,
+        'serie_nfe' => 1,
+        'proximo_numero_nfe' => 1,
         'uf' => 'SP',
         'modulo_fiscal_ativo' => false,
     ];
@@ -48,6 +52,8 @@ class ConfiguracaoFiscal extends Model
         return [
             'serie_nfce' => 'integer',
             'proximo_numero_nfce' => 'integer',
+            'serie_nfe' => 'integer',
+            'proximo_numero_nfe' => 'integer',
             'certificado_validade' => 'datetime',
             'modulo_fiscal_ativo' => 'boolean',
         ];

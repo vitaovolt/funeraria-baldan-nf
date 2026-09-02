@@ -602,7 +602,8 @@ export default function PdvPage() {
                   {[
                     ['dinheiro', 'Dinheiro'],
                     ['pix', 'PIX'],
-                    ['cartao', 'Cartão'],
+                    ['cartao_credito', 'Crédito'],
+                    ['cartao_debito', 'Débito'],
                   ].map(([value, label]) => (
                     <label key={value} className={formaPagamento === value ? 'on' : ''}>
                       <input

@@ -65,6 +65,16 @@ class Venda extends Model
 
     public function notaNfce(): HasOne
     {
-        return $this->hasOne(NotaNfce::class);
+        return $this->hasOne(NotaNfce::class)->where('tipo', 'nfce');
+    }
+
+    public function notaNfe(): HasOne
+    {
+        return $this->hasOne(NotaNfce::class)->where('tipo', 'nfe');
+    }
+
+    public function notasFiscais(): HasMany
+    {
+        return $this->hasMany(NotaNfce::class);
     }
 }

@@ -29,7 +29,7 @@ class FinalizarVendaRequest extends FormRequest
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
             'desconto_tipo' => ['sometimes', 'in:nenhum,percentual,valor'],
             'desconto_valor' => ['sometimes', 'numeric', 'min:0'],
-            'forma_pagamento' => ['sometimes', 'string', 'max:40'],
+            'forma_pagamento' => ['sometimes', 'in:dinheiro,pix,cartao,cartao_credito,cartao_debito'],
             'emitir_nfce' => ['sometimes', 'boolean'],
             'documento_nfce' => ['nullable', 'string', 'regex:/^$|^\d{11}$|^\d{14}$/'],
             'valor_recebido' => ['nullable', 'numeric', 'min:0'],

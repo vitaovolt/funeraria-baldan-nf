@@ -12,6 +12,7 @@ class NotaNfce extends Model
 
     protected $fillable = [
         'venda_id',
+        'tipo',
         'status',
         'chave',
         'numero',
@@ -26,6 +27,7 @@ class NotaNfce extends Model
 
     protected $attributes = [
         'status' => 'pendente',
+        'tipo' => 'nfce',
     ];
 
     protected function casts(): array
@@ -46,5 +48,20 @@ class NotaNfce extends Model
     public function scopePendentes(Builder $query): Builder
     {
         return $query->where('status', 'pendente');
+    }
+
+    public function scopeNfce(Builder $query): Builder
+    {
+        return $query->where('tipo', 'nfce');
+    }
+
+    public function scopeNfe(Builder $query): Builder
+    {
+        return $query->where('tipo', 'nfe');
+    }
+
+    public function isNfe(): bool
+    {
+        return $this->tipo === 'nfe';
     }
 }

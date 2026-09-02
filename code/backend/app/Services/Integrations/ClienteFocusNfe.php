@@ -23,6 +23,21 @@ class ClienteFocusNfe
             ->get('/v2/nfce/'.rawurlencode($ref));
     }
 
+    public function enviarNfe(string $ref, array $payload, string $ambiente): Response
+    {
+        $request = $this->requisicao($ambiente);
+
+        return $request->retry((int) config('focusnfe.retry', 3), 1000)
+            ->post('/v2/nfe?ref='.rawurlencode($ref), $payload);
+    }
+
+    public function consultarNfe(string $ref, string $ambiente): Response
+    {
+        return $this->requisicao($ambiente)
+            ->retry((int) config('focusnfe.retry', 3), 1000)
+            ->get('/v2/nfe/'.rawurlencode($ref));
+    }
+
     public function baixarArquivo(string $caminho, string $ambiente): ?string
     {
         if ($caminho === '') {

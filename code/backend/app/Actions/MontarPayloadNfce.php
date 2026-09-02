@@ -197,7 +197,8 @@ class MontarPayloadNfce
     {
         return match ($forma) {
             'pix' => '17',
-            'cartao' => '03',
+            'cartao', 'cartao_credito' => '03',
+            'cartao_debito' => '04',
             default => '01',
         };
     }

@@ -192,6 +192,7 @@ class FinalizarVenda
             if ($this->deveEmitir($dados)) {
                 NotaNfce::query()->create([
                     'venda_id' => $venda->id,
+                    'tipo' => 'nfce',
                     'status' => 'pendente',
                 ]);
             }
