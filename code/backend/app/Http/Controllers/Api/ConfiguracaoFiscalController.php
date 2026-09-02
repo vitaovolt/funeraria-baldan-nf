@@ -20,6 +20,13 @@ class ConfiguracaoFiscalController extends Controller
 
         $config = ConfiguracaoFiscal::query()->first();
 
+        if (! $config) {
+            return $this->ok([
+                'modulo_fiscal_ativo' => false,
+                'tem_certificado' => false,
+            ]);
+        }
+
         return $this->ok($config);
     }
 

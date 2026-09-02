@@ -16,6 +16,7 @@ import NotasPage from './pages/NotasPage'
 import PdvPage from './pages/PdvPage'
 import ProdutoFormPage from './pages/ProdutoFormPage'
 import ProdutosPage from './pages/ProdutosPage'
+import UsuariosPage from './pages/UsuariosPage'
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="/estoque" element={<EstoquePage />} />
               <Route path="/consignado" element={<ConsignadoPage />} />
               <Route path="/config" element={<ConfigPage />} />
+              <Route path="/usuarios" element={<UsuariosPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

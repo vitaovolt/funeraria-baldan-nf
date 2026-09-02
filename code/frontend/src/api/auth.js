@@ -1,8 +1,8 @@
 import client from './client'
 
-export async function login(email, password, deviceName = 'desktop') {
+export async function login(login, password, deviceName = 'desktop') {
   const { data } = await client.post('/auth/login', {
-    email,
+    login,
     password,
     device_name: deviceName,
   })

@@ -23,6 +23,7 @@ class ConfiguracaoFiscal extends Model
         'uf',
         'municipio',
         'codigo_ibge',
+        'modulo_fiscal_ativo',
     ];
 
     protected $attributes = [
@@ -31,6 +32,7 @@ class ConfiguracaoFiscal extends Model
         'serie_nfce' => 1,
         'proximo_numero_nfce' => 1,
         'uf' => 'SP',
+        'modulo_fiscal_ativo' => false,
     ];
 
     protected $hidden = [
@@ -47,11 +49,19 @@ class ConfiguracaoFiscal extends Model
             'serie_nfce' => 'integer',
             'proximo_numero_nfce' => 'integer',
             'certificado_validade' => 'datetime',
+            'modulo_fiscal_ativo' => 'boolean',
         ];
     }
 
     public function getTemCertificadoAttribute(): bool
     {
         return filled($this->attributes['certificado_path'] ?? null);
+    }
+
+    public static function moduloAtivo(): bool
+    {
+        $config = static::query()->first();
+
+        return (bool) ($config?->modulo_fiscal_ativo);
     }
 }

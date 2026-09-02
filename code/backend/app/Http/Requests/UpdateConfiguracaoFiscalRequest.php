@@ -26,6 +26,9 @@ class UpdateConfiguracaoFiscalRequest extends FormRequest
         if ($this->exists('regime_tributario') && ! $this->input('regime_tributario')) {
             $merge['regime_tributario'] = 'simples';
         }
+        if ($this->has('modulo_fiscal_ativo')) {
+            $merge['modulo_fiscal_ativo'] = filter_var($this->input('modulo_fiscal_ativo'), FILTER_VALIDATE_BOOLEAN);
+        }
         if ($merge !== []) {
             $this->merge($merge);
         }
@@ -47,6 +50,7 @@ class UpdateConfiguracaoFiscalRequest extends FormRequest
             'uf' => ['sometimes', 'nullable', 'string', 'size:2'],
             'municipio' => ['sometimes', 'nullable', 'string', 'max:120'],
             'codigo_ibge' => ['sometimes', 'nullable', 'string', 'max:7'],
+            'modulo_fiscal_ativo' => ['sometimes', 'boolean'],
         ];
     }
 

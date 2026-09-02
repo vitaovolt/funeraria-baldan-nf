@@ -182,7 +182,7 @@ class DominioApiTest extends TestCase
 
         $this->getJson('/api/v1/configuracao-fiscal')
             ->assertOk()
-            ->assertJsonPath('data', null);
+            ->assertJsonPath('data.modulo_fiscal_ativo', false);
 
         $this->putJson('/api/v1/configuracao-fiscal', [
             'razao_social' => 'Baldan Teste',

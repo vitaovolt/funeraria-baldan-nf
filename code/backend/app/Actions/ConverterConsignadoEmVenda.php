@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\ConfiguracaoFiscal;
 use App\Models\Consignado;
 use App\Models\ItemConsignado;
 use App\Models\ItemVenda;
@@ -37,6 +38,7 @@ class ConverterConsignadoEmVenda
 
         $doc = preg_replace('/\D/', '', (string) $documentoNfce) ?? '';
         $documentoNfce = $doc !== '' ? $doc : null;
+        $emitirNfce = $emitirNfce && ConfiguracaoFiscal::moduloAtivo();
 
         $venda = DB::transaction(function () use ($consignado, $usuario, $itens, $formaPagamento, $emitirNfce, $documentoNfce) {
             /** @var Consignado $travado */

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\EmitirNfceSincrono;
 use App\Http\Controllers\Controller;
+use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -45,6 +46,12 @@ class NotaNfceController extends Controller
 
     public function reemitir(NotaNfce $nota, EmitirNfceSincrono $emitir): JsonResponse
     {
+        if (! ConfiguracaoFiscal::moduloAtivo()) {
+            return $this->fail('Módulo fiscal desabilitado nas configurações.', [
+                'modulo_fiscal' => ['Habilite o módulo fiscal para emitir NFC-e.'],
+            ], 422);
+        }
+
         if ($nota->status === 'autorizada') {
             return $this->ok($nota->fresh(['venda.cliente']), 'NFC-e já autorizada');
         }

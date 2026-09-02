@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\MarcaController;
 use App\Http\Controllers\Api\MovimentacaoEstoqueController;
 use App\Http\Controllers\Api\NotaNfceController;
 use App\Http\Controllers\Api\ProdutoController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VendaController;
 use App\Http\Middleware\EnsureUserAtivo;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,8 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::get('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'show']);
         Route::put('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'update']);
         Route::post('/configuracao-fiscal/certificado', [ConfiguracaoFiscalController::class, 'uploadCertificado']);
+
+        Route::apiResource('usuarios', UserController::class);
 
         Route::apiResource('marcas', MarcaController::class);
         Route::apiResource('categorias', CategoriaController::class);

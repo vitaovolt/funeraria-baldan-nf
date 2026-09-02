@@ -25,6 +25,7 @@ class ModulosF4Test extends TestCase
             'serie_nfce' => 1,
             'proximo_numero_nfce' => 1,
             'ambiente_nfce' => 'homologacao',
+            'modulo_fiscal_ativo' => true,
         ]);
     }
 

@@ -30,6 +30,7 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A10 | 27/08/2026 | e4/f6 | Prod: não SCP de código versionado; só commit/push + CI/CD | feito | sim: tips/2026-08-27-prod-so-git-cicd.md |
 | A11 | 31/08/2026 | e4/f6 | PDV layout desconto/pagamento; consignado no PDV; paginação+busca em listas; qtd inteira; clientes em tabela | feito | sim: tips/2026-08-31-lista-sempre-paginacao-busca.md + API-CONTRATO/UX-PROTOTIPO |
 | A12 | 31/08/2026 | e4/f6 | Valor recebido/troco e demais BRL com máscara; reforçar padrão em todos os projetos | feito | já existia: tips/2026-08-14-gestor-job-mascaras-padrao.md (reforçado: auxiliares + proibir type=number) |
+| A13 | 02/09/2026 | e4/f6 | Toggle módulo fiscal (off = venda só comprovante); tela de usuários com login sem e-mail | feito | não |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

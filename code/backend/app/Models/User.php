@@ -14,6 +14,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'login',
         'email',
         'password',
         'ativo',
@@ -47,5 +48,20 @@ class User extends Authenticatable
     public function isOperador(): bool
     {
         return $this->role === 'operador';
+    }
+
+    public function scopeBusca($query, ?string $termo)
+    {
+        if ($termo === null || trim($termo) === '') {
+            return $query;
+        }
+
+        $termo = trim($termo);
+
+        return $query->where(function ($q) use ($termo) {
+            $q->where('name', 'ilike', '%'.$termo.'%')
+                ->orWhere('login', 'ilike', '%'.$termo.'%')
+                ->orWhere('email', 'ilike', '%'.$termo.'%');
+        });
     }
 }

@@ -24,6 +24,7 @@ class HardeningF5Test extends TestCase
             'serie_nfce' => 1,
             'proximo_numero_nfce' => 1,
             'ambiente_nfce' => 'homologacao',
+            'modulo_fiscal_ativo' => true,
         ]);
     }
 
@@ -38,7 +39,7 @@ class HardeningF5Test extends TestCase
             'email' => $user->email,
             'password' => 'password',
         ])->assertStatus(422)
-            ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['login']);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }

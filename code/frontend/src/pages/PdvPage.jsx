@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createConsignado } from '../api/consignado'
-import { createCliente, listClientes, listProdutos } from '../api/dominio'
+import { createCliente, getConfiguracaoFiscal, listClientes, listProdutos } from '../api/dominio'
 import { finalizarVenda, getCaixaAtual } from '../api/pdv'
 import { Pagination, SearchBar } from '../components/ListToolbar'
 import MoneyInput from '../components/MoneyInput'
@@ -43,6 +43,7 @@ export default function PdvPage() {
   const [submitting, setSubmitting] = useState(false)
   const [nfceOpen, setNfceOpen] = useState(false)
   const [documentoNfce, setDocumentoNfce] = useState('')
+  const [moduloFiscalAtivo, setModuloFiscalAtivo] = useState(false)
   const [clienteRapidoOpen, setClienteRapidoOpen] = useState(false)
   const [clienteRapido, setClienteRapido] = useState(clienteRapidoInicial)
 
@@ -60,6 +61,13 @@ export default function PdvPage() {
       })
       .catch(() => {
         if (!cancelled) navigate('/caixa')
+      })
+    getConfiguracaoFiscal()
+      .then((r) => {
+        if (!cancelled) setModuloFiscalAtivo(Boolean(r.data?.modulo_fiscal_ativo))
+      })
+      .catch(() => {
+        if (!cancelled) setModuloFiscalAtivo(false)
       })
     return () => {
       cancelled = true
@@ -206,6 +214,10 @@ export default function PdvPage() {
     if (!validarAntesDePagar()) return
     if (modo === 'consignado') {
       void onConsignar()
+      return
+    }
+    if (!moduloFiscalAtivo) {
+      void onConfirmarNfce(false, '')
       return
     }
     setDocumentoNfce(maskCpfCnpj(cliente?.documento || ''))

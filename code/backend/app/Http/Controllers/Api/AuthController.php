@@ -18,19 +18,23 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
+        $ident = $request->validated('login');
+
         $user = User::query()
-            ->where('email', $request->validated('email'))
+            ->where(function ($q) use ($ident) {
+                $q->where('login', $ident)->orWhere('email', $ident);
+            })
             ->first();
 
         if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas.'],
+                'login' => ['Credenciais inválidas.'],
             ]);
         }
 
         if (! $user->ativo) {
             throw ValidationException::withMessages([
-                'email' => ['Conta inativa.'],
+                'login' => ['Conta inativa.'],
             ]);
         }
 

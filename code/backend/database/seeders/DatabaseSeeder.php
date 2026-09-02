@@ -17,9 +17,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::query()->updateOrCreate(
-            ['email' => 'operador@baldan.local'],
+            ['login' => 'operador'],
             [
                 'name' => 'Operador Baldan',
+                'email' => 'operador@baldan.local',
                 'password' => Hash::make('password'),
                 'ativo' => true,
                 'role' => 'operador',
@@ -27,9 +28,10 @@ class DatabaseSeeder extends Seeder
         );
 
         User::query()->updateOrCreate(
-            ['email' => 'admin@baldan.local'],
+            ['login' => 'admin'],
             [
                 'name' => 'Admin Baldan',
+                'email' => 'admin@baldan.local',
                 'password' => Hash::make('password'),
                 'ativo' => true,
                 'role' => 'admin',
@@ -49,6 +51,7 @@ class DatabaseSeeder extends Seeder
                 'uf' => 'SP',
                 'municipio' => 'Sao Paulo',
                 'codigo_ibge' => '3550308',
+                'modulo_fiscal_ativo' => false,
             ]
         );
 

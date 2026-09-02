@@ -39,8 +39,8 @@ Ver [CAPABILITIES.md](CAPABILITIES.md). Resumo: **PDV + estoque + clientes + con
 - Fase F6: `04-build/phases/F6-deploy.md`
 - Deploy: `docs/DEPLOY.md`
 - FE local: http://localhost:5173/login
-- Operador: `operador@baldan.local` / `password`
-- Admin: `admin@baldan.local` / `password`
+- Operador: `operador` / `password` (também `operador@baldan.local`)
+- Admin: `admin` / `password` (também `admin@baldan.local`)
 - GitHub: https://github.com/vitaovolt/funeraria-baldan-nf
 
 ## Histórico rápido

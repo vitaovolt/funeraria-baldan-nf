@@ -5,7 +5,7 @@ import {
   devolverConsignado,
   listConsignados,
 } from '../api/consignado'
-import { listClientes, listProdutos } from '../api/dominio'
+import { listClientes, getConfiguracaoFiscal, listProdutos } from '../api/dominio'
 import { Pagination, SearchBar } from '../components/ListToolbar'
 import NfcePerguntaModal from '../components/NfcePerguntaModal'
 import { useToast } from '../context/ToastContext'
@@ -24,6 +24,7 @@ export default function ConsignadoPage() {
   const [submitting, setSubmitting] = useState('')
   const [alvoConverter, setAlvoConverter] = useState(null)
   const [documentoNfce, setDocumentoNfce] = useState('')
+  const [moduloFiscalAtivo, setModuloFiscalAtivo] = useState(false)
 
   const fetcher = useCallback((params) => listConsignados({ ...params, abertos: 1 }), [])
   const { q, setQ, setPage, items, meta, reload } = usePagedList(fetcher)
@@ -32,10 +33,12 @@ export default function ConsignadoPage() {
     Promise.all([
       listClientes({ ativo: true, per_page: 100 }),
       listProdutos({ ativo: true, per_page: 100 }),
+      getConfiguracaoFiscal().catch(() => ({ data: null })),
     ])
-      .then(([cli, prod]) => {
+      .then(([cli, prod, cfg]) => {
         setClientes(cli.data || [])
         setProdutos(prod.data || [])
+        setModuloFiscalAtivo(Boolean(cfg?.data?.modulo_fiscal_ativo))
       })
       .catch(() => toast.error('Não foi possível carregar clientes/produtos.'))
   }, [toast])
@@ -88,21 +91,30 @@ export default function ConsignadoPage() {
       toast.error('Não há itens pendentes.')
       return
     }
+    if (!moduloFiscalAtivo) {
+      void executarConversao(consignado, false, '')
+      return
+    }
     setDocumentoNfce(maskCpfCnpj(consignado.cliente?.documento || ''))
     setAlvoConverter(consignado)
   }
 
   async function confirmarConverter(emitir, documento) {
-    if (submittingRef.current || !alvoConverter) return
-    const itens = itensPendentes(alvoConverter)
+    if (!alvoConverter) return
+    await executarConversao(alvoConverter, emitir, documento)
+  }
+
+  async function executarConversao(consignado, emitir, documento) {
+    if (submittingRef.current || !consignado) return
+    const itens = itensPendentes(consignado)
     if (!itens.length) {
       toast.error('Não há itens pendentes.')
       return
     }
     submittingRef.current = true
-    setSubmitting(`converter-${alvoConverter.id}`)
+    setSubmitting(`converter-${consignado.id}`)
     try {
-      const res = await converterConsignado(alvoConverter.id, {
+      const res = await converterConsignado(consignado.id, {
         itens,
         forma_pagamento: 'dinheiro',
         emitir_nfce: emitir,

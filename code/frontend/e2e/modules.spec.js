@@ -101,6 +101,7 @@ test('F4 módulos: cadastros, estoque, consignado, caixa, config', async ({ page
   await nav(page).getByRole('link', { name: 'Config' }).click()
   await expect(page.getByTestId('page-config')).toBeVisible()
   await expect(page.getByLabel('CNPJ')).not.toHaveValue('')
+  await expect(page.getByTestId('toggle-modulo-fiscal')).toBeVisible()
   await page.getByLabel('Razão social').fill('Funeraria Baldan E2E LTDA')
   const [putRes] = await Promise.all([
     page.waitForResponse((r) => r.url().includes('/configuracao-fiscal') && r.request().method() === 'PUT'),
@@ -109,6 +110,19 @@ test('F4 módulos: cadastros, estoque, consignado, caixa, config', async ({ page
   expect(putRes.ok()).toBeTruthy()
   await expect(page.getByText(/fiscal salva/i)).toBeVisible()
 
+  await nav(page).getByRole('link', { name: 'Usuários' }).click()
+  await expect(page.getByTestId('page-usuarios')).toBeVisible()
+  await page.getByTestId('usuario-novo').click()
+  await expect(page.getByTestId('modal-usuario')).toBeVisible()
+  const loginNovo = `op${Date.now().toString().slice(-6)}`
+  await page.getByLabel('Nome').fill('Operador E2E')
+  await page.getByTestId('usuario-login').fill(loginNovo)
+  await page.getByTestId('usuario-senha').fill('senha123')
+  await page.getByTestId('usuario-salvar').click()
+  await expect(page.getByText('Usuário criado')).toBeVisible()
+  await expect(page.getByText(loginNovo)).toBeVisible()
+
+  await nav(page).getByRole('link', { name: 'Config' }).click()
   await page.locator('input[type="file"]').setInputFiles({
     name: 'dummy.pfx',
     mimeType: 'application/x-pkcs12',

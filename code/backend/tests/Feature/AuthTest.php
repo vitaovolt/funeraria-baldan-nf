@@ -28,7 +28,7 @@ class AuthTest extends TestCase
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.token_type', 'Bearer')
             ->assertJsonPath('data.user.email', 'caixa@baldan.local')
-            ->assertJsonStructure(['data' => ['token', 'token_type', 'user' => ['id', 'name', 'email']]]);
+            ->assertJsonStructure(['data' => ['token', 'token_type', 'user' => ['id', 'name', 'login', 'email']]]);
 
         $this->assertDatabaseHas('personal_access_tokens', [
             'tokenable_id' => $user->id,
@@ -47,7 +47,7 @@ class AuthTest extends TestCase
             'email' => 'caixa@baldan.local',
             'password' => 'errada',
         ])->assertStatus(422)
-            ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['login']);
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }

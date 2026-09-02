@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 
 const inicial = {
+  modulo_fiscal_ativo: false,
   razao_social: '',
   nome_fantasia: '',
   cnpj: '',
@@ -78,7 +79,7 @@ export default function ConfigPage() {
       return
     }
     if (saveRef.current) return
-    if (!form.cnpj.trim()) {
+    if (form.modulo_fiscal_ativo && !form.cnpj.trim()) {
       toast.error('Informe o CNPJ — é o que a Focus usa na emissão.')
       return
     }
@@ -87,6 +88,7 @@ export default function ConfigPage() {
     try {
       const res = await updateConfiguracaoFiscal({
         ...form,
+        modulo_fiscal_ativo: Boolean(form.modulo_fiscal_ativo),
         razao_social: form.razao_social || null,
         nome_fantasia: form.nome_fantasia || null,
         inscricao_estadual: form.inscricao_estadual || null,
@@ -97,6 +99,10 @@ export default function ConfigPage() {
         proximo_numero_nfce: Number(form.proximo_numero_nfce),
       })
       toast.success('Configuração fiscal salva.')
+      setForm((atual) => ({
+        ...atual,
+        modulo_fiscal_ativo: Boolean(res?.data?.modulo_fiscal_ativo),
+      }))
       setTemCertificado(Boolean(res?.data?.tem_certificado))
     } catch (err) {
       toast.error(erroValidacao(err))
@@ -149,6 +155,23 @@ export default function ConfigPage() {
         ) : null}
 
         <section className="panel">
+          <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Módulo fiscal</h2>
+          <p className="hint mt-0">
+            Com o módulo desligado, a venda fecha e imprime só o comprovante do sistema — sem perguntar NFC-e. Use assim
+            enquanto as notas ainda saírem pelo outro sistema, para evitar conflito de numeração.
+          </p>
+          <label className="mt-3 flex items-center gap-2 font-semibold" data-testid="toggle-modulo-fiscal">
+            <input
+              type="checkbox"
+              checked={Boolean(form.modulo_fiscal_ativo)}
+              onChange={(e) => campo('modulo_fiscal_ativo', e.target.checked)}
+              disabled={!isAdmin}
+            />
+            Habilitar emissão de NFC-e neste sistema
+          </label>
+        </section>
+
+        <section className="panel mt-4">
           <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Usado na emissão</h2>
           <p className="hint mt-0">Enviado à Focus em cada venda (CNPJ + série/número). Ambiente escolhe o token.</p>
           <div className="mt-3 grid gap-4 md:grid-cols-2">

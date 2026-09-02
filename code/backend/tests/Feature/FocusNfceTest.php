@@ -55,6 +55,7 @@ class FocusNfceTest extends TestCase
             'ambiente_nfce' => 'homologacao',
             'serie_nfce' => 1,
             'proximo_numero_nfce' => 3,
+            'modulo_fiscal_ativo' => true,
         ]);
         $produto = Produto::query()->create([
             'codigo_barras' => '7891000100059',

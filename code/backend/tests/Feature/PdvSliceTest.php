@@ -28,6 +28,7 @@ class PdvSliceTest extends TestCase
             'serie_nfce' => 1,
             'proximo_numero_nfce' => 10,
             'ambiente_nfce' => 'homologacao',
+            'modulo_fiscal_ativo' => true,
         ]);
 
         $produto = Produto::query()->create([
@@ -161,6 +162,7 @@ class PdvSliceTest extends TestCase
             'serie_nfce' => 1,
             'proximo_numero_nfce' => 1,
             'ambiente_nfce' => 'homologacao',
+            'modulo_fiscal_ativo' => true,
         ]);
         $produto = Produto::query()->create([
             'codigo_barras' => '7890000333000',

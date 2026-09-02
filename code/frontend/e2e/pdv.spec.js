@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 
-test('fluxo feliz T3–T6: caixa → PDV → pagar e emitir NFC-e', async ({ page }) => {
+test('fluxo feliz: caixa → PDV → finalizar sem NFC-e (módulo fiscal off)', async ({ page }) => {
   await page.goto('/login')
-  await page.getByTestId('login-email').fill('operador@baldan.local')
+  await page.getByTestId('login-email').fill('operador')
   await page.getByTestId('login-password').fill('password')
   await page.getByTestId('login-submit').click()
   await expect(page.getByTestId('page-home')).toBeVisible()
@@ -26,12 +26,9 @@ test('fluxo feliz T3–T6: caixa → PDV → pagar e emitir NFC-e', async ({ pag
 
   page.on('popup', (popup) => popup.close().catch(() => {}))
   await page.getByTestId('pagar-emitir').click()
-  await expect(page.getByTestId('modal-nfce')).toBeVisible()
-  await page.getByTestId('nfce-sim').click()
+  await expect(page.getByTestId('modal-nfce')).toHaveCount(0)
   await expect(page.getByTestId('toast-success')).toBeVisible({ timeout: 20_000 })
   await expect(page.getByTestId('page-pdv')).toBeVisible()
 
-  await page.getByRole('link', { name: 'Notas' }).click()
-  await expect(page.getByTestId('page-notas')).toBeVisible()
-  await expect(page.getByText(/autorizada/i).first()).toBeVisible()
+  await expect(page.getByLabel('Principal').getByRole('link', { name: 'Notas' })).toHaveCount(0)
 })

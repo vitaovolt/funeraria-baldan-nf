@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Cliente;
+use App\Models\ConfiguracaoFiscal;
 use App\Models\ItemVenda;
 use App\Models\NotaNfce;
 use App\Models\Produto;
@@ -82,6 +83,10 @@ class FinalizarVenda
      */
     private function deveEmitir(array $dados): bool
     {
+        if (! ConfiguracaoFiscal::moduloAtivo()) {
+            return false;
+        }
+
         if (! array_key_exists('emitir_nfce', $dados)) {
             return true;
         }

@@ -7,6 +7,7 @@ use App\Actions\FinalizarVenda;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EmitirNfceVendaRequest;
 use App\Http\Requests\FinalizarVendaRequest;
+use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Models\Venda;
 use App\Support\ApiResponse;
@@ -46,6 +47,12 @@ class VendaController extends Controller
 
     public function emitirNfce(EmitirNfceVendaRequest $request, Venda $venda, EmitirNfceSincrono $emitir): JsonResponse
     {
+        if (! ConfiguracaoFiscal::moduloAtivo()) {
+            return $this->fail('Módulo fiscal desabilitado nas configurações.', [
+                'modulo_fiscal' => ['Habilite o módulo fiscal para emitir NFC-e.'],
+            ], 422);
+        }
+
         $venda->load('notaNfce');
         if ($venda->notaNfce?->status === 'autorizada') {
             return $this->ok($venda->fresh(['itens.produto', 'cliente', 'notaNfce']), 'NFC-e já autorizada');

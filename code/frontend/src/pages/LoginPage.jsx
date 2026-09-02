@@ -7,7 +7,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const submittingRef = useRef(false)
-  const [email, setEmail] = useState('operador@baldan.local')
+  const [usuario, setUsuario] = useState('operador')
   const [password, setPassword] = useState('password')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -24,16 +24,16 @@ export default function LoginPage() {
     submittingRef.current = true
     setSubmitting(true)
     try {
-      await login(email.trim().toLowerCase(), password)
+      await login(usuario.trim().toLowerCase(), password)
       const to = location.state?.from?.pathname || '/'
       navigate(to, { replace: true })
     } catch (err) {
       submittingRef.current = false
       setSubmitting(false)
       const msg =
-        err.response?.data?.errors?.email?.[0] ||
+        err.response?.data?.errors?.login?.[0] ||
         err.response?.data?.message ||
-        'Não foi possível entrar. Verifique e-mail e senha.'
+        'Não foi possível entrar. Verifique usuário e senha.'
       setError(msg)
     }
   }
@@ -46,13 +46,13 @@ export default function LoginPage() {
         <p className="tagline">o melhor plano para sua família</p>
 
         <div className="field">
-          <label htmlFor="login-email">E-mail</label>
+          <label htmlFor="login-usuario">Usuário</label>
           <input
-            id="login-email"
-            type="email"
+            id="login-usuario"
+            type="text"
             autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={usuario}
+            onChange={(e) => setUsuario(e.target.value)}
             required
             data-testid="login-email"
           />
