@@ -16,6 +16,9 @@ const CARDS = [
 export default function HomePage() {
   const { user } = useAuth()
   const firstName = (user?.name || 'operador').split(' ')[0]
+  const cards = user?.role === 'admin'
+    ? [...CARDS, { to: '/logs', mark: 'L', label: 'Logs', desc: 'Quem fez o quê na plataforma' }]
+    : CARDS
 
   return (
     <div data-testid="page-home">
@@ -24,7 +27,7 @@ export default function HomePage() {
         <p>Venda de produtos, estoque e nota fiscal em um só lugar — com a identidade Baldan.</p>
       </div>
       <div className="home-cards">
-        {CARDS.map((c) => (
+        {cards.map((c) => (
           <Link key={c.to} to={c.to} className="home-card" data-testid={c.testId}>
             <div className="mark">{c.mark}</div>
             <div className="label">{c.label}</div>

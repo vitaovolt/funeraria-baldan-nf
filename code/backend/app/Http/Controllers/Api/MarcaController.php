@@ -7,6 +7,7 @@ use App\Http\Requests\StoreMarcaRequest;
 use App\Http\Requests\UpdateMarcaRequest;
 use App\Models\Marca;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,8 @@ class MarcaController extends Controller
     {
         $marca = Marca::query()->create($request->validated());
 
+        Auditoria::registrar('marca.criar', 'Criou a marca '.$marca->nome, $marca);
+
         return $this->ok($marca, 'Marca criada', 201);
     }
 
@@ -41,11 +44,14 @@ class MarcaController extends Controller
     {
         $marca->update($request->validated());
 
+        Auditoria::registrar('marca.atualizar', 'Atualizou a marca '.$marca->nome, $marca);
+
         return $this->ok($marca->fresh(), 'Marca atualizada');
     }
 
     public function destroy(Marca $marca): JsonResponse
     {
+        Auditoria::registrar('marca.excluir', 'Excluiu a marca '.$marca->nome, $marca);
         $marca->delete();
 
         return $this->ok(null, 'Marca excluída');

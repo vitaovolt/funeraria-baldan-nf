@@ -13,6 +13,7 @@ use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Models\Venda;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -63,6 +64,13 @@ class VendaController extends Controller
 
         $venda->load(['itens.produto', 'cliente', 'notaNfce', 'notaNfe']);
 
+        if (! $jaExistia) {
+            Auditoria::registrar('venda.finalizar', 'Finalizou a venda #'.$venda->id, $venda, [
+                'total' => $venda->total,
+                'forma_pagamento' => $venda->forma_pagamento,
+            ]);
+        }
+
         return $this->ok($venda, 'Venda finalizada', $jaExistia ? 200 : 201);
     }
 
@@ -97,6 +105,10 @@ class VendaController extends Controller
         ]);
 
         $nota = $emitir->handle($nota);
+
+        Auditoria::registrar('venda.emitir_nfce', 'Emitiu NFC-e da venda #'.$venda->id, $nota, [
+            'status' => $nota->status,
+        ]);
 
         return $this->ok(
             $venda->fresh(['itens.produto', 'cliente', 'notaNfce', 'notaNfe']),
@@ -146,6 +158,10 @@ class VendaController extends Controller
         }
 
         $nota = $emitir->handle($nota);
+
+        Auditoria::registrar('venda.emitir_nfe', 'Emitiu NF-e da venda #'.$venda->id, $nota, [
+            'status' => $nota->status,
+        ]);
 
         return $this->ok(
             $venda->fresh(['itens.produto', 'cliente', 'notaNfce', 'notaNfe']),

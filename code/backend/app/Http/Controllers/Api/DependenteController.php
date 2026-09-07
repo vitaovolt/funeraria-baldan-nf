@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDependenteRequest;
 use App\Models\Cliente;
 use App\Models\Dependente;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,8 @@ class DependenteController extends Controller
     {
         $dependente = $cliente->dependentes()->create($request->validated());
 
+        Auditoria::registrar('dependente.criar', 'Criou o dependente '.$dependente->nome, $dependente);
+
         return $this->ok($dependente, 'Dependente criado', 201);
     }
 
@@ -48,11 +51,14 @@ class DependenteController extends Controller
     {
         $dependente->update($request->validated());
 
+        Auditoria::registrar('dependente.atualizar', 'Atualizou o dependente '.$dependente->nome, $dependente);
+
         return $this->ok($dependente->fresh(), 'Dependente atualizado');
     }
 
     public function destroy(Dependente $dependente): JsonResponse
     {
+        Auditoria::registrar('dependente.excluir', 'Excluiu o dependente '.$dependente->nome, $dependente);
         $dependente->delete();
 
         return $this->ok(null, 'Dependente excluído');

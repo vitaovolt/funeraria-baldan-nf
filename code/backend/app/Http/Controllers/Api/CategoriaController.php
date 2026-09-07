@@ -7,6 +7,7 @@ use App\Http\Requests\StoreCategoriaRequest;
 use App\Http\Requests\UpdateCategoriaRequest;
 use App\Models\Categoria;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,8 @@ class CategoriaController extends Controller
     {
         $categoria = Categoria::query()->create($request->validated());
 
+        Auditoria::registrar('categoria.criar', 'Criou a categoria '.$categoria->nome, $categoria);
+
         return $this->ok($categoria, 'Categoria criada', 201);
     }
 
@@ -41,11 +44,14 @@ class CategoriaController extends Controller
     {
         $categoria->update($request->validated());
 
+        Auditoria::registrar('categoria.atualizar', 'Atualizou a categoria '.$categoria->nome, $categoria);
+
         return $this->ok($categoria->fresh(), 'Categoria atualizada');
     }
 
     public function destroy(Categoria $categoria): JsonResponse
     {
+        Auditoria::registrar('categoria.excluir', 'Excluiu a categoria '.$categoria->nome, $categoria);
         $categoria->delete();
 
         return $this->ok(null, 'Categoria excluída');

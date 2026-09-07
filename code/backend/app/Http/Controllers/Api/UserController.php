@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,6 +43,10 @@ class UserController extends Controller
 
         $user = User::query()->create($dados);
 
+        Auditoria::registrar('usuario.criar', 'Criou o usuário '.$user->login, $user, [
+            'role' => $user->role,
+        ]);
+
         return $this->ok(new UserResource($user), 'Usuário criado', 201);
     }
 
@@ -75,6 +80,11 @@ class UserController extends Controller
 
         $usuario->update($dados);
 
+        Auditoria::registrar('usuario.atualizar', 'Atualizou o usuário '.$usuario->login, $usuario, [
+            'role' => $usuario->role,
+            'ativo' => $usuario->ativo,
+        ]);
+
         return $this->ok(new UserResource($usuario->fresh()), 'Usuário atualizado');
     }
 
@@ -89,6 +99,7 @@ class UserController extends Controller
         }
 
         $usuario->tokens()->delete();
+        Auditoria::registrar('usuario.excluir', 'Excluiu o usuário '.$usuario->login, $usuario);
         $usuario->delete();
 
         return $this->ok(null, 'Usuário excluído');

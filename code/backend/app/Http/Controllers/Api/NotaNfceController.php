@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -64,6 +65,11 @@ class NotaNfceController extends Controller
 
         $ok = $atualizada->status === 'autorizada';
         $rotulo = $nota->isNfe() ? 'NF-e' : 'NFC-e';
+
+        Auditoria::registrar('nota.reemitir', 'Reemitiu '.$rotulo.' #'.$nota->id, $atualizada, [
+            'status' => $atualizada->status,
+            'tipo' => $nota->isNfe() ? 'nfe' : 'nfce',
+        ]);
 
         return $this->ok(
             $atualizada->load(['venda.cliente', 'venda.itens.produto']),

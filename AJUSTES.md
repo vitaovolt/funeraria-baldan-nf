@@ -33,6 +33,7 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A13 | 02/09/2026 | e4/f6 | Toggle módulo fiscal (off = venda só comprovante); tela de usuários com login sem e-mail | feito | não |
 | A14 | 02/09/2026 | e4/f6 | NF-e de saída no menu Notas (padrão Lindinha/Focus); cartão crédito/débito no PDV | feito | não |
 | A15 | 02/09/2026 | e4/f6 | ViaCEP em todo endereço + padrão KB (UX + tip) | feito | sim: tips/2026-09-02-endereco-sempre-viacep.md + UX-PROTOTIPO |
+| A16 | 07/09/2026 | e4/f6 | Logs de ações na plataforma + padrão Devkit (Postgres) | feito | sim: tips/2026-09-07-auditoria-logs-acoes-no-banco.md + AUDITORIA |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

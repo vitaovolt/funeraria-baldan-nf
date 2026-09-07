@@ -11,6 +11,7 @@ import ConsignadoPage from './pages/ConsignadoPage'
 import EstoquePage from './pages/EstoquePage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import LogsPage from './pages/LogsPage'
 import MarcasCategoriasPage from './pages/MarcasCategoriasPage'
 import NotasPage from './pages/NotasPage'
 import PdvPage from './pages/PdvPage'
@@ -47,6 +48,7 @@ export default function App() {
               <Route path="/consignado" element={<ConsignadoPage />} />
               <Route path="/config" element={<ConfigPage />} />
               <Route path="/usuarios" element={<UsuariosPage />} />
+              <Route path="/logs" element={<LogsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

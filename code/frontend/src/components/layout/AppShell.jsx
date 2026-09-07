@@ -26,6 +26,7 @@ const TITLES = {
   '/notas': 'Notas',
   '/config': 'Config',
   '/usuarios': 'Usuários',
+  '/logs': 'Logs',
 }
 
 function pageTitle(pathname) {
@@ -46,7 +47,10 @@ export default function AppShell() {
     const items = [...NAV_BASE]
     if (moduloFiscalAtivo) items.push({ to: '/notas', label: 'Notas' })
     items.push({ to: '/config', label: 'Config' })
-    if (isAdmin) items.push({ to: '/usuarios', label: 'Usuários' })
+    if (isAdmin) {
+      items.push({ to: '/usuarios', label: 'Usuários' })
+      items.push({ to: '/logs', label: 'Logs' })
+    }
     return items
   }, [moduloFiscalAtivo, isAdmin])
 

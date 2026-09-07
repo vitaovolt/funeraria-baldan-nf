@@ -122,6 +122,11 @@ test('F4 módulos: cadastros, estoque, consignado, caixa, config', async ({ page
   await expect(page.getByText('Usuário criado')).toBeVisible()
   await expect(page.getByText(loginNovo)).toBeVisible()
 
+  await nav(page).getByRole('link', { name: 'Logs' }).click()
+  await expect(page.getByTestId('page-logs')).toBeVisible()
+  await page.getByTestId('busca-log').fill(loginNovo)
+  await expect(page.getByText(new RegExp(`Criou o usuário ${loginNovo}`))).toBeVisible()
+
   await nav(page).getByRole('link', { name: 'Config' }).click()
   await page.locator('input[type="file"]').setInputFiles({
     name: 'dummy.pfx',

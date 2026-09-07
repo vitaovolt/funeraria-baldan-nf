@@ -20,6 +20,7 @@ Produto: **PDV + cadastros + estoque simples + NFC-e + consignado**.
 | T14 | Estoque — saldos + ajuste | Equipe | sim |
 | T15 | Notas NFC-e | Equipe / contador | sim |
 | T16 | Configuração empresa + A1 | Contador | sim |
+| T17 | Logs de ações | Admin | sim |
 
 ## Fora do MVP
 

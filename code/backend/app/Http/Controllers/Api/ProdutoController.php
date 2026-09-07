@@ -7,6 +7,7 @@ use App\Http\Requests\StoreProdutoRequest;
 use App\Http\Requests\UpdateProdutoRequest;
 use App\Models\Produto;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,6 +33,8 @@ class ProdutoController extends Controller
     {
         $produto = Produto::query()->create($request->validated());
 
+        Auditoria::registrar('produto.criar', 'Criou o produto '.$produto->descricao, $produto);
+
         return $this->ok($produto->load(['marca', 'categoria']), 'Produto criado', 201);
     }
 
@@ -44,11 +47,14 @@ class ProdutoController extends Controller
     {
         $produto->update($request->validated());
 
+        Auditoria::registrar('produto.atualizar', 'Atualizou o produto '.$produto->descricao, $produto);
+
         return $this->ok($produto->fresh()->load(['marca', 'categoria']), 'Produto atualizado');
     }
 
     public function destroy(Produto $produto): JsonResponse
     {
+        Auditoria::registrar('produto.excluir', 'Excluiu o produto '.$produto->descricao, $produto);
         $produto->delete();
 
         return $this->ok(null, 'Produto excluído');

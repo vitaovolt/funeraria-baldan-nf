@@ -11,6 +11,7 @@ use App\Http\Requests\DevolverConsignadoRequest;
 use App\Http\Requests\StoreConsignadoRequest;
 use App\Models\Consignado;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -52,6 +53,8 @@ class ConsignadoController extends Controller
             return $this->fail($e->getMessage(), ['consignado' => [$e->getMessage()]], 422);
         }
 
+        Auditoria::registrar('consignado.criar', 'Criou o consignado #'.$consignado->id, $consignado);
+
         return $this->ok($consignado, 'Consignado criado', 201);
     }
 
@@ -70,6 +73,8 @@ class ConsignadoController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['consignado' => [$e->getMessage()]], 422);
         }
+
+        Auditoria::registrar('consignado.devolver', 'Devolveu itens do consignado #'.$consignado->id, $atualizado);
 
         return $this->ok($atualizado, 'Devolução registrada');
     }
@@ -93,6 +98,8 @@ class ConsignadoController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['consignado' => [$e->getMessage()]], 422);
         }
+
+        Auditoria::registrar('consignado.converter', 'Converteu o consignado #'.$consignado->id.' em venda #'.$venda->id, $venda);
 
         return $this->ok($venda, 'Consignado convertido em venda', 201);
     }

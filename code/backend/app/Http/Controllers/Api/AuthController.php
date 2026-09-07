@@ -7,6 +7,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,12 +28,23 @@ class AuthController extends Controller
             ->first();
 
         if (! $user || ! Hash::check($request->validated('password'), $user->password)) {
+            Auditoria::registrar(
+                'auth.login_falhou',
+                'Tentativa de login falhou.',
+                payload: ['login' => $ident, 'motivo' => 'credenciais'],
+            );
             throw ValidationException::withMessages([
                 'login' => ['Credenciais inválidas.'],
             ]);
         }
 
         if (! $user->ativo) {
+            Auditoria::registrar(
+                'auth.login_falhou',
+                'Tentativa de login em conta inativa.',
+                payload: ['login' => $ident, 'motivo' => 'inativa'],
+                usuario: $user,
+            );
             throw ValidationException::withMessages([
                 'login' => ['Conta inativa.'],
             ]);
@@ -40,6 +52,8 @@ class AuthController extends Controller
 
         $device = $request->validated('device_name') ?: 'desktop';
         $token = $user->createToken($device)->plainTextToken;
+
+        Auditoria::registrar('auth.login', 'Entrou na plataforma.', usuario: $user);
 
         return $this->ok([
             'token' => $token,
@@ -60,6 +74,8 @@ class AuthController extends Controller
         if ($token) {
             $token->delete();
         }
+
+        Auditoria::registrar('auth.logout', 'Saiu da plataforma.');
 
         return $this->ok(null, 'Logout realizado');
     }

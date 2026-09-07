@@ -11,6 +11,7 @@ use App\Http\Requests\AbrirCaixaRequest;
 use App\Http\Requests\RegistrarSangriaRequest;
 use App\Models\SessaoCaixa;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use App\Support\ResumoCaixa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,6 +42,10 @@ class CaixaController extends Controller
             return $this->fail($e->getMessage(), ['caixa' => [$e->getMessage()]], 422);
         }
 
+        Auditoria::registrar('caixa.abrir', 'Abriu o caixa.', $caixa, [
+            'valor_abertura' => $caixa->valor_abertura,
+        ]);
+
         return $this->ok($caixa->load('usuario:id,name,email'), 'Caixa aberto', 201);
     }
 
@@ -55,6 +60,10 @@ class CaixaController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['sangria' => [$e->getMessage()]], 422);
         }
+
+        Auditoria::registrar('caixa.sangria', 'Registrou sangria de R$ '.number_format((float) $sangria->valor, 2, ',', '.'), $sangria, [
+            'valor' => $sangria->valor,
+        ]);
 
         return $this->ok($sangria->load('usuario:id,name,email'), 'Sangria registrada', 201);
     }
@@ -71,6 +80,10 @@ class CaixaController extends Controller
             return $this->fail($e->getMessage(), ['suprimento' => [$e->getMessage()]], 422);
         }
 
+        Auditoria::registrar('caixa.suprimento', 'Registrou suprimento de R$ '.number_format((float) $movimento->valor, 2, ',', '.'), $movimento, [
+            'valor' => $movimento->valor,
+        ]);
+
         return $this->ok($movimento->load('usuario:id,name,email'), 'Suprimento registrado', 201);
     }
 
@@ -81,6 +94,8 @@ class CaixaController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['caixa' => [$e->getMessage()]], 422);
         }
+
+        Auditoria::registrar('caixa.fechar', 'Fechou o caixa.', $caixa);
 
         return $this->ok($caixa, 'Caixa fechado');
     }

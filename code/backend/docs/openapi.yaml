@@ -21,6 +21,7 @@ tags:
   - name: Vendas
   - name: Fiscal
   - name: Consignado
+  - name: Auditoria
 components:
   securitySchemes:
     sanctum:
@@ -537,3 +538,35 @@ paths:
         '201': { description: Venda criada }
         '401': { description: Não autenticado }
         '422': { description: Sem caixa / validação }
+  /logs-acoes:
+    get:
+      operationId: listLogsAcoes
+      tags: [Auditoria]
+      security: [{ sanctum: [] }]
+      summary: Lista logs de ação (admin)
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: acao
+          schema: { type: string }
+        - in: query
+          name: user_id
+          schema: { type: integer }
+        - in: query
+          name: de
+          schema: { type: string, format: date }
+        - in: query
+          name: ate
+          schema: { type: string, format: date }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, default: 15, maximum: 100 }
+      responses:
+        '200': { description: Página de logs }
+        '401': { description: Não autenticado }
+        '403': { description: Operador sem permissão }

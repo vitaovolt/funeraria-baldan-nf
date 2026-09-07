@@ -7,6 +7,7 @@ use App\Http\Requests\StoreClienteRequest;
 use App\Http\Requests\UpdateClienteRequest;
 use App\Models\Cliente;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,8 @@ class ClienteController extends Controller
     {
         $cliente = Cliente::query()->create($request->validated());
 
+        Auditoria::registrar('cliente.criar', 'Criou o cliente '.$cliente->nome, $cliente);
+
         return $this->ok($cliente->load('dependentes'), 'Cliente criado', 201);
     }
 
@@ -43,11 +46,14 @@ class ClienteController extends Controller
     {
         $cliente->update($request->validated());
 
+        Auditoria::registrar('cliente.atualizar', 'Atualizou o cliente '.$cliente->nome, $cliente);
+
         return $this->ok($cliente->fresh()->load('dependentes'), 'Cliente atualizado');
     }
 
     public function destroy(Cliente $cliente): JsonResponse
     {
+        Auditoria::registrar('cliente.excluir', 'Excluiu o cliente '.$cliente->nome, $cliente);
         $cliente->delete();
 
         return $this->ok(null, 'Cliente excluído');

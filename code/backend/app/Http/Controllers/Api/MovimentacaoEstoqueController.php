@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMovimentacaoEstoqueRequest;
 use App\Models\Produto;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -43,6 +44,12 @@ class MovimentacaoEstoqueController extends Controller
         } catch (InvalidArgumentException $e) {
             return $this->fail($e->getMessage(), ['estoque' => [$e->getMessage()]], 422);
         }
+
+        Auditoria::registrar('estoque.movimentar', 'Movimentou estoque de '.$produto->descricao, $mov, [
+            'tipo' => $mov->tipo,
+            'quantidade' => $mov->quantidade,
+            'produto_id' => $produto->id,
+        ]);
 
         return $this->ok([
             'movimentacao' => $mov,

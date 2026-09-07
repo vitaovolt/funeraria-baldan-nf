@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\ConsignadoController;
 use App\Http\Controllers\Api\DependenteController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\ImpressaoController;
+use App\Http\Controllers\Api\LogAcaoController;
 use App\Http\Controllers\Api\MarcaController;
 use App\Http\Controllers\Api\MovimentacaoEstoqueController;
 use App\Http\Controllers\Api\NotaNfceController;
@@ -33,6 +34,8 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::get('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'show']);
         Route::put('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'update']);
         Route::post('/configuracao-fiscal/certificado', [ConfiguracaoFiscalController::class, 'uploadCertificado']);
+
+        Route::get('/logs-acoes', [LogAcaoController::class, 'index']);
 
         Route::apiResource('usuarios', UserController::class);
 

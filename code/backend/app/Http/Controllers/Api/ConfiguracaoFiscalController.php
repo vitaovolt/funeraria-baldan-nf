@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateConfiguracaoFiscalRequest;
 use App\Http\Requests\UploadCertificadoRequest;
 use App\Models\ConfiguracaoFiscal;
 use App\Support\ApiResponse;
+use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
@@ -51,6 +52,10 @@ class ConfiguracaoFiscalController extends Controller
             $config = $config->fresh();
         }
 
+        Auditoria::registrar('config.atualizar', 'Atualizou a configuração da empresa.', $config, [
+            'modulo_fiscal_ativo' => $config->modulo_fiscal_ativo,
+        ]);
+
         return $this->ok($config, 'Configuração fiscal atualizada');
     }
 
@@ -81,6 +86,10 @@ class ConfiguracaoFiscalController extends Controller
             'certificado_nome' => $request->validated('certificado_nome')
                 ?? $arquivo->getClientOriginalName(),
             'certificado_validade' => $request->validated('certificado_validade'),
+        ]);
+
+        Auditoria::registrar('config.certificado', 'Enviou certificado A1.', $config, [
+            'certificado_nome' => $config->certificado_nome,
         ]);
 
         return $this->ok($config->fresh(), 'Certificado A1 armazenado');
