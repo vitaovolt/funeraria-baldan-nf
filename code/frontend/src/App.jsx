@@ -13,6 +13,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import LogsPage from './pages/LogsPage'
 import MarcasCategoriasPage from './pages/MarcasCategoriasPage'
+import NfeSaidaPage from './pages/NfeSaidaPage'
 import NotasPage from './pages/NotasPage'
 import PdvPage from './pages/PdvPage'
 import ProdutoFormPage from './pages/ProdutoFormPage'
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="/caixa" element={<CaixaPage />} />
               <Route path="/pdv" element={<PdvPage />} />
               <Route path="/notas" element={<NotasPage />} />
+              <Route path="/fiscal/nfe-saida" element={<NfeSaidaPage />} />
               <Route path="/marcas-categorias" element={<MarcasCategoriasPage />} />
               <Route path="/produtos" element={<ProdutosPage />} />
               <Route path="/produtos/novo" element={<ProdutoFormPage />} />

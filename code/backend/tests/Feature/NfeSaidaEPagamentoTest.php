@@ -100,4 +100,105 @@ class NfeSaidaEPagamentoTest extends TestCase
         $this->assertSame(6, (int) ConfiguracaoFiscal::query()->first()->proximo_numero_nfe);
         $this->assertNotNull($res->json('data.nota_nfe.chave'));
     }
+
+    public function test_emite_nfe_de_saida_direto_dos_produtos(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        ConfiguracaoFiscal::query()->create([
+            'razao_social' => 'Baldan',
+            'cnpj' => '12345678000199',
+            'serie_nfe' => 1,
+            'proximo_numero_nfe' => 10,
+            'modulo_fiscal_ativo' => true,
+            'ambiente_nfce' => 'homologacao',
+        ]);
+        $cliente = Cliente::query()->create([
+            'tipo' => 'pj',
+            'documento' => '11222333000181',
+            'nome' => 'Hospital Direto',
+            'logradouro' => 'Rua das Flores',
+            'numero' => '100',
+            'bairro' => 'Centro',
+            'cidade' => 'Guariba',
+            'uf' => 'SP',
+            'cep' => '14840000',
+            'ativo' => true,
+        ]);
+        $produto = Produto::query()->create([
+            'codigo_barras' => '7890000666000',
+            'descricao' => 'Urna exportação',
+            'ncm' => '44219000',
+            'preco_venda' => 200,
+            'estoque_atual' => 4,
+        ]);
+        $this->postJson('/api/v1/caixa/abrir')->assertCreated();
+
+        $res = $this->postJson('/api/v1/nfe-saida', [
+            'cliente_id' => $cliente->id,
+            'itens' => [['produto_id' => $produto->id, 'quantidade' => 2]],
+            'forma_pagamento' => 'pix',
+        ], ['Idempotency-Key' => 'nfe-saida-produtos-1'])
+            ->assertOk()
+            ->assertJsonPath('data.nota_nfe.status', 'autorizada')
+            ->assertJsonPath('data.nota_nfe.tipo', 'nfe')
+            ->assertJsonPath('data.venda.cliente_id', $cliente->id);
+
+        $this->assertEquals(400, (float) $res->json('data.venda.total'));
+
+        $this->assertDatabaseHas('notas_nfce', [
+            'venda_id' => $res->json('data.venda.id'),
+            'tipo' => 'nfe',
+            'status' => 'autorizada',
+            'numero' => 10,
+        ]);
+        $this->assertSame(2, (int) $produto->fresh()->estoque_atual);
+        $this->assertSame(11, (int) ConfiguracaoFiscal::query()->first()->proximo_numero_nfe);
+
+        $this->postJson('/api/v1/nfe-saida', [
+            'cliente_id' => $cliente->id,
+            'itens' => [['produto_id' => $produto->id, 'quantidade' => 2]],
+            'forma_pagamento' => 'pix',
+        ], ['Idempotency-Key' => 'nfe-saida-produtos-1'])
+            ->assertOk()
+            ->assertJsonPath('data.venda.id', $res->json('data.venda.id'));
+
+        $this->assertSame(2, (int) $produto->fresh()->estoque_atual);
+    }
+
+    public function test_recusa_nfe_saida_com_modulo_desligado(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        ConfiguracaoFiscal::query()->create([
+            'razao_social' => 'Baldan',
+            'cnpj' => '12345678000199',
+            'modulo_fiscal_ativo' => false,
+        ]);
+        $cliente = Cliente::query()->create([
+            'tipo' => 'pj',
+            'documento' => '11222333000181',
+            'nome' => 'Hospital Off',
+            'logradouro' => 'Rua A',
+            'numero' => '1',
+            'bairro' => 'Centro',
+            'cidade' => 'Guariba',
+            'uf' => 'SP',
+            'cep' => '14840000',
+            'ativo' => true,
+        ]);
+        $produto = Produto::query()->create([
+            'codigo_barras' => '7890000777000',
+            'descricao' => 'Item',
+            'preco_venda' => 10,
+            'estoque_atual' => 2,
+        ]);
+        $this->postJson('/api/v1/caixa/abrir')->assertCreated();
+
+        $this->postJson('/api/v1/nfe-saida', [
+            'cliente_id' => $cliente->id,
+            'itens' => [['produto_id' => $produto->id, 'quantidade' => 1]],
+        ])->assertStatus(422)->assertJsonPath('success', false);
+
+        $this->assertSame(2, (int) $produto->fresh()->estoque_atual);
+        $this->assertDatabaseMissing('vendas', ['cliente_id' => $cliente->id]);
+    }
 }

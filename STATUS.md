@@ -6,7 +6,7 @@
 | etapa_atual | `e4` |
 | fase_e4 | `F6` |
 | status | `aguardando_aprovacao` |
-| proximo_passo | Confirmar smoke no domínio → fechar gate E4 (commit/push do código ainda pendente para CI) |
+| proximo_passo | Push para o CI/CD quando quiser a NF-e de saída no ar |
 | skill | `educraft-dev-e4-build` |
 
 ## Capacidades ativas
@@ -48,5 +48,6 @@ Ver [CAPABILITIES.md](CAPABILITIES.md). Resumo: **PDV + estoque + clientes + con
 | Data | Evento |
 |------|--------|
 | 27/08/2026 | **Smoke F5 OK · gate F5 fechado** → F6 |
+| 10/09/2026 | **Smoke A17 OK** · menu Fiscal + NF-e de saída dos produtos (Focus `/v2/nfe`) |
 | 27/08/2026 | F6 deploy self-hosted + handoff; PHP 34 + Playwright 3; `aguardando_aprovacao` |
 | 27/08/2026 | Bootstrap EC2 `34.224.58.173` + HTTPS `funerariabaldan.educraft.com.br`; health ok |

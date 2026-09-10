@@ -23,7 +23,8 @@ const TITLES = {
   '/marcas-categorias': 'Marcas',
   '/clientes': 'Clientes',
   '/estoque': 'Estoque',
-  '/notas': 'Notas',
+  '/notas': 'Fiscal',
+  '/fiscal/nfe-saida': 'NF-e saída',
   '/config': 'Config',
   '/usuarios': 'Usuários',
   '/logs': 'Logs',
@@ -45,7 +46,8 @@ export default function AppShell() {
 
   const nav = useMemo(() => {
     const items = [...NAV_BASE]
-    if (moduloFiscalAtivo) items.push({ to: '/notas', label: 'Notas' })
+    items.push({ to: '/notas', label: 'Fiscal' })
+    if (moduloFiscalAtivo) items.push({ to: '/fiscal/nfe-saida', label: 'NF-e saída' })
     items.push({ to: '/config', label: 'Config' })
     if (isAdmin) {
       items.push({ to: '/usuarios', label: 'Usuários' })

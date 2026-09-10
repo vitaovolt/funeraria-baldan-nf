@@ -30,5 +30,6 @@ test('fluxo feliz: caixa → PDV → finalizar sem NFC-e (módulo fiscal off)', 
   await expect(page.getByTestId('toast-success')).toBeVisible({ timeout: 20_000 })
   await expect(page.getByTestId('page-pdv')).toBeVisible()
 
-  await expect(page.getByLabel('Principal').getByRole('link', { name: 'Notas' })).toHaveCount(0)
+  await expect(page.getByLabel('Principal').getByRole('link', { name: 'Fiscal' })).toBeVisible()
+  await expect(page.getByLabel('Principal').getByRole('link', { name: 'NF-e saída' })).toHaveCount(0)
 })

@@ -61,6 +61,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
             Route::post('/vendas/finalizar', [VendaController::class, 'finalizar']);
             Route::post('/vendas/{venda}/emitir-nfce', [VendaController::class, 'emitirNfce']);
             Route::post('/vendas/{venda}/emitir-nfe', [VendaController::class, 'emitirNfe']);
+            Route::post('/nfe-saida', [NotaNfceController::class, 'emitirSaida']);
             Route::post('/notas-nfce/{nota}/reemitir', [NotaNfceController::class, 'reemitir']);
             Route::post('/consignados', [ConsignadoController::class, 'store']);
             Route::post('/consignados/{consignado}/devolver', [ConsignadoController::class, 'devolver']);

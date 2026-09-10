@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getConfiguracaoFiscal } from '../api/dominio'
 import { emitirNfeVenda, listNotasNfce, listVendas, reemitirNotaNfce } from '../api/pdv'
 import { Pagination, SearchBar } from '../components/ListToolbar'
@@ -120,13 +121,18 @@ export default function NotasPage() {
     <div data-testid="page-notas">
       <div className="page-head">
         <div>
-          <h1>Notas fiscais</h1>
+          <h1>Fiscal</h1>
           <p>NFC-e da venda e NF-e de saída. Reimprima o DANFE ou retente se a SEFAZ recusou.</p>
         </div>
         {moduloFiscalAtivo ? (
-          <button type="button" className="btn btn-accent" onClick={abrirModalNfe} data-testid="nova-nfe-saida">
-            Gerar NF-e de saída
-          </button>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Link to="/fiscal/nfe-saida" className="btn btn-accent" data-testid="nova-nfe-saida">
+              Gerar NF-e de saída
+            </Link>
+            <button type="button" className="btn btn-ghost" onClick={abrirModalNfe} data-testid="nfe-a-partir-venda">
+              A partir de uma venda
+            </button>
+          </div>
         ) : null}
       </div>
 

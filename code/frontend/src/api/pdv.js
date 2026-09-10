@@ -22,6 +22,13 @@ export const emitirNfceVenda = (id, payload = {}) =>
   client.post(`/vendas/${id}/emitir-nfce`, payload, { timeout: 120000 }).then((r) => r.data)
 export const emitirNfeVenda = (id, payload = {}) =>
   client.post(`/vendas/${id}/emitir-nfe`, payload, { timeout: 120000 }).then((r) => r.data)
+export const emitirNfeSaidaProdutos = (payload, { idempotencyKey } = {}) =>
+  client
+    .post('/nfe-saida', payload, {
+      headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+      timeout: 120000,
+    })
+    .then((r) => r.data)
 export const listNotasNfce = (params) => client.get('/notas-nfce', { params }).then((r) => r.data)
 export const reemitirNotaNfce = (id) =>
   client.post(`/notas-nfce/${id}/reemitir`, {}, { timeout: 120000 }).then((r) => r.data)

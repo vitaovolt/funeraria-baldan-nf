@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\EmitirNfceSincrono;
+use App\Actions\EmitirNfeSaidaProdutos;
 use App\Actions\EmitirNfeSincrono;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\EmitirNfeSaidaRequest;
 use App\Models\ConfiguracaoFiscal;
 use App\Models\NotaNfce;
 use App\Support\ApiResponse;
@@ -12,6 +14,7 @@ use App\Support\Auditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\Response;
 
 class NotaNfceController extends Controller
@@ -45,6 +48,37 @@ class NotaNfceController extends Controller
     public function show(NotaNfce $nota): JsonResponse
     {
         return $this->ok($nota->load(['venda.cliente', 'venda.itens.produto']));
+    }
+
+    public function emitirSaida(EmitirNfeSaidaRequest $request, EmitirNfeSaidaProdutos $action): JsonResponse
+    {
+        $dados = $request->validated();
+        $idemKey = $request->header('Idempotency-Key');
+        if (is_string($idemKey) && trim($idemKey) !== '') {
+            $dados['idempotency_key'] = trim($idemKey);
+        }
+
+        try {
+            $resultado = $action->handle($request->user(), $dados);
+        } catch (InvalidArgumentException $e) {
+            return $this->fail($e->getMessage(), ['nfe' => [$e->getMessage()]], 422);
+        }
+
+        $nota = $resultado['nota'];
+        $venda = $resultado['venda'];
+
+        Auditoria::registrar('nfe.emitir_saida', 'Emitiu NF-e de saída da venda #'.$venda->id, $nota, [
+            'status' => $nota->status,
+            'venda_id' => $venda->id,
+        ]);
+
+        return $this->ok(
+            [
+                'venda' => $venda,
+                'nota_nfe' => $nota,
+            ],
+            $nota->status === 'autorizada' ? 'NF-e autorizada' : 'NF-e não autorizada'
+        );
     }
 
     public function reemitir(NotaNfce $nota, EmitirNfceSincrono $emitirNfce, EmitirNfeSincrono $emitirNfe): JsonResponse
