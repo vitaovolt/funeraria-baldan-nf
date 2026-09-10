@@ -59,7 +59,7 @@ class UpdateConfiguracaoFiscalRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'cnpj.required' => 'Informe o CNPJ da empresa (usado na NFC-e).',
+            'cnpj.required' => 'Informe o CNPJ da empresa (usado na NFC-e e na NF-e).',
             'regime_tributario.in' => 'Escolha o regime: Simples, Lucro presumido ou Lucro real.',
             'uf.size' => 'UF deve ter 2 letras.',
         ];

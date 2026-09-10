@@ -7,10 +7,15 @@ test('menu Fiscal e tela de NF-e de saída dos produtos', async ({ page }) => {
   await page.getByTestId('login-submit').click()
   await expect(page.getByTestId('page-home')).toBeVisible()
 
-  await expect(page.getByLabel('Principal').getByRole('link', { name: 'Fiscal' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'NF-e saída' }).first()).toBeVisible()
+  const nav = page.getByLabel('Principal')
+  await expect(nav.getByRole('link', { name: 'Fiscal' })).toBeVisible()
+  await expect(nav.getByRole('link', { name: 'NF-e saída' })).toHaveCount(0)
 
-  await page.getByLabel('Principal').getByRole('link', { name: 'Caixa' }).click()
+  await nav.getByRole('link', { name: 'Fiscal' }).click()
+  await expect(page.getByTestId('page-notas')).toBeVisible()
+  await expect(page.getByTestId('nova-nfe-saida')).toHaveCount(0)
+
+  await nav.getByRole('link', { name: 'Caixa' }).click()
   await expect(page.getByTestId('page-caixa')).toBeVisible()
   if (await page.getByTestId('abrir-caixa').isVisible()) {
     await page.getByTestId('abrir-caixa').click()

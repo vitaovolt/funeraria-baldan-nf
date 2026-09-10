@@ -8,8 +8,7 @@ const CARDS = [
   { to: '/produtos', mark: 'P', label: 'Produtos', desc: 'Custo, preço, NCM' },
   { to: '/clientes', mark: '👤', label: 'Clientes', desc: 'Titular, dependentes e plano' },
   { to: '/estoque', mark: 'E', label: 'Estoque', desc: 'Saldos e ajustes' },
-  { to: '/notas', mark: 'N', label: 'Fiscal', desc: 'NFC-e e NF-e de saída' },
-  { to: '/fiscal/nfe-saida', mark: '55', label: 'NF-e saída', desc: 'Emitir nota dos produtos' },
+  { to: '/notas', mark: 'N', label: 'Fiscal', desc: 'Notas, NFC-e e NF-e de saída' },
   { to: '/config', mark: 'A1', label: 'Configuração', desc: 'Empresa e certificado' },
   { to: '/marcas-categorias', mark: 'M', label: 'Marcas', desc: 'Marcas e categorias' },
 ]

@@ -122,7 +122,7 @@ export default function NotasPage() {
       <div className="page-head">
         <div>
           <h1>Fiscal</h1>
-          <p>NFC-e da venda e NF-e de saída. Reimprima o DANFE ou retente se a SEFAZ recusou.</p>
+          <p>Notas emitidas. Com o módulo fiscal ligado, gere a NF-e de saída daqui.</p>
         </div>
         {moduloFiscalAtivo ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -133,7 +133,9 @@ export default function NotasPage() {
               A partir de uma venda
             </button>
           </div>
-        ) : null}
+        ) : (
+          <p className="hint m-0">Módulo fiscal desligado. Ligue em Configuração para emitir NFC-e e NF-e.</p>
+        )}
       </div>
 
       <section className="panel">

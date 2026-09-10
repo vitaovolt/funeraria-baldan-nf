@@ -35,6 +35,7 @@ Ou escreva abaixo e diga `processar ajustes funeraria-baldan-nf`.
 | A15 | 02/09/2026 | e4/f6 | ViaCEP em todo endereço + padrão KB (UX + tip) | feito | sim: tips/2026-09-02-endereco-sempre-viacep.md + UX-PROTOTIPO |
 | A16 | 07/09/2026 | e4/f6 | Logs de ações na plataforma + padrão Devkit (Postgres) | feito | sim: tips/2026-09-07-auditoria-logs-acoes-no-banco.md + AUDITORIA |
 | A17 | 10/09/2026 | e4/f6 | Menu Fiscal com opção de gerar NF-e de saída dos produtos (Focus `/v2/nfe`, padrão Lindinha) | feito | já existia: capabilities/fiscal.md + A14 |
+| A18 | 10/09/2026 | e4/f6 | Botão Gerar NF-e de saída só na tela Fiscal; texto do módulo fiscal (não só NFC-e) | feito | não |
 
 Status: `aberto` | `em_andamento` | `feito` | `descartado`
 

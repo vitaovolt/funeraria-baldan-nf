@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { getConfiguracaoFiscal } from '../../api/dominio'
 import { useAuth } from '../../context/AuthContext'
 
 const NAV_BASE = [
@@ -40,21 +39,19 @@ export default function AppShell() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [moduloFiscalAtivo, setModuloFiscalAtivo] = useState(false)
   const title = pageTitle(location.pathname)
   const isAdmin = user?.role === 'admin'
 
   const nav = useMemo(() => {
     const items = [...NAV_BASE]
     items.push({ to: '/notas', label: 'Fiscal' })
-    if (moduloFiscalAtivo) items.push({ to: '/fiscal/nfe-saida', label: 'NF-e saída' })
     items.push({ to: '/config', label: 'Config' })
     if (isAdmin) {
       items.push({ to: '/usuarios', label: 'Usuários' })
       items.push({ to: '/logs', label: 'Logs' })
     }
     return items
-  }, [moduloFiscalAtivo, isAdmin])
+  }, [isAdmin])
 
   useEffect(() => {
     setMenuOpen(false)
@@ -64,20 +61,6 @@ export default function AppShell() {
     document.body.classList.toggle('menu-open', menuOpen)
     return () => document.body.classList.remove('menu-open')
   }, [menuOpen])
-
-  useEffect(() => {
-    let alive = true
-    getConfiguracaoFiscal()
-      .then((r) => {
-        if (alive) setModuloFiscalAtivo(Boolean(r.data?.modulo_fiscal_ativo))
-      })
-      .catch(() => {
-        if (alive) setModuloFiscalAtivo(false)
-      })
-    return () => {
-      alive = false
-    }
-  }, [location.pathname])
 
   return (
     <div className="app-shell">

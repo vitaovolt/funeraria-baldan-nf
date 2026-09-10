@@ -151,7 +151,7 @@ export default function ConfigPage() {
             <h1>Configuração fiscal</h1>
             <p>
               A Focus NFe já tem empresa, certificado e CSC. Aqui o sistema só precisa do CNPJ, ambiente, série e
-              próximo número para montar a NFC-e.
+              próximo número para montar a NFC-e e a NF-e.
             </p>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function ConfigPage() {
         <section className="panel">
           <h2 className="m-0 mb-2 text-lg font-bold text-[var(--brand-primary)]">Módulo fiscal</h2>
           <p className="hint mt-0">
-            Com o módulo desligado, a venda fecha e imprime só o comprovante do sistema — sem perguntar NFC-e. Use assim
+            Com o módulo desligado, a venda fecha só com o comprovante do sistema — sem NFC-e nem NF-e. Use assim
             enquanto as notas ainda saírem pelo outro sistema, para evitar conflito de numeração.
           </p>
           <label className="mt-3 flex items-center gap-2 font-semibold" data-testid="toggle-modulo-fiscal">
@@ -174,7 +174,7 @@ export default function ConfigPage() {
               onChange={(e) => campo('modulo_fiscal_ativo', e.target.checked)}
               disabled={!isAdmin}
             />
-            Habilitar emissão de NFC-e neste sistema
+            Habilitar emissão fiscal neste sistema (NFC-e e NF-e)
           </label>
         </section>
 

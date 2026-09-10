@@ -6,7 +6,7 @@
 | etapa_atual | `e4` |
 | fase_e4 | `F6` |
 | status | `aguardando_aprovacao` |
-| proximo_passo | Acompanhar o deploy e conferir NF-e de saída em `https://funerariabaldan.educraft.com.br` |
+| proximo_passo | Conferir no domínio após o deploy: Fiscal → Gerar NF-e de saída |
 | skill | `educraft-dev-e4-build` |
 
 ## Capacidades ativas
@@ -49,6 +49,7 @@ Ver [CAPABILITIES.md](CAPABILITIES.md). Resumo: **PDV + estoque + clientes + con
 | Data | Evento |
 |------|--------|
 | 27/08/2026 | **Smoke F5 OK · gate F5 fechado** → F6 |
+| 10/09/2026 | **A18:** botão Gerar NF-e só na tela Fiscal; texto do módulo fiscal · push |
 | 10/09/2026 | **Push A17** `774cd27` → `origin/main` (CI/CD) |
 | 10/09/2026 | **Smoke A17 OK** · menu Fiscal + NF-e de saída dos produtos (Focus `/v2/nfe`) |
 | 27/08/2026 | F6 deploy self-hosted + handoff; PHP 34 + Playwright 3; `aguardando_aprovacao` |

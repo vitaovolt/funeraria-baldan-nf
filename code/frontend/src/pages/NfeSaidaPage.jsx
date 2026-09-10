@@ -198,7 +198,7 @@ export default function NfeSaidaPage() {
           <p>Escolha o destinatário e os produtos. A nota (modelo 55) vai para a Focus/SEFAZ.</p>
         </div>
         <Link to="/notas" className="btn btn-ghost">
-          Ver notas
+          Voltar ao Fiscal
         </Link>
       </div>
 
