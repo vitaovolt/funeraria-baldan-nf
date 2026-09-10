@@ -6,7 +6,7 @@
 | etapa_atual | `e4` |
 | fase_e4 | `F6` |
 | status | `aguardando_aprovacao` |
-| proximo_passo | Push para o CI/CD quando quiser a NF-e de saída no ar |
+| proximo_passo | Acompanhar o deploy e conferir NF-e de saída em `https://funerariabaldan.educraft.com.br` |
 | skill | `educraft-dev-e4-build` |
 
 ## Capacidades ativas
@@ -32,7 +32,8 @@ Ver [CAPABILITIES.md](CAPABILITIES.md). Resumo: **PDV + estoque + clientes + con
 - [x] LESSONS + sync
 - [x] App no ar em `https://funerariabaldan.educraft.com.br` (health + HTTPS)
 - [x] Runner self-hosted + Deploy Key + `DEPLOY_PATH`
-- [ ] Smoke operador (login SPA) + commit/push do código para o loop CI/CD
+- [x] Commit/push do código para o loop CI/CD (`774cd27` em `origin/main`)
+- [ ] Conferir no domínio após o deploy (menu Fiscal + NF-e saída)
 
 ## Links úteis
 
@@ -48,6 +49,7 @@ Ver [CAPABILITIES.md](CAPABILITIES.md). Resumo: **PDV + estoque + clientes + con
 | Data | Evento |
 |------|--------|
 | 27/08/2026 | **Smoke F5 OK · gate F5 fechado** → F6 |
+| 10/09/2026 | **Push A17** `774cd27` → `origin/main` (CI/CD) |
 | 10/09/2026 | **Smoke A17 OK** · menu Fiscal + NF-e de saída dos produtos (Focus `/v2/nfe`) |
 | 27/08/2026 | F6 deploy self-hosted + handoff; PHP 34 + Playwright 3; `aguardando_aprovacao` |
 | 27/08/2026 | Bootstrap EC2 `34.224.58.173` + HTTPS `funerariabaldan.educraft.com.br`; health ok |
