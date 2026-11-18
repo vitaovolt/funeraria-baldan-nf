@@ -249,8 +249,9 @@ class MontarPayloadNfceTest extends TestCase
         $payload = app(MontarPayloadNfce::class)->handle($venda->fresh(['itens.produto', 'cliente']), $config, 1, 1);
 
         $this->assertSame('68319748000195', $payload['cnpj_destinatario']);
-        $this->assertSame('SP', $payload['uf']);
-        $this->assertSame('GUATAPARA', $payload['municipio']);
+        $this->assertSame('SP', $payload['uf_destinatario']);
+        $this->assertSame('GUATAPARA', $payload['municipio_destinatario']);
+        $this->assertArrayNotHasKey('municipio', $payload);
         $this->assertSame('MUNICIPIO DE GUATAPARA', $payload['nome_destinatario']);
     }
 }

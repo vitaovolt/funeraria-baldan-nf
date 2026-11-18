@@ -124,15 +124,32 @@ class MontarPayloadNfce
             $payload['nome_destinatario'] = $nome;
         }
 
-        foreach (['logradouro', 'numero', 'complemento', 'bairro', 'municipio', 'uf', 'cep'] as $campo) {
-            $valor = trim((string) ($cadastro[$campo] ?? ''));
+        $mapa = [
+            'logradouro' => 'logradouro_destinatario',
+            'numero' => 'numero_destinatario',
+            'complemento' => 'complemento_destinatario',
+            'bairro' => 'bairro_destinatario',
+            'municipio' => 'municipio_destinatario',
+            'codigo_municipio' => 'codigo_municipio_destinatario',
+            'uf' => 'uf_destinatario',
+            'cep' => 'cep_destinatario',
+        ];
+
+        foreach ($mapa as $origem => $destino) {
+            $valor = trim((string) ($cadastro[$origem] ?? ''));
+            if ($origem === 'uf') {
+                $valor = strtoupper($valor);
+            }
+            if ($origem === 'codigo_municipio' && strlen(preg_replace('/\D/', '', $valor) ?? '') !== 7) {
+                continue;
+            }
             if ($valor !== '') {
-                $payload[$campo] = $campo === 'uf' ? strtoupper($valor) : $valor;
+                $payload[$destino] = $valor;
             }
         }
 
-        if (trim((string) ($payload['logradouro'] ?? '')) !== '' && trim((string) ($payload['numero'] ?? '')) === '') {
-            $payload['numero'] = 'S/N';
+        if (trim((string) ($payload['logradouro_destinatario'] ?? '')) !== '' && trim((string) ($payload['numero_destinatario'] ?? '')) === '') {
+            $payload['numero_destinatario'] = 'S/N';
         }
     }
 

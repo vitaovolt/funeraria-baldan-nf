@@ -22,6 +22,7 @@ class ConsultarCnpj
      *   complemento: string,
      *   bairro: string,
      *   municipio: string,
+     *   codigo_municipio: string,
      *   uf: string,
      *   cep: string
      * }
@@ -52,16 +53,37 @@ class ConsultarCnpj
             throw new InvalidArgumentException('O cadastro deste CNPJ não trouxe a UF. Dados inválidos para a NFC-e.');
         }
 
+        $codigo = preg_replace('/\D/', '', (string) ($dados['codigo_municipio_ibge'] ?? '')) ?? '';
+
         return [
             'cnpj' => $cnpj,
             'nome' => trim((string) ($dados['razao_social'] ?? '')),
-            'logradouro' => trim((string) ($dados['logradouro'] ?? '')),
+            'logradouro' => $this->logradouro($dados),
             'numero' => trim((string) ($dados['numero'] ?? '')),
             'complemento' => trim((string) ($dados['complemento'] ?? '')),
             'bairro' => trim((string) ($dados['bairro'] ?? '')),
             'municipio' => trim((string) ($dados['municipio'] ?? '')),
+            'codigo_municipio' => strlen($codigo) === 7 ? $codigo : '',
             'uf' => $uf,
             'cep' => preg_replace('/\D/', '', (string) ($dados['cep'] ?? '')) ?? '',
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $dados
+     */
+    private function logradouro(array $dados): string
+    {
+        $tipo = trim((string) ($dados['descricao_tipo_de_logradouro'] ?? ''));
+        $nome = trim((string) ($dados['logradouro'] ?? ''));
+        if ($tipo === '' || $nome === '') {
+            return $nome;
+        }
+
+        if (str_starts_with(mb_strtoupper($nome), mb_strtoupper($tipo))) {
+            return $nome;
+        }
+
+        return $tipo.' '.$nome;
     }
 }
