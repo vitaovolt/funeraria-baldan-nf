@@ -760,6 +760,27 @@ table.data .actions {
   gap: 8px;
   margin-top: 16px;
 }
+.cnpj-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cnpj-linha input {
+  flex: 1;
+  min-width: 0;
+}
+.cnpj-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d1d5db;
+  border-top-color: var(--brand-primary-mid, #1f4b3a);
+  border-radius: 999px;
+  animation: cnpj-spin 0.7s linear infinite;
+  flex: none;
+}
+@keyframes cnpj-spin {
+  to { transform: rotate(360deg); }
+}
 
 @media print {
   .modal-backdrop {

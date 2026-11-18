@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CaixaController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\CepController;
+use App\Http\Controllers\Api\CnpjController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\ConfiguracaoFiscalController;
 use App\Http\Controllers\Api\ConsignadoController;
@@ -30,6 +31,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
 
         Route::get('/cep/{cep}', [CepController::class, 'show'])->where('cep', '[0-9.\-]{1,10}');
+        Route::get('/cnpj/{cnpj}', [CnpjController::class, 'show'])->where('cnpj', '[0-9]{1,18}');
 
         Route::get('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'show']);
         Route::put('/configuracao-fiscal', [ConfiguracaoFiscalController::class, 'update']);

@@ -7,6 +7,10 @@ use App\Models\Venda;
 
 class MontarPayloadNfce
 {
+    public function __construct(private ConsultarCnpj $consultarCnpj)
+    {
+    }
+
     private const NOME_HOMOLOGACAO = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
 
     private const ITEM_HOMOLOGACAO = 'NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
@@ -97,7 +101,7 @@ class MontarPayloadNfce
         if (strlen($doc) === 11) {
             $payload['cpf_destinatario'] = $doc;
         } elseif (strlen($doc) >= 14) {
-            $payload['cnpj_destinatario'] = $doc;
+            $payload['cnpj_destinatario'] = substr($doc, 0, 14);
         } else {
             return;
         }
@@ -105,6 +109,31 @@ class MontarPayloadNfce
         $payload['nome_destinatario'] = $homologacao
             ? self::NOME_HOMOLOGACAO
             : ($venda->cliente?->nome ?: self::NOME_CONSUMIDOR);
+
+        if (! isset($payload['cnpj_destinatario'])) {
+            return;
+        }
+
+        $cadastro = $venda->getAttribute('cadastro_cnpj_nfce');
+        if (! is_array($cadastro) || trim((string) ($cadastro['uf'] ?? '')) === '') {
+            $cadastro = $this->consultarCnpj->handle((string) $payload['cnpj_destinatario']);
+        }
+
+        $nome = trim((string) ($cadastro['nome'] ?? ''));
+        if (! $homologacao && $nome !== '') {
+            $payload['nome_destinatario'] = $nome;
+        }
+
+        foreach (['logradouro', 'numero', 'complemento', 'bairro', 'municipio', 'uf', 'cep'] as $campo) {
+            $valor = trim((string) ($cadastro[$campo] ?? ''));
+            if ($valor !== '') {
+                $payload[$campo] = $campo === 'uf' ? strtoupper($valor) : $valor;
+            }
+        }
+
+        if (trim((string) ($payload['logradouro'] ?? '')) !== '' && trim((string) ($payload['numero'] ?? '')) === '') {
+            $payload['numero'] = 'S/N';
+        }
     }
 
     /**

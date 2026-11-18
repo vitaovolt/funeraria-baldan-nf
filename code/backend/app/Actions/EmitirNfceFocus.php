@@ -14,6 +14,7 @@ class EmitirNfceFocus
     public function __construct(
         private ClienteFocusNfe $cliente,
         private MontarPayloadNfce $montarPayload,
+        private ConsultarCnpj $consultarCnpj,
     ) {}
 
     public function handle(NotaNfce $nota): NotaNfce
@@ -30,6 +31,7 @@ class EmitirNfceFocus
 
         $ambiente = $config->ambiente_nfce === 'producao' ? 'producao' : 'homologacao';
         $serie = (int) ($config->serie_nfce ?: 1);
+        $this->prepararCadastroCnpj($nota);
 
         return Cache::lock('nfce_numero_'.$serie, 30)->block(10, function () use ($nota, $config, $ambiente, $serie) {
             $config = ConfiguracaoFiscal::query()->lockForUpdate()->firstOrFail();
@@ -69,6 +71,24 @@ class EmitirNfceFocus
 
             return $this->persistirRetorno($nota, $dados, $ambiente);
         });
+    }
+
+    private function prepararCadastroCnpj(NotaNfce $nota): void
+    {
+        $venda = $nota->venda;
+        if (! $venda) {
+            return;
+        }
+
+        $doc = preg_replace('/\D/', '', (string) $venda->documento_destinatario_nfce) ?? '';
+        if ($doc === '') {
+            $doc = preg_replace('/\D/', '', (string) $venda->cliente?->documento) ?? '';
+        }
+        if (strlen($doc) !== 14) {
+            return;
+        }
+
+        $venda->setAttribute('cadastro_cnpj_nfce', $this->consultarCnpj->handle($doc));
     }
 
     /** @param  array<string, mixed>  $dados */

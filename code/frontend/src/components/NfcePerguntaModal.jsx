@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { consultarCnpj } from '../api/cnpj'
 import { maskCpfCnpj, soDigitos } from '../utils/impressao'
 
 export default function NfcePerguntaModal({
@@ -8,6 +10,34 @@ export default function NfcePerguntaModal({
   onConfirmar,
   onCancelar,
 }) {
+  const [consultando, setConsultando] = useState(false)
+  const [erroConsulta, setErroConsulta] = useState('')
+
+  useEffect(() => {
+    if (!open) return undefined
+    const digitos = soDigitos(documento)
+    if (digitos.length !== 14) {
+      setConsultando(false)
+      setErroConsulta('')
+      return undefined
+    }
+
+    let ativo = true
+    setConsultando(true)
+    setErroConsulta('')
+    consultarCnpj(digitos)
+      .catch(() => {
+        if (ativo) setErroConsulta('Não foi possível consultar este CNPJ.')
+      })
+      .finally(() => {
+        if (ativo) setConsultando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [documento, open])
+
   if (!open) return null
 
   return (
@@ -26,21 +56,25 @@ export default function NfcePerguntaModal({
         </p>
         <div className="field">
           <label htmlFor="cpf-nfce">CPF/CNPJ do consumidor (opcional)</label>
-          <input
-            id="cpf-nfce"
-            value={documento}
-            onChange={(e) => onDocumento(maskCpfCnpj(e.target.value))}
-            placeholder="Deixe em branco para consumidor não identificado"
-            autoComplete="off"
-            disabled={submitting}
-            data-testid="cpf-nfce"
-          />
+          <div className="cnpj-linha">
+            <input
+              id="cpf-nfce"
+              value={documento}
+              onChange={(e) => onDocumento(maskCpfCnpj(e.target.value))}
+              placeholder="Deixe em branco para consumidor não identificado"
+              autoComplete="off"
+              disabled={submitting}
+              data-testid="cpf-nfce"
+            />
+            {consultando ? <span className="cnpj-spinner" role="status" aria-label="Consultando CNPJ" /> : null}
+          </div>
+          {erroConsulta ? <p className="hint">{erroConsulta}</p> : null}
         </div>
         <div className="modal-actions">
           <button
             type="button"
             className="btn btn-accent w-full"
-            disabled={submitting}
+            disabled={submitting || consultando}
             onClick={() => onConfirmar(true, soDigitos(documento))}
             data-testid="nfce-sim"
           >
